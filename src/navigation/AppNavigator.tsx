@@ -1,39 +1,37 @@
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import AuthNavigator from './AuthNavigator';
+import MainTabNavigator from './MainTabNavigator';
+import { View, ActivityIndicator } from 'react-native';
 
-import HomeScreen from "../screens/HomeScreen";
-import ProblemDetailScreen from "../screens/ProblemDetailScreen";
-import ProblemsScreen from "../screens/ProblemsScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+export default function AppNavigator() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-export type RootStackParamList = {
-    Home: undefined;
-    Problems: undefined;
-    ProblemDetail: { id: string };
-    Profile: undefined;
-};
+  useEffect(() => {
+    // T-FE-008: Simulación de carga persistente de sesión (e.g. validación de token local)
+    const checkAuthStatus = async () => {
+      // TODO: Usar el servicio de storage definido en especificaciones
+      setTimeout(() => {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+      }, 500);
+    };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+    checkAuthStatus();
+  }, []);
 
-type AppNavigatorProps = {
-    initialRouteName?: keyof RootStackParamList;
-};
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
-export default function AppNavigator({ initialRouteName = "Home" }: AppNavigatorProps) {
-return (
+  return (
     <NavigationContainer>
-        <Stack.Navigator
-        initialRouteName={initialRouteName}
-        screenOptions={{
-            headerTitleAlign: "center",
-        }}
-        >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Problems" component={ProblemsScreen} />
-        <Stack.Screen name="ProblemDetail" component={ProblemDetailScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        </Stack.Navigator>
+      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
     </NavigationContainer>
-);
+  );
 }
