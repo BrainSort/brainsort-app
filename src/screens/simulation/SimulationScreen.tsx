@@ -30,11 +30,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
   KeyboardAvoidingView,
-  Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -295,19 +292,18 @@ export default function SimulationScreen({ navigation, route }: Props) {
   const {
     steps,
     currentStep,
-    isComplayed: isPlaying,
+    isComplaying: isPlaying,
     speed,
     isCompleted,
     play,
     pause,
-    togglePlayPause,
     nextStep,
     previousStep,
     setSpeed,
     resetSimulation,
   } = useSimulation();
   const { executeAlgorithm, isExecuting } = useSimulationEngine();
-  const { generateDefault, validateDataset, lastError: datasetError } = useDataset();
+  const { generateDefault, validateDataset } = useDataset();
   useAnimationController(); // RAF loop — maneja avance automático de frames
 
   // ─── Estado local ─────────────────────────────────────────────────────────

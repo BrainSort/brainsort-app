@@ -178,7 +178,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     <View style={styles.container}>
       {/* Banner de completado */}
       {isCompleted && (
-        <View style={styles.completedBanner} accessibilityRole="status">
+        <View style={styles.completedBanner} accessibilityRole="text">
           <Text>✅</Text>
           <Text style={styles.completedText}>¡Algoritmo completado!</Text>
         </View>

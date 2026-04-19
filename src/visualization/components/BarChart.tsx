@@ -68,7 +68,6 @@ const SingleBar: React.FC<SingleBarProps> = ({
   width,
 }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
-  const colorAnim = useRef(new Animated.Value(0)).current;
 
   const barHeight = Math.max(4, (value / maxValue) * availableHeight * 0.9);
 
