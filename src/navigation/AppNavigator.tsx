@@ -1,37 +1,96 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * AppNavigator.tsx
+ * BrainSort — Navigator raíz con manejo de sesión
+ *
+ * task_breakdown.md T-FE-088
+ *
+ * Responsabilidades:
+ *   1. Llama restoreSession() al montar — intenta recuperar sesión guardada
+ *   2. Escucha isAuthenticated del AuthContext
+ *   3. Muestra AuthNavigator cuando no hay sesión
+ *   4. Muestra MainTabNavigator cuando hay sesión activa
+ *   5. Muestra SplashLoader mientras carga la sesión
+ *
+ * Referencia: architecture-auth.spec.md §3.1 «Restore session»
+ *             02-frontend-app.md §6 Navegación
+ */
+
+import React, { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
-import { View, ActivityIndicator } from 'react-native';
+import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../context/AuthContext';
+import { useApiTokenSync } from '../services/api';
+import { DarkSurfaces, DarkText, Accent } from '../styles/colors';
+import { FontFamilies, FontSizes } from '../styles/typography';
 
-export default function AppNavigator() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+// ─── Estilos ──────────────────────────────────────────────────────────────────
 
+const styles = StyleSheet.create({
+  splash: {
+    flex: 1,
+    backgroundColor: DarkSurfaces.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 20,
+  },
+  splashLogo: { fontSize: 56 },
+  splashText: {
+    fontFamily: FontFamilies.semiBold,
+    fontSize: FontSizes.lg,
+    color: DarkText.muted,
+  },
+});
+
+// ─── Splash loader ────────────────────────────────────────────────────────────
+
+function SplashLoader() {
+  return (
+    <View style={styles.splash}>
+      <Text style={styles.splashLogo}>⇅</Text>
+      <ActivityIndicator color={Accent[500]} size="large" />
+      <Text style={styles.splashText}>Cargando BrainSort…</Text>
+    </View>
+  );
+}
+
+// ─── Root navigator ───────────────────────────────────────────────────────────
+
+function RootNavigator() {
+  const { restoreSession } = useAuth();
+  const { isAuthenticated, isLoading } = useAuthContext();
+
+  // Sincroniza token del contexto con el cliente HTTP
+  useApiTokenSync();
+
+  // Al montar, intentar restaurar sesión desde almacenamiento persistente
   useEffect(() => {
-    // T-FE-008: Simulación de carga persistente de sesión (e.g. validación de token local)
-    const checkAuthStatus = async () => {
-      // TODO: Usar el servicio de storage definido en especificaciones
-      setTimeout(() => {
-        setIsAuthenticated(false);
-        setIsLoading(false);
-      }, 500);
-    };
-
-    checkAuthStatus();
+    restoreSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Mientras se restaura la sesión, mostrar splash
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <SplashLoader />;
   }
 
+  return isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />;
+}
+
+// ─── AppNavigator ─────────────────────────────────────────────────────────────
+
+/**
+ * Punto de entrada de navegación. Envuelve todo en NavigationContainer.
+ * Los providers (AuthProvider, QueryClientProvider) deben estar en App.tsx
+ * por encima de este componente.
+ */
+export default function AppNavigator() {
   return (
     <NavigationContainer>
-      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
+      <RootNavigator />
     </NavigationContainer>
   );
 }
