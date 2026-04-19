@@ -13,10 +13,10 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LibraryScreen from '../screens/library/LibraryScreen';
 import AlgorithmDetailScreen from '../screens/library/AlgorithmDetailScreen';
+import SimulationScreen from '../screens/simulation/SimulationScreen';
 import { DarkSurfaces, DarkText } from '../styles/colors';
 import { FontFamilies, FontWeights, FontSizes } from '../styles/typography';
 
@@ -27,32 +27,6 @@ export type LibraryStackParamList = {
   AlgorithmDetail: { algoritmoId: string };
   Simulation: { algoritmoId: string };
 };
-
-// ─── Placeholder de Simulación ────────────────────────────────────────────────
-
-/** Pantalla placeholder hasta que se implemente SimulationScreen (Fase 5) */
-const SimulationPlaceholder = () => (
-  <View style={placeholderStyles.container}>
-    <Text style={placeholderStyles.icon}>⚙️</Text>
-    <Text style={placeholderStyles.text}>Simulación — Próximamente</Text>
-  </View>
-);
-
-const placeholderStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: DarkSurfaces.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  icon: { fontSize: 48 },
-  text: {
-    fontFamily: FontFamilies.medium,
-    fontSize: FontSizes.lg,
-    color: DarkText.muted,
-  },
-});
 
 // ─── Navegador ────────────────────────────────────────────────────────────────
 
@@ -91,7 +65,7 @@ export default function LibraryStackNavigator() {
       />
       <Stack.Screen
         name="Simulation"
-        component={SimulationPlaceholder}
+        component={SimulationScreen}
         options={{ title: 'Simulación' }}
       />
     </Stack.Navigator>
