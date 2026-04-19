@@ -6,6 +6,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@brainsort/core": [
+        "packages/core/src/index.ts"
       ]
     }
   },
