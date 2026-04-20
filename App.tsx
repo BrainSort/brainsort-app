@@ -14,19 +14,15 @@ import { AuthProvider } from './src/context/AuthContext';
 import { SimulationProvider } from './src/context/SimulationContext';
 import AppNavigator from './src/navigation/AppNavigator';
 
-// ─── TanStack Query config ────────────────────────────────────────────────────
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,   // 5 min cache por defecto
+      staleTime: 1000 * 60 * 5,
       retry: 2,
       refetchOnWindowFocus: false,
     },
   },
 });
-
-// ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App() {
   return (
