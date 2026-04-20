@@ -29,7 +29,7 @@ import {
 } from 'react-native';
 import { colors } from '../../styles/colors';
 import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
+import { TextVariants, FontSizes, FontFamilies, FontWeights } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ const getVariantStyles = (
   };
 
   const baseText: TextStyle = {
-    ...typography.button,
+    ...TextVariants.labelMd,
     fontWeight: '600',
   };
 

@@ -262,21 +262,9 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
 
   // Get mock exercises based on algorithm name
   const ejercicios: Ejercicio[] = useMemo(() => {
-    console.log('ExerciseScreen - algoritmoId:', algoritmoId);
-    console.log('ExerciseScreen - algoritmo:', algoritmo);
-    console.log('ExerciseScreen - algoritmo.nombre:', algoritmo?.nombre);
-    console.log('ExerciseScreen - MOCK_EXERCISES keys:', Object.keys(MOCK_EXERCISES));
-    
-    if (!algoritmo?.nombre) {
-      console.log('ExerciseScreen - No algorithm name found');
-      return [];
-    }
-    
-    const exercises = MOCK_EXERCISES[algoritmo.nombre] || [];
-    console.log('ExerciseScreen - Found exercises:', exercises);
-    
-    return exercises;
-  }, [algoritmo?.nombre, algoritmoId]);
+    if (!algoritmo?.nombre) return [];
+    return MOCK_EXERCISES[algoritmo.nombre] || [];
+  }, [algoritmo?.nombre]);
 
   const handleResponderEjercicio = async (ejercicioId: string, respuesta: string) => {
     setIsSubmittingAnswer(true);
