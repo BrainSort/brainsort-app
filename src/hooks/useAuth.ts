@@ -414,22 +414,14 @@ export function useAuth(): UseAuthReturn {
       const storedTokens = await getStoredTokens();
       const storedUserData = await getStoredUser();
 
-      if (!storedTokens || !storedUserData) {
-        // No hay sesión anterior
-        clearAuth();
-        setLoading(false);
-        return;
+      // Temporarily disable session restore to force login screen
+      // TODO: Re-enable this after testing
+      if (storedTokens && storedUserData) {
+        // Forzar logout para mostrar login
+        await deleteStoredTokens();
       }
 
-      // Establecer token para futuras peticiones
-      apiClient.setAuthToken(storedTokens.accessToken);
-
-      // Actualizar contexto con sesión restaurada
-      setAuth(
-        storedUserData.usuario,
-        storedTokens,
-        storedUserData.tipo,
-      );
+      clearAuth();
     } catch (err) {
       console.error('Error restoring session:', err);
       clearAuth();
@@ -442,6 +434,7 @@ export function useAuth(): UseAuthReturn {
     setAuth,
     clearAuth,
     setLoading,
+    deleteStoredTokens,
   ]);
 
   // ─── Retorno ──────────────────────────────────────────────────────────────
