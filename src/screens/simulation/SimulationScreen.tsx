@@ -213,6 +213,23 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: DarkText.secondary,
   },
+  practiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.md,
+    borderWidth: BorderWidths.thin,
+    borderColor: Accent[500],
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+  },
+  practiceButtonText: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.sm,
+    color: Accent[500],
+  },
   inputErrorText: {
     fontFamily: FontFamilies.regular,
     fontSize: FontSizes.xs,
@@ -547,6 +564,18 @@ export default function SimulationScreen({ navigation, route }: Props) {
           >
             <Text style={{ fontSize: 16 }}>🎲</Text>
             <Text style={styles.generateButtonText}>Generar nuevos datos</Text>
+          </TouchableOpacity>
+
+          {/* Botón Practicar */}
+          <TouchableOpacity
+            style={styles.practiceButton}
+            onPress={() => navigation.navigate('Exercise', { algoritmoId })}
+            accessibilityRole="button"
+            accessibilityLabel="Ir a ejercicios de práctica"
+            testID="btn-practice"
+          >
+            <Text style={{ fontSize: 16 }}>📝</Text>
+            <Text style={styles.practiceButtonText}>Practicar</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -52,14 +52,11 @@ import {
 } from '@brainsort/core';
 import type { SortEngine, SimulationStep } from '@brainsort/core';
 import type { OperationType } from '../../types/simulation';
+import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-interface ExerciseScreenParams {
-  algoritmoId?: string;
-}
-
-type Props = NativeStackScreenProps<any, 'Exercise'>;
+type Props = NativeStackScreenProps<LibraryStackParamList, 'Exercise'>;
 
 const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
   'Bubble Sort': BubbleSortEngine,
