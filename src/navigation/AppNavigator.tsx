@@ -16,7 +16,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 import AuthNavigator from './AuthNavigator';
@@ -43,6 +43,33 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.lg,
     color: DarkText.muted,
   },
+  // DEV BYPASS — visible solo en __DEV__ (se elimina en builds de producción)
+  devBypass: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  devLabel: {
+    fontFamily: FontFamilies.regular,
+    fontSize: FontSizes.xs,
+    color: DarkText.disabled,
+    letterSpacing: 1,
+  },
+  devButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F5A623',
+    backgroundColor: 'rgba(245,166,35,0.1)',
+  },
+  devButtonText: {
+    fontFamily: FontFamilies.medium,
+    fontSize: FontSizes.sm,
+    color: '#F5A623',
+  },
 });
 
 // ─── Splash loader ────────────────────────────────────────────────────────────
@@ -61,7 +88,7 @@ function SplashLoader() {
 
 function RootNavigator() {
   const { restoreSession } = useAuth();
-  const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading, setAuth } = useAuthContext();
 
   // Sincroniza token del contexto con el cliente HTTP
   useApiTokenSync();
@@ -72,12 +99,46 @@ function RootNavigator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ─── DEV: Inyectar sesión falsa sin tocar el backend ──────────────────────
+  // __DEV__ = true en Expo dev server, false en producción (Metro lo elimina).
+  const handleDevLogin = () => {
+    setAuth(
+      {
+        id: 'dev-001',
+        nombre: 'Dev User',
+        correo: 'dev@brainsort.app',
+        rol: 'Estudiante',
+      },
+      { accessToken: 'dev-token', refreshToken: 'dev-refresh' },
+      'usuario',
+    );
+  };
+
   // Mientras se restaura la sesión, mostrar splash
   if (isLoading) {
     return <SplashLoader />;
   }
 
-  return isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />;
+  return (
+    <>
+      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
+
+      {/* Botón flotante DEV — solo aparece en modo desarrollo y sin sesión */}
+      {__DEV__ && !isAuthenticated && (
+        <View style={styles.devBypass} pointerEvents="box-none">
+          <Text style={styles.devLabel}>── DEV BYPASS ──</Text>
+          <TouchableOpacity
+            style={styles.devButton}
+            onPress={handleDevLogin}
+            accessibilityLabel="Saltar autenticación (solo desarrollo)"
+            testID="btn-dev-login"
+          >
+            <Text style={styles.devButtonText}>⚡ Saltar auth (DEV)</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </>
+  );
 }
 
 // ─── AppNavigator ─────────────────────────────────────────────────────────────
