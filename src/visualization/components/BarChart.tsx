@@ -40,12 +40,12 @@ function getBarColor(
 
   if (!step) return SimulationColors.idle;
 
-  const { highlightIndices } = step as any;
-  if (!highlightIndices) return SimulationColors.idle;
+  const { indicesActivos, tipoOperacion } = step as any;
+  if (!indicesActivos || !tipoOperacion) return SimulationColors.idle;
 
-  if (highlightIndices.swap?.includes(index)) return SimulationColors.intercambio;
-  if (highlightIndices.compare?.includes(index)) return SimulationColors.comparacion;
-  if (highlightIndices.sorted?.includes(index)) return SimulationColors.final;
+  if (tipoOperacion === 'intercambio' && indicesActivos.includes(index)) return SimulationColors.intercambio;
+  if (tipoOperacion === 'comparacion' && indicesActivos.includes(index)) return SimulationColors.comparacion;
+  if (tipoOperacion === 'final' && indicesActivos.includes(index)) return SimulationColors.final;
 
   return SimulationColors.idle;
 }
@@ -125,7 +125,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   isCompleted,
   height = 220,
 }) => {
-  const currentArray: number[] = (step as any)?.array ?? [];
+  const currentArray: number[] = (step as any)?.estadoArray ?? [];
 
   if (currentArray.length === 0) {
     return <View style={[styles.container, { height }]} />;
