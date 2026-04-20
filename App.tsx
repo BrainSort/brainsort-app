@@ -1,6 +1,6 @@
-import AppNavigator from "@/src/navigation/AppNavigator";
+import { SimulationPlayground } from "./src/screens/SimulationPlayground";
 import React from "react";
 
 export default function App() {
-  return <AppNavigator initialRouteName="Home" />;
+  return <SimulationPlayground key="BS-V2.2" />;
 }
