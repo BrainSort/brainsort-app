@@ -39,6 +39,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useSimulationEngine } from '../../hooks/useSimulationEngine';
 import { useDataset } from '../../hooks/useDataset';
@@ -308,6 +309,7 @@ export function SimulationContent({
 }: SimulationContentProps) {
 
   // ─── Hooks ────────────────────────────────────────────────────────────────
+  const navigation = useNavigation();
   const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
   const {
     steps,
@@ -576,6 +578,7 @@ export function SimulationContent({
           <TouchableOpacity
             style={styles.practiceButton}
             onPress={() => navigation.navigate('Exercise', { algoritmoId })}
+            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Ir a ejercicios de práctica"
             testID="btn-practice"
