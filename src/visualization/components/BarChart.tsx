@@ -40,12 +40,31 @@ function getBarColor(
 
   if (!step) return SimulationColors.idle;
 
-  const { highlightIndices } = step as any;
-  if (!highlightIndices) return SimulationColors.idle;
+  const rawStep = step as any;
+  const highlightIndices = rawStep.highlightIndices;
+  const legacyActiveIndices = rawStep.indicesActivos;
+  const includes = (arr?: number[]) => Array.isArray(arr) && arr.includes(index);
 
-  if (highlightIndices.swap?.includes(index)) return SimulationColors.intercambio;
-  if (highlightIndices.compare?.includes(index)) return SimulationColors.comparacion;
-  if (highlightIndices.sorted?.includes(index)) return SimulationColors.final;
+  if (highlightIndices) {
+    if (includes(highlightIndices.swap)) return SimulationColors.intercambio;
+    if (includes(highlightIndices.compare)) return SimulationColors.comparacion;
+    if (includes(highlightIndices.sorted)) return SimulationColors.final;
+  }
+
+  // Compatibilidad con esquema legacy de pasos.
+  if (Array.isArray(legacyActiveIndices) && legacyActiveIndices.includes(index)) {
+    const operation = String(rawStep.operationType ?? rawStep.tipoOperacion ?? '').toLowerCase();
+    if (operation.includes('swap') || operation.includes('intercambio')) {
+      return SimulationColors.intercambio;
+    }
+    if (operation.includes('compare') || operation.includes('compar')) {
+      return SimulationColors.comparacion;
+    }
+    if (operation.includes('sorted') || operation.includes('final')) {
+      return SimulationColors.final;
+    }
+    return SimulationColors.comparacion;
+  }
 
   return SimulationColors.idle;
 }
@@ -125,7 +144,8 @@ export const BarChart: React.FC<BarChartProps> = ({
   isCompleted,
   height = 220,
 }) => {
-  const currentArray: number[] = (step as any)?.array ?? [];
+  const rawStep = step as any;
+  const currentArray: number[] = rawStep?.array ?? rawStep?.estadoArray ?? [];
 
   if (currentArray.length === 0) {
     return <View style={[styles.container, { height }]} />;
