@@ -16,7 +16,7 @@
 
 import React from 'react';
 import { ActivityIndicator, View, ViewStyle } from 'react-native';
-import { colors } from '../../styles/colors';
+import { Primary } from '../../styles/colors';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ const SIZES = {
  */
 export const Spinner: React.FC<SpinnerProps> = ({
   size = 'medium',
-  color = colors.primary,
+  color = Primary[500],
   centered = true,
 }) => {
   const activityIndicatorSize = SIZES[size] || SIZES.medium;
