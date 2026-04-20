@@ -25,7 +25,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useExercise } from '../../hooks/useExercise';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
@@ -53,8 +52,14 @@ import {
 import type { SortEngine, SimulationStep } from '@brainsort/core';
 import type { OperationType } from '../../types/simulation';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
+import { MOCK_EXERCISES, MOCK_ANSWERS } from '../../data/exercises.mock';
+import type { Ejercicio } from '../../services/exercise.service';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
+
+interface ExerciseScreenParams {
+  algoritmoId?: string;
+}
 
 type Props = NativeStackScreenProps<LibraryStackParamList, 'Exercise'>;
 
@@ -245,19 +250,52 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
   const params = route.params as ExerciseScreenParams;
   const algoritmoId = params?.algoritmoId;
 
-  const {
-    ejercicios,
-    isLoadingExercises,
-    responderEjercicio,
-    isSubmittingAnswer,
-    lastResult,
-  } = useExercise(algoritmoId);
+  const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
+  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
+  const [lastResult, setLastResult] = useState<{
+    correcto: boolean;
+    feedbackPositivo?: string;
+    feedbackNegativo?: string;
+    puntosGanados: number;
+    rachaDias: number;
+  } | null>(null);
 
-  const handleNext = () => {
-    // Reserved for future "next exercise" behavior once backend supports sequencing.
+  // Get mock exercises based on algorithm name
+  const ejercicios: Ejercicio[] = useMemo(() => {
+    if (!algoritmo?.nombre) return [];
+    return MOCK_EXERCISES[algoritmo.nombre] || [];
+  }, [algoritmo?.nombre]);
+
+  const handleResponderEjercicio = async (ejercicioId: string, respuesta: string) => {
+    setIsSubmittingAnswer(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const mockAnswer = MOCK_ANSWERS[ejercicioId];
+    if (!mockAnswer) {
+      setIsSubmittingAnswer(false);
+      return;
+    }
+
+    const isCorrect = respuesta.toLowerCase().trim() === mockAnswer.correcta.toLowerCase().trim();
+
+    setLastResult({
+      correcto: isCorrect,
+      feedbackPositivo: mockAnswer.feedbackPositivo,
+      feedbackNegativo: mockAnswer.feedbackNegativo,
+      puntosGanados: isCorrect ? 10 : 0,
+      rachaDias: 1,
+    });
+
+    setIsSubmittingAnswer(false);
   };
 
-  if (isLoadingExercises) {
+  const handleNext = () => {
+    setLastResult(null);
+  };
+
+  if (algoLoading) {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>
@@ -272,7 +310,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
       <SafeAreaWrapper>
         <Header title="Ejercicios" showBackButton />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No hay ejercicios disponibles</Text>
+          <Text style={styles.emptyText}>No hay ejercicios disponibles para este algoritmo</Text>
         </View>
       </SafeAreaWrapper>
     );
@@ -289,7 +327,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
               pregunta={ejercicio.pregunta}
               isSubmittingAnswer={isSubmittingAnswer}
               lastResult={lastResult}
-              onSubmit={(respuesta) => responderEjercicio(ejercicio.id, respuesta).then(() => {})}
+              onSubmit={(respuesta) => handleResponderEjercicio(ejercicio.id, respuesta)}
               onNext={handleNext}
             />
             <ExerciseSimulationCard algoritmoId={ejercicio.algoritmoId} />
