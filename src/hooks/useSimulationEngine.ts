@@ -233,6 +233,7 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
           steps,
           data: [...data], // Copiar para inmutabilidad
           algoritmoId,
+          pseudocode: engine.getPseudocode(),
           // sesionSimulacion será null por ahora (puede ser poblado desde backend)
         });
       } catch (err) {

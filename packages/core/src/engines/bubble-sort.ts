@@ -1,8 +1,18 @@
 import { SortEngine } from './engine.interface';
 import { SimulationStep } from '../types/step.types';
+import { PseudocodeLine } from '../types/algorithm.types';
 
 export class BubbleSortEngine implements SortEngine {
   name = 'Bubble Sort';
+
+  getPseudocode(): PseudocodeLine[] {
+    return [
+      { line: 1, text: 'Para i = 0 hasta n-1', indent: 0 },
+      { line: 2, text: 'Para j = 0 hasta n-i-1', indent: 1 },
+      { line: 3, text: 'Si array[j] > array[j+1]', indent: 2 },
+      { line: 4, text: 'Intercambiar array[j] y array[j+1]', indent: 3 },
+    ];
+  }
 
   execute(data: number[]): SimulationStep[] {
     const steps: SimulationStep[] = [];

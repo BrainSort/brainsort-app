@@ -25,6 +25,7 @@ import React, {
   useState,
 } from 'react';
 import type { SesionSimulacion, SimulationStep } from '@brainsort/core';
+import type { PseudocodeLine } from '../services/library.service';
 
 // ─── Tipos del Contexto ───────────────────────────────────────────────────────
 
@@ -56,6 +57,8 @@ export interface SimulationState {
   playback: PlaybackState;
   /** true cuando la simulación ha llegado al final */
   isCompleted: boolean;
+  /** Pseudocódigo del algoritmo actual */
+  pseudocode: PseudocodeLine[];
 }
 
 // ─── Acciones del Contexto ────────────────────────────────────────────────────
@@ -69,6 +72,7 @@ export interface SimulationActions {
     steps: SimulationStep[];
     data: number[];
     algoritmoId: string;
+    pseudocode: PseudocodeLine[];
     sesionSimulacion?: SesionSimulacion;
   }) => void;
 
@@ -145,6 +149,7 @@ const INITIAL_STATE: SimulationState = {
     speed: 1.0,
   },
   isCompleted: false,
+  pseudocode: [],
 };
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
@@ -170,6 +175,9 @@ export function SimulationProvider({
   const [isPlaying, setIsPlayingState] = useState<boolean>(false);
   const [speed, setSpeedState] = useState<number>(1.0);
   const [isCompleted, setIsCompletedState] = useState<boolean>(false);
+  const [pseudocode, setPseudocodeState] = useState<PseudocodeLine[]>(
+    INITIAL_STATE.pseudocode,
+  );
 
   // ─── Acciones ──────────────────────────────────────────────────────────────
 
@@ -178,12 +186,14 @@ export function SimulationProvider({
       steps: SimulationStep[];
       data: number[];
       algoritmoId: string;
+      pseudocode: PseudocodeLine[];
       sesionSimulacion?: SesionSimulacion;
     }) => {
-      const { steps: newSteps, data: newData, algoritmoId: newAlgoritmoId, sesionSimulacion: newSesion } = params;
+      const { steps: newSteps, data: newData, algoritmoId: newAlgoritmoId, pseudocode: newPseudocode, sesionSimulacion: newSesion } = params;
       setSteps(newSteps);
       setData(newData);
       setAlgoritmoId(newAlgoritmoId);
+      setPseudocodeState(newPseudocode);
       if (newSesion) {
         setSesionSimulacion(newSesion);
       }
@@ -258,6 +268,7 @@ export function SimulationProvider({
     setIsPlayingState(false);
     setSpeedState(1.0);
     setIsCompletedState(false);
+    setPseudocodeState([]);
   }, []);
 
   // ─── Valor memoizado ───────────────────────────────────────────────────────
@@ -274,6 +285,7 @@ export function SimulationProvider({
         speed,
       },
       isCompleted,
+      pseudocode,
       setSimulationData,
       nextStep,
       previousStep,
@@ -294,6 +306,7 @@ export function SimulationProvider({
       isPlaying,
       speed,
       isCompleted,
+      pseudocode,
       setSimulationData,
       nextStep,
       previousStep,

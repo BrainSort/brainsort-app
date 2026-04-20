@@ -301,6 +301,7 @@ export default function SimulationScreen({ navigation, route }: Props) {
     previousStep,
     setSpeed,
     resetSimulation,
+    pseudocode,
   } = useSimulation();
   const { executeAlgorithm, isExecuting } = useSimulationEngine();
   const { generateDefault, validateDataset } = useDataset();
@@ -389,7 +390,7 @@ export default function SimulationScreen({ navigation, route }: Props) {
   }
 
   const currentStepData = currentStep.step;
-  const pseudoLines = algoritmo?.pseudocode ?? [];
+  const pseudoLines = pseudocode;
   const hasSteps = steps.length > 0;
   const progressPercent = currentStep.progress;
 

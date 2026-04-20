@@ -1,8 +1,22 @@
 import { SortEngine } from './engine.interface';
 import { SimulationStep } from '../types/step.types';
+import { PseudocodeLine } from '../types/algorithm.types';
 
 export class MergeSortEngine implements SortEngine {
   name = 'Merge Sort';
+
+  getPseudocode(): PseudocodeLine[] {
+    return [
+      { line: 1, text: 'Si izquierda < derecha', indent: 0 },
+      { line: 2, text: 'mitad = piso((izquierda + derecha) / 2)', indent: 1 },
+      { line: 3, text: 'MergeSort(arreglo, izquierda, mitad)', indent: 1 },
+      { line: 4, text: 'MergeSort(arreglo, mitad+1, derecha)', indent: 1 },
+      { line: 5, text: 'Merge(arreglo, izquierda, mitad, derecha)', indent: 1 },
+      { line: 6, text: 'Copiar elementos a L y R', indent: 2 },
+      { line: 7, text: 'Mientras i < n1 y j < n2', indent: 2 },
+      { line: 8, text: 'Comparar y colocar menor en arreglo[k]', indent: 3 },
+    ];
+  }
 
   execute(data: number[]): SimulationStep[] {
     const steps: SimulationStep[] = [];
