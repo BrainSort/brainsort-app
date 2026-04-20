@@ -28,13 +28,16 @@ import { useProgress } from '../../hooks/useProgress';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/common/Button';
+import { PointsBanner } from '../../components/gamification/PointsBanner';
+import { StreakCounter } from '../../components/gamification/StreakCounter';
+import { BadgeCard } from '../../components/gamification/BadgeCard';
 import {
   DarkSurfaces,
   DarkText,
   Accent,
   Primary,
 } from '../../styles/colors';
-import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
+import { TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -77,21 +80,9 @@ export const ProgressScreen: React.FC = () => {
     <SafeAreaWrapper>
       <Header title="Mi Progreso" showBackButton />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {/* Points Banner */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Puntos Totales</Text>
-          <Text style={styles.pointsValue}>{progreso.puntosTotales}</Text>
-          <Text style={styles.levelLabel}>Nivel {progreso.nivelActual}</Text>
-        </View>
+        <PointsBanner puntos={progreso.puntosTotales} nivel={progreso.nivelActual} />
 
-        {/* Streak Counter */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Racha de Días</Text>
-          <View style={styles.streakRow}>
-            <Text style={styles.streakIcon}>🔥</Text>
-            <Text style={styles.streakValue}>{progreso.rachaDias}</Text>
-          </View>
-        </View>
+        <StreakCounter racha={progreso.rachaDias} />
 
         {/* Stats */}
         <View style={styles.card}>
@@ -122,15 +113,11 @@ export const ProgressScreen: React.FC = () => {
               data={progreso.insignias}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item }) => (
-                <View style={styles.badgeItem}>
-                  <Text style={styles.badgeIcon}>{item.imagen}</Text>
-                  <View style={styles.badgeInfo}>
-                    <Text style={styles.badgeName}>{item.nombre}</Text>
-                    <Text style={styles.badgeDate}>
-                      {new Date(item.fechaObtencion).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
+                <BadgeCard
+                  nombre={item.nombre}
+                  imagen={item.imagen}
+                  fechaObtencion={item.fechaObtencion}
+                />
               )}
             />
           ) : (
@@ -184,30 +171,6 @@ const styles = StyleSheet.create({
     color: DarkText.secondary,
     marginBottom: Spacing[3],
   },
-  pointsValue: {
-    ...TextVariants.display,
-    fontSize: FontSizes['4xl'],
-    color: Accent[500],
-    fontWeight: FontWeights.bold,
-  },
-  levelLabel: {
-    ...TextVariants.labelMd,
-    color: DarkText.muted,
-    marginTop: Spacing[1],
-  },
-  streakRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  streakIcon: {
-    fontSize: 32,
-    marginRight: Spacing[2],
-  },
-  streakValue: {
-    ...TextVariants.h2,
-    color: Accent[500],
-  },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -230,29 +193,6 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: DarkSurfaces.border,
     height: 40,
-  },
-  badgeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing[2],
-    borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
-  },
-  badgeIcon: {
-    fontSize: 32,
-    marginRight: Spacing[3],
-  },
-  badgeInfo: {
-    flex: 1,
-  },
-  badgeName: {
-    ...TextVariants.bodyMd,
-    color: DarkText.primary,
-    fontWeight: FontWeights.medium,
-  },
-  badgeDate: {
-    ...TextVariants.bodySm,
-    color: DarkText.muted,
   },
   emptyText: {
     ...TextVariants.bodyMd,
