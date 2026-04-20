@@ -69,6 +69,21 @@ export function useAnimationController(): UseAnimationControllerReturn {
   const { steps, currentStep, playback, isCompleted, nextStep } =
     useSimulationContext();
 
+  // ─── Refs para sincronizar estado vivo sin disparar re-render de Effect ───────────
+  const isPlayingRef = useRef(playback.isPlaying);
+  const isCompletedRef = useRef(isCompleted);
+  const currentStepRef = useRef(currentStep);
+  const speedRef = useRef(playback.speed);
+  const stepsCountRef = useRef(steps.length);
+
+  useEffect(() => {
+    isPlayingRef.current = playback.isPlaying;
+    isCompletedRef.current = isCompleted;
+    currentStepRef.current = currentStep;
+    speedRef.current = playback.speed;
+    stepsCountRef.current = steps.length;
+  }, [playback.isPlaying, isCompleted, currentStep, playback.speed, steps.length]);
+
   // ─── Refs para RAF ────────────────────────────────────────────────────────
 
   const rafIdRef = useRef<number | null>(null);
@@ -92,6 +107,11 @@ export function useAnimationController(): UseAnimationControllerReturn {
    * Calcula el tiempo transcurrido y avanza pasos según la velocidad.
    */
   const rafLoop = (currentTime: number): void => {
+    if (!isPlayingRef.current || isCompletedRef.current) {
+      stopAnimation();
+      return;
+    }
+
     const deltaTime = lastFrameTimeRef.current
       ? currentTime - lastFrameTimeRef.current
       : FRAME_INTERVAL_MS;
@@ -101,16 +121,18 @@ export function useAnimationController(): UseAnimationControllerReturn {
     // Acumular "pasos" basado en velocidad y tiempo transcurrido
     const stepsToAdvance =
       (deltaTime / FRAME_INTERVAL_MS) *
-      playback.speed *
+      speedRef.current *
       SPEED_STEP_MULTIPLIER;
 
     stepAccumulatorRef.current += stepsToAdvance;
 
     // Avanzar pasos completos acumulados
+    let wasAdvanced = false;
     while (stepAccumulatorRef.current >= 1.0) {
-      if (!isCompleted && currentStep < steps.length - 1) {
+      if (!isCompletedRef.current && currentStepRef.current < stepsCountRef.current - 1) {
         nextStep();
         stepAccumulatorRef.current -= 1.0;
+        wasAdvanced = true;
       } else {
         // Simulación completada o sin pasos restantes
         stopAnimation();
@@ -118,8 +140,8 @@ export function useAnimationController(): UseAnimationControllerReturn {
       }
     }
 
-    // Continuar animación si está en play
-    if (playback.isPlaying && !isCompleted) {
+    // Continuar animación if play is still active
+    if (isPlayingRef.current && !isCompletedRef.current) {
       rafIdRef.current = requestAnimationFrame(rafLoop);
     }
   };
@@ -127,21 +149,25 @@ export function useAnimationController(): UseAnimationControllerReturn {
   // ─── Effect: Gestionar RAF Loop ───────────────────────────────────────────
 
   useEffect(() => {
-    // Si está en play y no completada, iniciar/continuar animación
+    // Solo iniciamos el loop si se pasa a isPlaying y no estaba iniciado
     if (playback.isPlaying && !isCompleted && steps.length > 0) {
-      lastFrameTimeRef.current = 0;
-      stepAccumulatorRef.current = 0;
-      rafIdRef.current = requestAnimationFrame(rafLoop);
+      if (rafIdRef.current === null) {
+        lastFrameTimeRef.current = 0;
+        stepAccumulatorRef.current = 0;
+        rafIdRef.current = requestAnimationFrame(rafLoop);
+      }
     } else {
-      // Parar animación si no está en play o está completada
       stopAnimation();
     }
 
-    // Cleanup al desmontar o cambiar dependencias
+    // Cleanup al desmontar
     return () => {
       stopAnimation();
     };
-  }, [playback.isPlaying, isCompleted, steps.length, currentStep, playback.speed, nextStep]);
+    // Eliminamos currentStep de las dependencias para evitar que el efecto 
+    // se reinicie 60 veces por segundo al avanzar pasos.
+    // El loop consume el estado vivo mediante refs.
+  }, [playback.isPlaying, isCompleted, steps.length, nextStep]);
 
   // No retorna nada; el hook maneja todo internamente
   return {};

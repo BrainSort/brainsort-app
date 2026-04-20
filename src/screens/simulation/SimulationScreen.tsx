@@ -292,7 +292,7 @@ export default function SimulationScreen({ navigation, route }: Props) {
   const {
     steps,
     currentStep,
-    isComplaying: isPlaying,
+    isPlaying,
     speed,
     isCompleted,
     play,

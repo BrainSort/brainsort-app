@@ -49,7 +49,7 @@ export interface UseSimulationReturn {
   currentStep: CurrentStepInfo;
   data: number[];
   algoritmoId: string;
-  isComplaying: boolean;
+  isPlaying: boolean;
   speed: number;
   isCompleted: boolean;
 
@@ -137,7 +137,7 @@ export function useSimulation(): UseSimulationReturn {
     currentStep: currentStepInfo,
     data: ctx.data,
     algoritmoId: ctx.algoritmoId,
-    isComplaying: ctx.playback.isPlaying,
+    isPlaying: ctx.playback.isPlaying,
     speed: ctx.playback.speed,
     isCompleted: ctx.isCompleted,
 
