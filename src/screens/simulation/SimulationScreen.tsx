@@ -39,8 +39,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useSimulationEngine } from '../../hooks/useSimulationEngine';
 import { useDataset } from '../../hooks/useDataset';
@@ -71,9 +69,11 @@ import {
   TextVariants,
 } from '../../styles/typography';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
-type Props = NativeStackScreenProps<LibraryStackParamList, 'Simulation'>;
+type SimulationContentProps = {
+  algoritmoId: string;
+  onRequestBack?: () => void;
+  showAlgorithmHeader?: boolean;
+};
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -301,8 +301,11 @@ const styles = StyleSheet.create({
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function SimulationScreen({ navigation, route }: Props) {
-  const { algoritmoId } = route.params;
+export function SimulationContent({
+  algoritmoId,
+  onRequestBack,
+  showAlgorithmHeader = true,
+}: SimulationContentProps) {
 
   // ─── Hooks ────────────────────────────────────────────────────────────────
   const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
@@ -331,13 +334,6 @@ export default function SimulationScreen({ navigation, route }: Props) {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
 
-  // ─── Header dinámico ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (algoritmo?.nombre) {
-      navigation.setOptions({ title: algoritmo.nombre });
-    }
-  }, [algoritmo?.nombre, navigation]);
-
   // ─── Cargar datos al montar ───────────────────────────────────────────────
   useEffect(() => {
     if (algoritmo && !hasStarted) {
@@ -346,8 +342,16 @@ export default function SimulationScreen({ navigation, route }: Props) {
         .then(() => setHasStarted(true))
         .catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [algoritmo]);
+  }, [algoritmo, hasStarted, generateDefault, executeAlgorithm]);
+
+  // Si cambia el algoritmo seleccionado, reinicia el arranque de simulación.
+  useEffect(() => {
+    setHasStarted(false);
+    setShowToast(false);
+    setCustomInput('');
+    setInputError(null);
+    resetSimulation();
+  }, [algoritmoId, resetSimulation]);
 
   // ─── Mostrar toast al completar (HU-07) ───────────────────────────────────
   useEffect(() => {
@@ -393,8 +397,8 @@ export default function SimulationScreen({ navigation, route }: Props) {
 
   const handleNextAlgorithm = useCallback(() => {
     setShowToast(false);
-    navigation.goBack();
-  }, [navigation]);
+    onRequestBack?.();
+  }, [onRequestBack]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -454,16 +458,18 @@ export default function SimulationScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* Header: nombre + contador de paso */}
-        <View style={styles.headerRow}>
-          <Text style={styles.algoName} numberOfLines={1}>
-            {algoritmo?.nombre ?? 'Simulación'}
-          </Text>
-          {hasSteps && (
-            <Text style={styles.stepCounter}>
-              {currentStep.displayNumber} / {currentStep.totalSteps}
+        {showAlgorithmHeader && (
+          <View style={styles.headerRow}>
+            <Text style={styles.algoName} numberOfLines={1}>
+              {algoritmo?.nombre ?? 'Simulación'}
             </Text>
-          )}
-        </View>
+            {hasSteps && (
+              <Text style={styles.stepCounter}>
+                {currentStep.displayNumber} / {currentStep.totalSteps}
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Barra de progreso */}
         {hasSteps && (
@@ -594,5 +600,20 @@ export default function SimulationScreen({ navigation, route }: Props) {
         onSpeedChange={setSpeed}
       />
     </KeyboardAvoidingView>
+  );
+}
+
+type LegacyScreenProps = {
+  route: { params: { algoritmoId: string } };
+  navigation: { goBack: () => void };
+};
+
+export default function SimulationScreen({ navigation, route }: LegacyScreenProps) {
+  return (
+    <SimulationContent
+      algoritmoId={route.params.algoritmoId}
+      onRequestBack={navigation.goBack}
+      showAlgorithmHeader
+    />
   );
 }

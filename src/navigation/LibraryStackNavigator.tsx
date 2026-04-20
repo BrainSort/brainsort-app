@@ -7,7 +7,6 @@
  * Rutas:
  *   Library            → LibraryScreen
  *   AlgorithmDetail    → AlgorithmDetailScreen
- *   Simulation         → SimulationScreen (placeholder hasta Fase 5)
  *
  * Referencia: 02-frontend-app.md §6 Navegación
  */

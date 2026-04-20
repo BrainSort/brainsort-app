@@ -97,7 +97,10 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
   currentStep,
 }) => {
   const scrollRef = useRef<ScrollView>(null);
-  const activeLine = (currentStep as any)?.lineaPseudocodigo ?? -1;
+  const activeLine =
+    (currentStep as any)?.pseudocodeLine ??
+    (currentStep as any)?.lineaPseudocodigo ??
+    -1;
 
   // Auto-scroll a la línea activa
   useEffect(() => {

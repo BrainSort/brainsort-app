@@ -78,6 +78,26 @@ const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
   'Merge Sort': MergeSortEngine,
 };
 
+/**
+ * Alias por nombre (normalizado) para soportar variantes de backend/UI.
+ */
+const ENGINE_ALIASES: Record<string, keyof typeof ENGINE_REGISTRY> = {
+  bubblesort: 'Bubble Sort',
+  burbuja: 'Bubble Sort',
+  ordenamientoburbuja: 'Bubble Sort',
+  selectionsort: 'Selection Sort',
+  seleccion: 'Selection Sort',
+  seleccionsort: 'Selection Sort',
+  ordenamientoseleccion: 'Selection Sort',
+  insertionsort: 'Insertion Sort',
+  insercion: 'Insertion Sort',
+  insercionsort: 'Insertion Sort',
+  ordenamientoinsercion: 'Insertion Sort',
+  mergesort: 'Merge Sort',
+  merge: 'Merge Sort',
+  ordenamientomerge: 'Merge Sort',
+};
+
 // ─── Helper: Obtener Engine ───────────────────────────────────────────────────
 
 /**
@@ -85,8 +105,31 @@ const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
  *
  * @throws {EngineError} Si el engine no existe
  */
+function normalizeAlgorithmName(nombre: string): string {
+  return nombre
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+}
+
+function resolveEngineName(nombreAlgoritmo: string): keyof typeof ENGINE_REGISTRY {
+  if (nombreAlgoritmo in ENGINE_REGISTRY) {
+    return nombreAlgoritmo as keyof typeof ENGINE_REGISTRY;
+  }
+
+  const normalized = normalizeAlgorithmName(nombreAlgoritmo);
+  const alias = ENGINE_ALIASES[normalized];
+  if (alias) return alias;
+
+  throw new Error(
+    `ENGINE_NOT_FOUND: No se encontró engine para '${nombreAlgoritmo}'`,
+  );
+}
+
 function getEngine(nombreAlgoritmo: string): SortEngine {
-  const EngineClass = ENGINE_REGISTRY[nombreAlgoritmo];
+  const resolvedEngineName = resolveEngineName(nombreAlgoritmo);
+  const EngineClass = ENGINE_REGISTRY[resolvedEngineName];
   if (!EngineClass) {
     throw new Error(
       `ENGINE_NOT_FOUND: No se encontró engine para '${nombreAlgoritmo}'`,
