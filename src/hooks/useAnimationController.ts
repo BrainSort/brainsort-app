@@ -34,11 +34,11 @@ const FRAME_INTERVAL_MS = 1000 / MIN_FPS_TARGET;
 
 /**
  * Factor de escala de velocidad.
- * velocidad=1.0 → avanza 0.5 pasos por intervalo de frames
- * velocidad=2.0 → avanza 1 paso por intervalo de frames
- * velocidad=0.25 → avanza 0.125 pasos por intervalo de frames (cada 8 intervalos)
+ * velocidad=1.0 → avanza 0.3 pasos por intervalo de frames
+ * velocidad=2.0 → avanza 0.6 pasos por intervalo de frames
+ * velocidad=0.25 → avanza 0.075 pasos por intervalo de frames
  */
-const SPEED_STEP_MULTIPLIER = 0.5; // 0.5 pasos por intervalo base (velocidad base más lenta)
+const SPEED_STEP_MULTIPLIER = 0.3; // 0.3 pasos por intervalo base (velocidad base más lenta)
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
