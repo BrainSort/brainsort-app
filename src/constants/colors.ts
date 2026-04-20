@@ -5,8 +5,17 @@
 export const SimulationColors = {
   idle: '#4A90D9',        // Azul: Elemento base
   comparison: '#F5A623',  // Amarillo: Comparando
+  comparacion: '#F5A623', // Alias backend/core
   swap: '#D0021B',        // Rojo: Intercambiando
+  intercambio: '#D0021B', // Alias backend/core
+  insercion: '#03DAC6',   // Turquesa: Inserción
   final: '#7ED321',      // Verde: Posición final correcta
+  
+  // Colores adicionales para animaciones especializadas
+  bubble: '#FF9500',     // Naranja: Burbujeo
+  minimum: '#00C853',    // Verde brillante: Mínimo encontrado
+  sortedZone: '#E8F5E8', // Verde claro: Zona ordenada
+  key: '#2962FF',        // Azul brillante: Elemento clave
 };
 
 export const ThemeColors = {

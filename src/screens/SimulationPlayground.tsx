@@ -7,17 +7,42 @@ import { StepIndicator } from '../components/simulation/StepIndicator';
 import { PseudocodePanel } from '../components/simulation/PseudocodePanel';
 import { ComplexityInfo } from '../components/simulation/ComplexityInfo';
 import { CompletionOverlay } from '../components/simulation/CompletionOverlay';
+import { AlgorithmSelector, AlgorithmType } from '../components/simulation/AlgorithmSelector';
 import { generateBubbleSortSteps, BUBBLE_SORT_PSEUDOCODE } from '../engine/mock-bubble-sort';
+import { generateSelectionSortSteps, SELECTION_SORT_PSEUDOCODE } from '../engine/mock-selection-sort';
+import { generateInsertionSortSteps, INSERTION_SORT_PSEUDOCODE } from '../engine/mock-insertion-sort';
 import { ThemeColors } from '../constants/colors';
 
 const INITIAL_DATA = [45, 12, 89, 34, 67, 23, 56, 9, 78];
 
 export const SimulationPlayground: React.FC = () => {
   const [data] = useState(INITIAL_DATA);
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<AlgorithmType>('Bubble Sort');
 
-  const steps = useMemo(() => {
-    return generateBubbleSortSteps(data);
-  }, [data]);
+  const { steps, pseudocode, complexity } = useMemo(() => {
+    switch (selectedAlgorithm) {
+      case 'Selection Sort':
+        return {
+          steps: generateSelectionSortSteps(data),
+          pseudocode: SELECTION_SORT_PSEUDOCODE,
+          complexity: { time: 'O(n²)', space: 'O(1)' }
+        };
+      case 'Insertion Sort':
+        return {
+          steps: generateInsertionSortSteps(data),
+          pseudocode: INSERTION_SORT_PSEUDOCODE,
+          complexity: { time: 'O(n²)', space: 'O(1)' }
+        };
+      case 'Bubble Sort':
+      default:
+        return {
+          steps: generateBubbleSortSteps(data),
+          pseudocode: BUBBLE_SORT_PSEUDOCODE,
+          complexity: { time: 'O(n²)', space: 'O(1)' }
+        };
+    }
+  }, [data, selectedAlgorithm]);
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1.0);
@@ -28,6 +53,11 @@ export const SimulationPlayground: React.FC = () => {
 
   const currentStep = steps[currentStepIndex];
 
+  // Reset simulation when algorithm changes
+  useEffect(() => {
+    handleReset();
+  }, [selectedAlgorithm]);
+
   useEffect(() => {
     // Animation Loop Logic
     if (isPlaying && currentStepIndex < steps.length - 1 && !isCompleted) {
@@ -35,7 +65,7 @@ export const SimulationPlayground: React.FC = () => {
       timerRef.current = setTimeout(() => {
         setCurrentStepIndex((prev) => prev + 1);
       }, duration);
-    } else if (currentStepIndex === steps.length - 1 && !isCompleted) {
+    } else if (currentStepIndex === steps.length - 1 && !isCompleted && steps.length > 0) {
       // Termination Condition
       setIsPlaying(false);
       setIsCompleted(true);
@@ -66,21 +96,27 @@ export const SimulationPlayground: React.FC = () => {
     <SafeAreaView style={styles.safe}>
       <View style={styles.contentContainer}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-        <StepIndicator current={currentStepIndex + 1} total={steps.length} />
-        
-        <ComplexityInfo time="O(n²)" space="O(1)" />
-        
-        <SimulationCanvas
-          data={currentStep.estadoArray}
-          indicesActivos={currentStep.indicesActivos}
-          tipoOperacion={currentStep.tipoOperacion}
-          isCompleted={isCompleted}
-        />
+          <AlgorithmSelector 
+            selectedId={selectedAlgorithm} 
+            onSelect={setSelectedAlgorithm} 
+          />
 
-        <PseudocodePanel
-          lines={BUBBLE_SORT_PSEUDOCODE}
-          activeLine={currentStep.lineaPseudocodigo}
-        />
+          <StepIndicator current={currentStepIndex + 1} total={steps.length} />
+          
+          <ComplexityInfo time={complexity.time} space={complexity.space} />
+          
+          <SimulationCanvas
+            algorithmName={selectedAlgorithm}
+            data={currentStep.estadoArray}
+            indicesActivos={currentStep.indicesActivos}
+            tipoOperacion={currentStep.tipoOperacion}
+            isCompleted={isCompleted}
+          />
+
+          <PseudocodePanel
+            lines={pseudocode}
+            activeLine={currentStep.lineaPseudocodigo}
+          />
         </ScrollView>
 
         <View style={styles.stickyFooter}>
@@ -112,14 +148,14 @@ const styles = StyleSheet.create({
     backgroundColor: ThemeColors.background,
   },
   contentContainer: {
-    flex: 1, // This is key for making the footer stay at the bottom
+    flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 20, // Reduced as it's no longer overlapping
+    paddingBottom: 20,
   },
   stickyFooter: {
-    backgroundColor: 'rgba(28, 28, 30, 0.95)', // More opaque for better readability
+    backgroundColor: 'rgba(28, 28, 30, 0.95)',
     paddingHorizontal: 20,
     paddingBottom: 30,
     paddingTop: 10,
@@ -127,3 +163,4 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
 });
+

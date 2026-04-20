@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg from 'react-native-svg';
-import { BarChart } from './BarChart';
+import { AlgorithmAnimationSelector } from './AlgorithmAnimationSelector';
 import { OperationType } from '../../types/simulation';
 
 interface SimulationCanvasProps {
+  algorithmName: string;
   data: number[];
   indicesActivos: number[];
   tipoOperacion: OperationType;
@@ -15,6 +16,7 @@ interface SimulationCanvasProps {
  * T-FE-064: Contenedor SVG principal para la visualización
  */
 export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
+  algorithmName,
   data,
   indicesActivos,
   tipoOperacion,
@@ -27,7 +29,8 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   return (
     <View style={styles.container}>
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
-        <BarChart
+        <AlgorithmAnimationSelector
+          algorithmName={algorithmName}
           data={data}
           indicesActivos={indicesActivos}
           tipoOperacion={tipoOperacion}

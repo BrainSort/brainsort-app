@@ -1,4 +1,11 @@
-export type OperationType = 'idle' | 'comparison' | 'swap' | 'final';
+export type OperationType =
+  | 'idle'
+  | 'comparison'
+  | 'swap'
+  | 'comparacion'
+  | 'intercambio'
+  | 'insercion'
+  | 'final';
 
 export interface SimulationStep {
   numeroPaso: number;
