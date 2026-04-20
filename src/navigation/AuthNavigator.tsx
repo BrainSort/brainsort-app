@@ -35,7 +35,7 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 export default function AuthNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName="Login"
       screenOptions={{
         headerStyle: {
           backgroundColor: DarkSurfaces.background,
