@@ -46,7 +46,7 @@ import { useSimulationEngine } from '../../hooks/useSimulationEngine';
 import { useDataset } from '../../hooks/useDataset';
 import { useAnimationController } from '../../hooks/useAnimationController';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
-import { BarChart } from '../../visualization/components/BarChart';
+import { SimulationCanvas } from '../../components/simulation/SimulationCanvas';
 import { ControlBar } from '../../visualization/components/ControlBar';
 import { PseudocodePanel } from '../../visualization/components/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
@@ -456,18 +456,44 @@ export default function SimulationScreen({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Canvas de barras */}
+        {/* Canvas de barras con animación especializada por algoritmo */}
         <View style={styles.canvasContainer}>
           {isExecuting ? (
-            <View style={{ height: 220, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ height: 300, alignItems: 'center', justifyContent: 'center' }}>
               <Spinner size="large" />
             </View>
           ) : hasSteps ? (
-            <BarChart
-              step={currentStepData}
-              isCompleted={isCompleted}
-              height={220}
-            />
+            (() => {
+              // Extraer datos del paso actual del core engine
+              const stepAny = currentStepData as any;
+              const arrayData: number[] = stepAny?.array ?? stepAny?.estadoArray ?? [];
+              const highlights = stepAny?.highlightIndices ?? {};
+
+              // Determinar índices activos y tipo de operación
+              let indicesActivos: number[] = [];
+              let tipoOperacion: 'idle' | 'comparacion' | 'intercambio' | 'insercion' | 'final' = 'idle';
+
+              if (highlights.swap?.length > 0) {
+                indicesActivos = highlights.swap;
+                tipoOperacion = 'intercambio';
+              } else if (highlights.compare?.length > 0) {
+                indicesActivos = highlights.compare;
+                tipoOperacion = 'comparacion';
+              } else if (highlights.insert?.length > 0) {
+                indicesActivos = highlights.insert;
+                tipoOperacion = 'insercion';
+              }
+
+              return (
+                <SimulationCanvas
+                  algorithmName={algoritmo?.nombre ?? 'Simulación'}
+                  data={arrayData}
+                  indicesActivos={indicesActivos}
+                  tipoOperacion={tipoOperacion}
+                  isCompleted={isCompleted}
+                />
+              );
+            })()
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>📊</Text>
