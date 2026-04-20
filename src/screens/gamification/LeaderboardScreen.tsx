@@ -27,14 +27,14 @@ import { useProgress } from '../../hooks/useProgress';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/common/Button';
+import { LeaderboardRow } from '../../components/gamification/LeaderboardRow';
 import {
   DarkSurfaces,
   DarkText,
   Accent,
-  Primary,
   Semantic,
 } from '../../styles/colors';
-import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
+import { FontWeights, TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -148,19 +148,12 @@ export const LeaderboardScreen: React.FC = () => {
             keyExtractor={(item, index) => index.toString()}
             scrollEnabled={false}
             renderItem={({ item, index }) => (
-              <View style={styles.leaderboardRow}>
-                <View style={styles.rankBadge}>
-                  <Text style={styles.rankNumber}>{item.posicion}</Text>
-                </View>
-                <View style={styles.rowInfo}>
-                  <Text style={styles.rowName}>{item.nombre}</Text>
-                  <Text style={styles.rowLevel}>Nivel {item.nivelActual}</Text>
-                </View>
-                <View style={styles.rowPoints}>
-                  <Text style={styles.pointsValue}>{item.puntosTotales}</Text>
-                  <Text style={styles.pointsLabel}>XP</Text>
-                </View>
-              </View>
+              <LeaderboardRow
+                posicion={item.posicion ?? index + 1}
+                nombre={item.nombre}
+                puntos={item.puntosTotales}
+                nivel={item.nivelActual}
+              />
             )}
           />
         </View>
@@ -263,50 +256,5 @@ const styles = StyleSheet.create({
     ...TextVariants.h4,
     color: DarkText.secondary,
     marginBottom: Spacing[3],
-  },
-  leaderboardRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing[3],
-    borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
-  },
-  rankBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Accent[500],
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing[3],
-  },
-  rankNumber: {
-    ...TextVariants.labelMd,
-    color: DarkText.primary,
-    fontWeight: FontWeights.bold,
-  },
-  rowInfo: {
-    flex: 1,
-  },
-  rowName: {
-    ...TextVariants.bodyMd,
-    color: DarkText.primary,
-    fontWeight: FontWeights.medium,
-  },
-  rowLevel: {
-    ...TextVariants.bodySm,
-    color: DarkText.muted,
-  },
-  rowPoints: {
-    alignItems: 'flex-end',
-  },
-  pointsValue: {
-    ...TextVariants.labelMd,
-    color: Accent[500],
-    fontWeight: FontWeights.bold,
-  },
-  pointsLabel: {
-    ...TextVariants.caption,
-    color: DarkText.muted,
   },
 });
