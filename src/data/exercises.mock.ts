@@ -33,6 +33,14 @@ export const MOCK_EXERCISES: Record<string, Ejercicio[]> = {
       algoritmoId: 'insertion-sort',
     },
   ],
+  'Merge Sort': [
+    {
+      id: 'mock-merge-1',
+      pregunta: 'En Merge Sort, dado el arreglo [4, 3, 2, 1], ¿cuál es el resultado del primer merge después de dividir el arreglo en mitades?',
+      dificultad: 'Medio',
+      algoritmoId: 'merge-sort',
+    },
+  ],
 };
 
 export const MOCK_ANSWERS: Record<string, { correcta: string; feedbackPositivo: string; feedbackNegativo: string }> = {
@@ -50,5 +58,10 @@ export const MOCK_ANSWERS: Record<string, { correcta: string; feedbackPositivo: 
     correcta: '[1, 3, 4, 2]',
     feedbackPositivo: '¡Correcto! Insertion Sort toma el segundo elemento y lo inserta en la posición correcta dentro de la sublista ordenada.',
     feedbackNegativo: 'Incorrecto. Insertion Sort inserta cada elemento en orden dentro del subarreglo izquierdo ya ordenado.',
+  },
+  'mock-merge-1': {
+    correcta: '[3, 4, 1, 2]',
+    feedbackPositivo: '¡Correcto! Merge Sort divide recursivamente y luego combina las mitades ordenadas.',
+    feedbackNegativo: 'Incorrecto. Merge Sort primero divide el arreglo en mitades recursivamente y luego las combina ordenadamente.',
   },
 };
