@@ -15,7 +15,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import LibraryStackNavigator from './LibraryStackNavigator';
-import { SimulationPlayground } from '../screens/SimulationPlayground';
 import { DarkSurfaces, DarkText, Accent } from '../styles/colors';
 import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
@@ -23,7 +22,6 @@ import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
 export type MainTabParamList = {
   Biblioteca: undefined;
-  Simulacion: undefined;
   Progreso: undefined;
   Offline: undefined;
   Perfil: undefined;
@@ -88,14 +86,6 @@ export default function MainTabNavigator() {
         options={{
           tabBarIcon: ({ color }) => tabIcon('📚', color),
           tabBarAccessibilityLabel: 'Biblioteca de algoritmos',
-        }}
-      />
-      <Tab.Screen
-        name="Simulacion"
-        component={SimulationPlayground}
-        options={{
-          tabBarIcon: ({ color }) => tabIcon('🧠', color),
-          tabBarAccessibilityLabel: 'Simulación de algoritmos',
         }}
       />
       <Tab.Screen
