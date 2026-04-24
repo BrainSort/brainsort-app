@@ -39,15 +39,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useSimulationEngine } from '../../hooks/useSimulationEngine';
 import { useDataset } from '../../hooks/useDataset';
 import { useAnimationController } from '../../hooks/useAnimationController';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
-import { BarChart } from '../../visualization/components/BarChart';
-import { ControlBar } from '../../visualization/components/ControlBar';
-import { PseudocodePanel } from '../../visualization/components/PseudocodePanel';
+import { BarChart } from '../../components/simulation/BarChart';
+import { ControlBar } from '../../components/simulation/ControlBar';
+import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
 import {
   DarkSurfaces,
@@ -309,7 +310,7 @@ export function SimulationContent({
 }: SimulationContentProps) {
 
   // ─── Hooks ────────────────────────────────────────────────────────────────
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
   const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
   const {
     steps,

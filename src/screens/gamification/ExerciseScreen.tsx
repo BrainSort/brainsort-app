@@ -52,8 +52,7 @@ import {
 import type { SortEngine, SimulationStep } from '@brainsort/core';
 import type { OperationType } from '../../types/simulation';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
-import { MOCK_EXERCISES, MOCK_ANSWERS } from '../../data/exercises.mock';
-import type { Ejercicio } from '../../services/exercise.service';
+import { useExercise } from '../../hooks/useExercise';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -180,15 +179,13 @@ const ExerciseSimulationCard: React.FC<{ algoritmoId: string }> = ({ algoritmoId
 
       <SimulationCanvas
         algorithmName={algoritmo.nombre}
-        data={currentStep.estadoArray}
-        indicesActivos={currentStep.indicesActivos}
-        tipoOperacion={currentStep.tipoOperacion as OperationType}
+        step={currentStep}
         isCompleted={isCompleted}
       />
 
       <PseudocodePanel
         lines={algoritmo.pseudocode}
-        activeLine={currentStep.lineaPseudocodigo}
+        currentStep={currentStep}
       />
 
       <View style={styles.pseudoDescriptionBox}>
@@ -206,9 +203,15 @@ const ExerciseSimulationCard: React.FC<{ algoritmoId: string }> = ({ algoritmoId
 
       <ControlBar
         isPlaying={isPlaying}
-        onTogglePlay={handleTogglePlay}
+        isCompleted={isCompleted}
+        speed={speed}
+        hasSteps={steps.length > 0}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         onReset={handleReset}
-        isFinished={isCompleted}
+        onPreviousStep={() => setCurrentStepIndex(Math.max(0, currentStepIndex - 1))}
+        onNextStep={() => setCurrentStepIndex(Math.min(steps.length - 1, currentStepIndex + 1))}
+        onSpeedChange={setSpeed}
       />
 
       <View style={styles.speedActions}>
@@ -250,52 +253,23 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
   const params = route.params as ExerciseScreenParams;
   const algoritmoId = params?.algoritmoId;
 
-  const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
-  const [isSubmittingAnswer, setIsSubmittingAnswer] = useState(false);
-  const [lastResult, setLastResult] = useState<{
-    correcto: boolean;
-    feedbackPositivo?: string;
-    feedbackNegativo?: string;
-    puntosGanados: number;
-    rachaDias: number;
-  } | null>(null);
-
-  // Get mock exercises based on algorithm name
-  const ejercicios: Ejercicio[] = useMemo(() => {
-    if (!algoritmo?.nombre) return [];
-    return MOCK_EXERCISES[algoritmo.nombre] || [];
-  }, [algoritmo?.nombre]);
+  const {
+    ejercicios,
+    isLoadingExercises,
+    responderEjercicio,
+    isSubmittingAnswer,
+    lastResult,
+  } = useExercise(algoritmoId);
 
   const handleResponderEjercicio = async (ejercicioId: string, respuesta: string) => {
-    setIsSubmittingAnswer(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const mockAnswer = MOCK_ANSWERS[ejercicioId];
-    if (!mockAnswer) {
-      setIsSubmittingAnswer(false);
-      return;
-    }
-
-    const isCorrect = respuesta.toLowerCase().trim() === mockAnswer.correcta.toLowerCase().trim();
-
-    setLastResult({
-      correcto: isCorrect,
-      feedbackPositivo: mockAnswer.feedbackPositivo,
-      feedbackNegativo: mockAnswer.feedbackNegativo,
-      puntosGanados: isCorrect ? 10 : 0,
-      rachaDias: 1,
-    });
-
-    setIsSubmittingAnswer(false);
+    await responderEjercicio(ejercicioId, respuesta);
   };
 
   const handleNext = () => {
-    setLastResult(null);
+    // Navigate back or reset state, depending on product requirements
   };
 
-  if (algoLoading) {
+  if (isLoadingExercises) {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>

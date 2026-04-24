@@ -33,6 +33,7 @@ import {
   DarkText,
   Accent,
   Semantic,
+  Primary,
 } from '../../styles/colors';
 import { FontWeights, TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';

@@ -93,7 +93,7 @@ export function useSync(): UseSyncReturn {
   const syncNow = useCallback(async () => {
     syncStateRef.current.isSyncing = true;
     try {
-      await syncMutation();
+      await syncMutation([]);
     } finally {
       syncStateRef.current.isSyncing = false;
     }
