@@ -27,9 +27,9 @@ import {
   TextStyle,
   Dimensions,
 } from 'react-native';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
+import { Colors } from '../../styles/colors';
+import { Spacing } from '../../styles/spacing';
+import { TextVariants } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -50,32 +50,32 @@ const getTypeStyles = (
 ): { backgroundColor: string; textColor: string } => {
   switch (type) {
     case 'success':
-      return { backgroundColor: colors.success, textColor: colors.white };
+      return { backgroundColor: Colors.semantic.success, textColor: Colors.neutral[0] };
     case 'error':
-      return { backgroundColor: colors.error, textColor: colors.white };
+      return { backgroundColor: Colors.semantic.error, textColor: Colors.neutral[0] };
     case 'warning':
-      return { backgroundColor: colors.warning, textColor: colors.white };
+      return { backgroundColor: Colors.semantic.warning, textColor: Colors.neutral[0] };
     case 'info':
     default:
-      return { backgroundColor: colors.primary, textColor: colors.white };
+      return { backgroundColor: Colors.primary[500], textColor: Colors.neutral[0] };
   }
 };
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: spacing.lg,
-    left: spacing.md,
-    right: spacing.md,
+    bottom: Spacing[6],
+    left: Spacing[4],
+    right: Spacing[4],
     borderRadius: 8,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingVertical: Spacing[4],
+    paddingHorizontal: Spacing[6],
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 9999,
   },
   text: {
-    ...typography.body,
+    ...TextVariants.bodyMd,
     flex: 1,
   },
 });

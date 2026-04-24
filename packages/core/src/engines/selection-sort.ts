@@ -1,8 +1,20 @@
 import { SortEngine } from './engine.interface';
 import { SimulationStep } from '../types/step.types';
+import { PseudocodeLine } from '../types/algorithm.types';
 
 export class SelectionSortEngine implements SortEngine {
   name = 'Selection Sort';
+
+  getPseudocode(): PseudocodeLine[] {
+    return [
+      { line: 1, text: 'Para i = 0 hasta n-1', indent: 0 },
+      { line: 2, text: 'minIdx = i', indent: 1 },
+      { line: 3, text: 'Para j = i+1 hasta n', indent: 1 },
+      { line: 4, text: 'Si arreglo[j] < arreglo[minIdx]', indent: 2 },
+      { line: 5, text: 'minIdx = j', indent: 3 },
+      { line: 6, text: 'Intercambiar arreglo[i] y arreglo[minIdx]', indent: 1 },
+    ];
+  }
 
   execute(data: number[]): SimulationStep[] {
     const steps: SimulationStep[] = [];

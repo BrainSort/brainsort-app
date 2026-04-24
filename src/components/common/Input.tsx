@@ -28,9 +28,9 @@ import {
   TextStyle,
   Platform,
 } from 'react-native';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
+import { Colors } from '../../styles/colors';
+import { Spacing } from '../../styles/spacing';
+import { TextVariants } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -57,41 +57,41 @@ export interface InputProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: spacing.md,
+    marginBottom: Spacing[4],
   },
   label: {
-    ...typography.caption,
-    color: colors.gray700,
-    marginBottom: spacing.xs,
+    ...TextVariants.caption,
+    color: Colors.neutral[700],
+    marginBottom: Spacing[1],
   },
   inputContainer: {
     borderWidth: 1,
-    borderColor: colors.gray300,
+    borderColor: Colors.neutral[300],
     borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[4],
+    backgroundColor: Colors.neutral[0],
   },
   inputContainerFocused: {
-    borderColor: colors.primary,
+    borderColor: Colors.primary[500],
   },
   inputContainerError: {
-    borderColor: colors.error,
+    borderColor: Colors.semantic.error,
   },
   input: {
-    ...typography.body,
-    color: colors.gray900,
+    ...TextVariants.bodyMd,
+    color: Colors.neutral[900],
     padding: 0,
     margin: 0,
     minHeight: 40,
   },
   inputPlaceholder: {
-    color: colors.gray500,
+    color: Colors.neutral[500],
   },
   errorText: {
-    ...typography.caption,
-    color: colors.error,
-    marginTop: spacing.xs,
+    ...TextVariants.caption,
+    color: Colors.semantic.error,
+    marginTop: Spacing[1],
   },
 });
 
@@ -132,10 +132,10 @@ export const Input: React.FC<InputProps> = ({
 }) => {
   const [isFocused, setIsFocused] = React.useState(false);
 
-  const inputContainerStyle: ViewStyle = [
+  const inputContainerStyle: ViewStyle | ViewStyle[] = [
     styles.inputContainer,
-    isFocused && styles.inputContainerFocused,
-    error && styles.inputContainerError,
+    isFocused ? styles.inputContainerFocused : {},
+    error ? styles.inputContainerError : {},
   ];
 
   return (
@@ -158,7 +158,7 @@ export const Input: React.FC<InputProps> = ({
           onBlur={() => setIsFocused(false)}
           autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
-          selectionColor={colors.primary}
+          selectionColor={Colors.primary[500]}
         />
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}

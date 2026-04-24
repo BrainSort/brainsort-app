@@ -19,6 +19,7 @@
  */
 
 import { useSimulationContext } from '../context/SimulationContext';
+import type { PseudocodeLine } from '../services/library.service';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -49,9 +50,10 @@ export interface UseSimulationReturn {
   currentStep: CurrentStepInfo;
   data: number[];
   algoritmoId: string;
-  isComplaying: boolean;
+  isPlaying: boolean;
   speed: number;
   isCompleted: boolean;
+  pseudocode: PseudocodeLine[];
 
   // Acciones de reproducción
   play: () => void;
@@ -137,9 +139,10 @@ export function useSimulation(): UseSimulationReturn {
     currentStep: currentStepInfo,
     data: ctx.data,
     algoritmoId: ctx.algoritmoId,
-    isComplaying: ctx.playback.isPlaying,
+    isPlaying: ctx.playback.isPlaying,
     speed: ctx.playback.speed,
     isCompleted: ctx.isCompleted,
+    pseudocode: ctx.pseudocode,
 
     // Acciones de reproducción
     play: ctx.play,

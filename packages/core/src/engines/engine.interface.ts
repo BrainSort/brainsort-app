@@ -7,6 +7,7 @@ import { AlgoritmoMeta, PseudocodeLine } from '../types/algorithm.types';
 export interface SortEngine {
   name: string;
   execute(data: number[]): SimulationStep[];
+  getPseudocode(): PseudocodeLine[];
 }
 
 /**

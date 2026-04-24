@@ -7,7 +7,6 @@
  * Rutas:
  *   Library            → LibraryScreen
  *   AlgorithmDetail    → AlgorithmDetailScreen
- *   Simulation         → SimulationScreen (placeholder hasta Fase 5)
  *
  * Referencia: 02-frontend-app.md §6 Navegación
  */
@@ -17,6 +16,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LibraryScreen from '../screens/library/LibraryScreen';
 import AlgorithmDetailScreen from '../screens/library/AlgorithmDetailScreen';
 import SimulationScreen from '../screens/simulation/SimulationScreen';
+import { ExerciseScreen } from '../screens/gamification/ExerciseScreen';
 import { DarkSurfaces, DarkText } from '../styles/colors';
 import { FontFamilies, FontWeights, FontSizes } from '../styles/typography';
 
@@ -26,6 +26,7 @@ export type LibraryStackParamList = {
   Library: undefined;
   AlgorithmDetail: { algoritmoId: string };
   Simulation: { algoritmoId: string };
+  Exercise: { algoritmoId: string };
 };
 
 // ─── Navegador ────────────────────────────────────────────────────────────────
@@ -67,6 +68,11 @@ export default function LibraryStackNavigator() {
         name="Simulation"
         component={SimulationScreen}
         options={{ title: 'Simulación' }}
+      />
+      <Stack.Screen
+        name="Exercise"
+        component={ExerciseScreen}
+        options={{ title: 'Practicar' }}
       />
     </Stack.Navigator>
   );

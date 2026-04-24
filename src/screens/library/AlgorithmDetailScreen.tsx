@@ -35,10 +35,10 @@ import {
   DarkText,
   Primary,
   Accent,
-  Neutral,
   Semantic,
+  SimulationColors,
 } from '../../styles/colors';
-import { BorderRadius, Shadows, Spacing, SpacingAlias } from '../../styles/spacing';
+import { BorderRadius, BorderWidths, Spacing, SpacingAlias } from '../../styles/spacing';
 import {
   FontFamilies,
   FontSizes,
@@ -46,6 +46,7 @@ import {
   TextVariants,
 } from '../../styles/typography';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
+import { SimulationContent } from '../simulation/SimulationScreen';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,174 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.lg,
     color: '#FFFFFF',
   },
+  startButtonDisabled: {
+    opacity: 0.6,
+  },
+  simulationSection: {
+    marginTop: Spacing[6],
+    gap: Spacing[4],
+  },
+  simulationHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stepCounter: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.sm,
+    color: DarkText.muted,
+  },
+  progressBar: {
+    height: 3,
+    backgroundColor: DarkSurfaces.border,
+    borderRadius: BorderRadius.full,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Accent[500],
+    borderRadius: BorderRadius.full,
+  },
+  canvasContainer: {
+    backgroundColor: DarkSurfaces.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: BorderWidths.thin,
+    borderColor: DarkSurfaces.border,
+    padding: Spacing[3],
+    overflow: 'hidden',
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[3],
+    justifyContent: 'center',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+  },
+  legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: FontSizes.xs,
+    color: DarkText.muted,
+  },
+  dataInputSection: {
+    gap: Spacing[2],
+  },
+  dataInputLabel: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.sm,
+    color: DarkText.secondary,
+  },
+  dataInputRow: {
+    flexDirection: 'row',
+    gap: Spacing[2],
+  },
+  dataInput: {
+    flex: 1,
+    backgroundColor: DarkSurfaces.surfaceElevated,
+    borderWidth: BorderWidths.thin,
+    borderColor: DarkSurfaces.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[2],
+    fontFamily: FontFamilies.mono,
+    fontSize: FontSizes.sm,
+    color: DarkText.primary,
+    minHeight: 44,
+  },
+  dataInputError: {
+    borderColor: Semantic.error,
+  },
+  applyButton: {
+    backgroundColor: Primary[500],
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing[4],
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  applyButtonText: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.sm,
+    color: '#FFFFFF',
+  },
+  generateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.md,
+    borderWidth: BorderWidths.thin,
+    borderColor: DarkSurfaces.border,
+  },
+  generateButtonText: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.sm,
+    color: DarkText.secondary,
+  },
+  inputErrorText: {
+    fontFamily: FontFamilies.regular,
+    fontSize: FontSizes.xs,
+    color: Semantic.error,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing[10],
+    gap: Spacing[3],
+  },
+  emptyIcon: { fontSize: 36 },
+  emptyText: { ...TextVariants.bodyMd, color: DarkText.muted, textAlign: 'center' },
+  toastContainer: {
+    position: 'absolute',
+    top: Spacing[4],
+    left: Spacing[4],
+    right: Spacing[4],
+    backgroundColor: 'rgba(30, 40, 30, 0.96)',
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: SimulationColors.final,
+    padding: Spacing[4],
+    gap: Spacing[3],
+    zIndex: 100,
+  },
+  toastTitle: {
+    ...TextVariants.h4,
+    color: SimulationColors.final,
+    textAlign: 'center',
+  },
+  toastActions: {
+    flexDirection: 'row',
+    gap: Spacing[2],
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+  },
+  toastBtn: {
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.md,
+    backgroundColor: DarkSurfaces.surface,
+    borderWidth: BorderWidths.thin,
+    borderColor: DarkSurfaces.border,
+  },
+  toastBtnPrimary: {
+    backgroundColor: Primary[500],
+    borderColor: Primary[500],
+  },
+  toastBtnText: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.sm,
+    color: DarkText.secondary,
+  },
+  toastBtnTextPrimary: { color: '#FFFFFF' },
 
   // Error
   errorContainer: {
@@ -245,15 +414,14 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
   const { algoritmoId } = route.params;
   const { algoritmo, isLoading, isError } = useAlgorithm(algoritmoId);
   const [showProximamente, setShowProximamente] = useState(false);
+  const [showSimulation, setShowSimulation] = useState(false);
 
-  // Actualizar el título del header dinámicamente
   useEffect(() => {
     if (algoritmo?.nombre) {
       navigation.setOptions({ title: algoritmo.nombre });
     }
   }, [algoritmo?.nombre, navigation]);
 
-  // ─── Estado de carga ──────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
@@ -290,10 +458,21 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
       setShowProximamente(true);
       return;
     }
-    navigation.navigate('Simulation', { algoritmoId: algoritmo.id });
+    setShowSimulation(true);
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  if (showSimulation && esActivo) {
+    return (
+      <View style={styles.container}>
+        <SimulationContent
+          algoritmoId={algoritmoId}
+          onRequestBack={() => setShowSimulation(false)}
+          showAlgorithmHeader={false}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -301,13 +480,11 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Título + badge de dificultad */}
         <View style={styles.titleRow}>
           <Text style={styles.title}>{algoritmo.nombre}</Text>
           <DifficultyBadge dificultad={dificultad} />
         </View>
 
-        {/* Complejidades Big O */}
         <View style={styles.complexityCard}>
           <View style={styles.complexityItem}>
             <Text style={styles.complexityLabel}>Tiempo</Text>
@@ -321,20 +498,15 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           <View style={styles.complexityDivider} />
           <View style={styles.complexityItem}>
             <Text style={styles.complexityLabel}>Categoría</Text>
-            <Text
-              style={[styles.complexityValue, { fontSize: FontSizes.sm }]}
-              numberOfLines={2}
-            >
+            <Text style={[styles.complexityValue, { fontSize: FontSizes.sm }]} numberOfLines={2}>
               {algoritmo.categoria}
             </Text>
           </View>
         </View>
 
-        {/* Descripción */}
         <Text style={styles.sectionTitle}>Descripción</Text>
         <Text style={styles.descriptionText}>{algoritmo.descripcion}</Text>
 
-        {/* Características de la visualización */}
         <Text style={styles.sectionTitle}>En la simulación verás</Text>
         {[
           { icon: '🔵', text: 'Azul — elemento inactivo / base' },
@@ -348,27 +520,28 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           </View>
         ))}
 
-        {/* Botón principal */}
         <TouchableOpacity
-          style={styles.startButton}
+          style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
           onPress={handleStartSimulation}
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={
-            esActivo
-              ? `Iniciar simulación de ${algoritmo.nombre}`
-              : `${algoritmo.nombre} no disponible aún`
+            esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
           }
           testID="btn-start-simulation"
         >
           <Text style={styles.startButtonIcon}>▶</Text>
           <Text style={styles.startButtonText}>
-            {esActivo ? 'Iniciar Simulación' : 'Próximamente'}
+            {esActivo
+              ? showSimulation
+                ? 'Simulación activa'
+                : 'Iniciar Simulación'
+              : 'Próximamente'}
           </Text>
         </TouchableOpacity>
+
       </ScrollView>
 
-      {/* Modal "Próximamente" (flujo alternativo HU-02) */}
       <Modal
         visible={showProximamente}
         transparent
@@ -399,6 +572,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           </Pressable>
         </Pressable>
       </Modal>
+
     </View>
   );
 }

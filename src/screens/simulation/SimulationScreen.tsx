@@ -39,16 +39,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useSimulationEngine } from '../../hooks/useSimulationEngine';
 import { useDataset } from '../../hooks/useDataset';
 import { useAnimationController } from '../../hooks/useAnimationController';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
-import { BarChart } from '../../visualization/components/BarChart';
-import { ControlBar } from '../../visualization/components/ControlBar';
-import { PseudocodePanel } from '../../visualization/components/PseudocodePanel';
+import { BarChart } from '../../components/simulation/BarChart';
+import { ControlBar } from '../../components/simulation/ControlBar';
+import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
 import {
   DarkSurfaces,
@@ -71,9 +71,11 @@ import {
   TextVariants,
 } from '../../styles/typography';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
-type Props = NativeStackScreenProps<LibraryStackParamList, 'Simulation'>;
+type SimulationContentProps = {
+  algoritmoId: string;
+  onRequestBack?: () => void;
+  showAlgorithmHeader?: boolean;
+};
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -213,6 +215,23 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: DarkText.secondary,
   },
+  practiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.md,
+    borderWidth: BorderWidths.thin,
+    borderColor: Accent[500],
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+  },
+  practiceButtonText: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.sm,
+    color: Accent[500],
+  },
   inputErrorText: {
     fontFamily: FontFamilies.regular,
     fontSize: FontSizes.xs,
@@ -284,15 +303,19 @@ const styles = StyleSheet.create({
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export default function SimulationScreen({ navigation, route }: Props) {
-  const { algoritmoId } = route.params;
+export function SimulationContent({
+  algoritmoId,
+  onRequestBack,
+  showAlgorithmHeader = true,
+}: SimulationContentProps) {
 
   // ─── Hooks ────────────────────────────────────────────────────────────────
+  const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
   const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
   const {
     steps,
     currentStep,
-    isComplaying: isPlaying,
+    isPlaying,
     speed,
     isCompleted,
     play,
@@ -301,6 +324,7 @@ export default function SimulationScreen({ navigation, route }: Props) {
     previousStep,
     setSpeed,
     resetSimulation,
+    pseudocode,
   } = useSimulation();
   const { executeAlgorithm, isExecuting } = useSimulationEngine();
   const { generateDefault, validateDataset } = useDataset();
@@ -313,13 +337,6 @@ export default function SimulationScreen({ navigation, route }: Props) {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
 
-  // ─── Header dinámico ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (algoritmo?.nombre) {
-      navigation.setOptions({ title: algoritmo.nombre });
-    }
-  }, [algoritmo?.nombre, navigation]);
-
   // ─── Cargar datos al montar ───────────────────────────────────────────────
   useEffect(() => {
     if (algoritmo && !hasStarted) {
@@ -328,8 +345,16 @@ export default function SimulationScreen({ navigation, route }: Props) {
         .then(() => setHasStarted(true))
         .catch(() => {});
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [algoritmo]);
+  }, [algoritmo, hasStarted, generateDefault, executeAlgorithm]);
+
+  // Si cambia el algoritmo seleccionado, reinicia el arranque de simulación.
+  useEffect(() => {
+    setHasStarted(false);
+    setShowToast(false);
+    setCustomInput('');
+    setInputError(null);
+    resetSimulation();
+  }, [algoritmoId, resetSimulation]);
 
   // ─── Mostrar toast al completar (HU-07) ───────────────────────────────────
   useEffect(() => {
@@ -375,8 +400,8 @@ export default function SimulationScreen({ navigation, route }: Props) {
 
   const handleNextAlgorithm = useCallback(() => {
     setShowToast(false);
-    navigation.goBack();
-  }, [navigation]);
+    onRequestBack?.();
+  }, [onRequestBack]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -389,7 +414,7 @@ export default function SimulationScreen({ navigation, route }: Props) {
   }
 
   const currentStepData = currentStep.step;
-  const pseudoLines = algoritmo?.pseudocode ?? [];
+  const pseudoLines = pseudocode;
   const hasSteps = steps.length > 0;
   const progressPercent = currentStep.progress;
 
@@ -436,16 +461,18 @@ export default function SimulationScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* Header: nombre + contador de paso */}
-        <View style={styles.headerRow}>
-          <Text style={styles.algoName} numberOfLines={1}>
-            {algoritmo?.nombre ?? 'Simulación'}
-          </Text>
-          {hasSteps && (
-            <Text style={styles.stepCounter}>
-              {currentStep.displayNumber} / {currentStep.totalSteps}
+        {showAlgorithmHeader && (
+          <View style={styles.headerRow}>
+            <Text style={styles.algoName} numberOfLines={1}>
+              {algoritmo?.nombre ?? 'Simulación'}
             </Text>
-          )}
-        </View>
+            {hasSteps && (
+              <Text style={styles.stepCounter}>
+                {currentStep.displayNumber} / {currentStep.totalSteps}
+              </Text>
+            )}
+          </View>
+        )}
 
         {/* Barra de progreso */}
         {hasSteps && (
@@ -547,6 +574,19 @@ export default function SimulationScreen({ navigation, route }: Props) {
             <Text style={{ fontSize: 16 }}>🎲</Text>
             <Text style={styles.generateButtonText}>Generar nuevos datos</Text>
           </TouchableOpacity>
+
+          {/* Botón Practicar */}
+          <TouchableOpacity
+            style={styles.practiceButton}
+            onPress={() => navigation.navigate('Exercise', { algoritmoId })}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Ir a ejercicios de práctica"
+            testID="btn-practice"
+          >
+            <Text style={{ fontSize: 16 }}>📝</Text>
+            <Text style={styles.practiceButtonText}>Practicar</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -564,5 +604,20 @@ export default function SimulationScreen({ navigation, route }: Props) {
         onSpeedChange={setSpeed}
       />
     </KeyboardAvoidingView>
+  );
+}
+
+type LegacyScreenProps = {
+  route: { params: { algoritmoId: string } };
+  navigation: { goBack: () => void };
+};
+
+export default function SimulationScreen({ navigation, route }: LegacyScreenProps) {
+  return (
+    <SimulationContent
+      algoritmoId={route.params.algoritmoId}
+      onRequestBack={navigation.goBack}
+      showAlgorithmHeader
+    />
   );
 }

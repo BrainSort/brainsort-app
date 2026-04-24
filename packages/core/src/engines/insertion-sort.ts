@@ -1,8 +1,21 @@
 import { SortEngine } from './engine.interface';
 import { SimulationStep } from '../types/step.types';
+import { PseudocodeLine } from '../types/algorithm.types';
 
 export class InsertionSortEngine implements SortEngine {
   name = 'Insertion Sort';
+
+  getPseudocode(): PseudocodeLine[] {
+    return [
+      { line: 1, text: 'Para i = 1 hasta n-1', indent: 0 },
+      { line: 2, text: 'clave = arreglo[i]', indent: 1 },
+      { line: 3, text: 'j = i - 1', indent: 1 },
+      { line: 4, text: 'Mientras j >= 0 y arreglo[j] > clave', indent: 1 },
+      { line: 5, text: 'arreglo[j+1] = arreglo[j]', indent: 2 },
+      { line: 6, text: 'j = j - 1', indent: 2 },
+      { line: 7, text: 'arreglo[j+1] = clave', indent: 1 },
+    ];
+  }
 
   execute(data: number[]): SimulationStep[] {
     const steps: SimulationStep[] = [];

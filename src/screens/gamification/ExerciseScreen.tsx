@@ -15,29 +15,44 @@
  *            hooks/useExercise.ts
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
-  TextInput,
-  TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useExercise } from '../../hooks/useExercise';
-import { Button } from '../../components/common/Button';
+import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
+import { PredictionExercise } from '../../components/gamification/PredictionExercise';
+import { StepIndicator } from '../../components/simulation/StepIndicator';
+import { ComplexityInfo } from '../../components/simulation/ComplexityInfo';
+import { SimulationCanvas } from '../../components/simulation/SimulationCanvas';
+import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
+import { ControlBar } from '../../components/simulation/ControlBar';
 import {
   DarkSurfaces,
   DarkText,
   Accent,
-  Semantic,
+  SimulationColors,
 } from '../../styles/colors';
-import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
+import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
+import { TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias } from '../../styles/spacing';
+import {
+  BubbleSortEngine,
+  SelectionSortEngine,
+  InsertionSortEngine,
+  MergeSortEngine,
+} from '@brainsort/core';
+import type { SortEngine, SimulationStep } from '@brainsort/core';
+import type { OperationType } from '../../types/simulation';
+import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
+import { useExercise } from '../../hooks/useExercise';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -45,7 +60,184 @@ interface ExerciseScreenParams {
   algoritmoId?: string;
 }
 
-type Props = NativeStackScreenProps<any, 'Exercise'>;
+type Props = NativeStackScreenProps<LibraryStackParamList, 'Exercise'>;
+
+const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
+  'Bubble Sort': BubbleSortEngine,
+  'Selection Sort': SelectionSortEngine,
+  'Insertion Sort': InsertionSortEngine,
+  'Merge Sort': MergeSortEngine,
+};
+
+function createDefaultDataset(size = 9): number[] {
+  return Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
+}
+
+function getOperationLabel(tipo: string): string {
+  switch (tipo) {
+    case 'comparacion':
+      return 'Comparación entre elementos';
+    case 'intercambio':
+      return 'Intercambio de posiciones';
+    case 'insercion':
+      return 'Inserción de elemento';
+    case 'final':
+      return 'Estado final ordenado';
+    default:
+      return 'Inicialización o avance general';
+  }
+}
+
+const ExerciseSimulationCard: React.FC<{ algoritmoId: string }> = ({ algoritmoId }) => {
+  const { algoritmo, isLoading } = useAlgorithm(algoritmoId);
+  const [steps, setSteps] = useState<SimulationStep[]>([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  useEffect(() => {
+    if (!algoritmo?.nombre) {
+      return;
+    }
+    const EngineClass = ENGINE_REGISTRY[algoritmo.nombre];
+    if (!EngineClass) {
+      setSteps([]);
+      return;
+    }
+    const engine = new EngineClass();
+    const generatedSteps = engine.execute(createDefaultDataset());
+    setSteps(generatedSteps);
+    setCurrentStepIndex(0);
+    setIsPlaying(false);
+    setIsCompleted(false);
+  }, [algoritmo?.nombre]);
+
+  useEffect(() => {
+    if (!isPlaying || steps.length === 0) {
+      return;
+    }
+    if (currentStepIndex >= steps.length - 1) {
+      setIsPlaying(false);
+      setIsCompleted(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCurrentStepIndex((prev) => prev + 1);
+    }, 900 / speed);
+
+    return () => clearTimeout(timer);
+  }, [currentStepIndex, isPlaying, speed, steps.length]);
+
+  const currentStep = steps[currentStepIndex];
+  const activePseudoLine = useMemo(
+    () => algoritmo?.pseudocode.find((line) => line.line === currentStep?.lineaPseudocodigo),
+    [algoritmo?.pseudocode, currentStep?.lineaPseudocodigo],
+  );
+
+  const handleReset = () => {
+    setCurrentStepIndex(0);
+    setIsPlaying(false);
+    setIsCompleted(false);
+  };
+
+  const handleTogglePlay = () => {
+    if (!steps.length) {
+      return;
+    }
+    setIsPlaying((prev) => !prev);
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.simulationLoading}>
+        <ActivityIndicator color={Accent[500]} />
+      </View>
+    );
+  }
+
+  if (!algoritmo || steps.length === 0 || !currentStep) {
+    return (
+      <View style={styles.simulationUnavailable}>
+        <Text style={styles.simulationUnavailableText}>
+          Simulación no disponible para este ejercicio.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.simulationCard}>
+      <Text style={styles.simulationTitle}>Simulación del algoritmo</Text>
+      <StepIndicator current={currentStepIndex + 1} total={steps.length} />
+
+      <ComplexityInfo
+        time={algoritmo.complejidadTiempo}
+        space={algoritmo.complejidadEspacio}
+      />
+
+      <SimulationCanvas
+        algorithmName={algoritmo.nombre}
+        step={currentStep}
+        isCompleted={isCompleted}
+      />
+
+      <PseudocodePanel
+        lines={algoritmo.pseudocode}
+        currentStep={currentStep}
+      />
+
+      <View style={styles.pseudoDescriptionBox}>
+        <Text style={styles.pseudoDescriptionTitle}>Descripción del pseudocódigo</Text>
+        <Text style={styles.pseudoDescriptionText}>{algoritmo.descripcion}</Text>
+        <Text style={styles.pseudoDescriptionText}>
+          Paso actual: {getOperationLabel(currentStep.tipoOperacion)}.
+        </Text>
+        {activePseudoLine && (
+          <Text style={styles.pseudoActiveLine}>
+            Línea activa ({activePseudoLine.line}): {activePseudoLine.text}
+          </Text>
+        )}
+      </View>
+
+      <ControlBar
+        isPlaying={isPlaying}
+        isCompleted={isCompleted}
+        speed={speed}
+        hasSteps={steps.length > 0}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onReset={handleReset}
+        onPreviousStep={() => setCurrentStepIndex(Math.max(0, currentStepIndex - 1))}
+        onNextStep={() => setCurrentStepIndex(Math.min(steps.length - 1, currentStepIndex + 1))}
+        onSpeedChange={setSpeed}
+      />
+
+      <View style={styles.speedActions}>
+        {[0.5, 1, 1.5, 2].map((value) => (
+          <TouchableOpacity
+            key={value}
+            style={[
+              styles.speedBtn,
+              speed === value ? styles.speedBtnActive : null,
+            ]}
+            onPress={() => setSpeed(value)}
+          >
+            <Text
+              style={[
+                styles.speedBtnText,
+                speed === value ? styles.speedBtnTextActive : null,
+              ]}
+            >
+              {value}x
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+};
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -60,8 +252,6 @@ type Props = NativeStackScreenProps<any, 'Exercise'>;
 export const ExerciseScreen: React.FC<Props> = ({ route }) => {
   const params = route.params as ExerciseScreenParams;
   const algoritmoId = params?.algoritmoId;
-  const [respuesta, setRespuesta] = useState('');
-  const [showResult, setShowResult] = useState(false);
 
   const {
     ejercicios,
@@ -71,17 +261,12 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
     lastResult,
   } = useExercise(algoritmoId);
 
-  const handleSubmit = async () => {
-    if (!ejercicios || ejercicios.length === 0) return;
-
-    const ejercicio = ejercicios[0];
-    await responderEjercicio(ejercicio.id, respuesta);
-    setShowResult(true);
+  const handleResponderEjercicio = async (ejercicioId: string, respuesta: string) => {
+    await responderEjercicio(ejercicioId, respuesta);
   };
 
   const handleNext = () => {
-    setRespuesta('');
-    setShowResult(false);
+    // Navigate back or reset state, depending on product requirements
   };
 
   if (isLoadingExercises) {
@@ -99,76 +284,29 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
       <SafeAreaWrapper>
         <Header title="Ejercicios" showBackButton />
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No hay ejercicios disponibles</Text>
+          <Text style={styles.emptyText}>No hay ejercicios disponibles para este algoritmo</Text>
         </View>
       </SafeAreaWrapper>
     );
   }
 
-  const ejercicio = ejercicios[0];
-
   return (
     <SafeAreaWrapper>
       <Header title="Ejercicio" showBackButton />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <Text style={styles.question}>{ejercicio.pregunta}</Text>
-
-          {!showResult ? (
-            <>
-              <TextInput
-                style={styles.input}
-                placeholder="Tu respuesta..."
-                placeholderTextColor={DarkText.muted}
-                value={respuesta}
-                onChangeText={setRespuesta}
-                multiline
-                numberOfLines={3}
-              />
-
-              <Button
-                title="Enviar Respuesta"
-                onPress={handleSubmit}
-                disabled={!respuesta.trim() || isSubmittingAnswer}
-                loading={isSubmittingAnswer}
-                size="large"
-              />
-            </>
-          ) : (
-            <View style={styles.resultContainer}>
-              {lastResult?.correcto ? (
-                <>
-                  <Text style={styles.resultTitle}>¡Correcto!</Text>
-                  <Text style={[styles.resultText, styles.success]}>
-                    {lastResult.feedbackPositivo}
-                  </Text>
-                  <View style={styles.statsRow}>
-                    <Text style={styles.stat}>
-                      +{lastResult.puntosGanados} XP
-                    </Text>
-                    <Text style={styles.stat}>
-                      Racha: {lastResult.rachaDias} días
-                    </Text>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.resultTitle}>Incorrecto</Text>
-                  <Text style={[styles.resultText, styles.error]}>
-                    {lastResult?.feedbackNegativo}
-                  </Text>
-                </>
-              )}
-
-              <Button
-                title="Siguiente Ejercicio"
-                onPress={handleNext}
-                variant="secondary"
-                size="large"
-              />
-            </View>
-          )}
-        </View>
+        {ejercicios.map((ejercicio) => (
+          <View key={ejercicio.id} style={styles.exerciseBlock}>
+            <Text style={styles.exerciseTitle}>Ejercicio de predicción</Text>
+            <PredictionExercise
+              pregunta={ejercicio.pregunta}
+              isSubmittingAnswer={isSubmittingAnswer}
+              lastResult={lastResult}
+              onSubmit={(respuesta) => handleResponderEjercicio(ejercicio.id, respuesta)}
+              onNext={handleNext}
+            />
+            <ExerciseSimulationCard algoritmoId={ejercicio.algoritmoId} />
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaWrapper>
   );
@@ -182,6 +320,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SpacingAlias.screenPaddingX,
+    gap: Spacing[5],
   },
   center: {
     flex: 1,
@@ -192,57 +331,83 @@ const styles = StyleSheet.create({
     ...TextVariants.bodyMd,
     color: DarkText.muted,
   },
-  card: {
+  exerciseBlock: {
+    gap: Spacing[3],
+    marginBottom: Spacing[3],
+  },
+  exerciseTitle: {
+    ...TextVariants.h4,
+    color: DarkText.primary,
+  },
+  simulationCard: {
     backgroundColor: DarkSurfaces.surface,
-    borderRadius: 16,
-    padding: Spacing[6],
-  },
-  question: {
-    ...TextVariants.bodyLg,
-    color: DarkText.primary,
-    marginBottom: Spacing[6],
-  },
-  input: {
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    borderWidth: 1,
-    borderColor: DarkSurfaces.border,
-    borderRadius: 8,
+    borderRadius: 14,
     padding: Spacing[4],
-    color: DarkText.primary,
-    fontFamily: FontFamilies.regular,
-    fontSize: FontSizes.md,
-    marginBottom: Spacing[4],
-    minHeight: 100,
-    textAlignVertical: 'top',
+    gap: Spacing[3],
   },
-  resultContainer: {
+  simulationTitle: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.md,
+    color: DarkText.primary,
+  },
+  pseudoDescriptionBox: {
+    backgroundColor: 'rgba(74, 144, 217, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 144, 217, 0.35)',
+    borderRadius: 10,
+    padding: Spacing[3],
+    gap: Spacing[2],
+  },
+  pseudoDescriptionTitle: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.sm,
+    color: Accent[300],
+  },
+  pseudoDescriptionText: {
+    ...TextVariants.bodySm,
+    color: DarkText.secondary,
+  },
+  pseudoActiveLine: {
+    ...TextVariants.bodySm,
+    color: SimulationColors.comparacion,
+  },
+  simulationLoading: {
+    paddingVertical: Spacing[5],
     alignItems: 'center',
   },
-  resultTitle: {
-    ...TextVariants.h3,
-    color: DarkText.primary,
-    marginBottom: Spacing[4],
+  simulationUnavailable: {
+    backgroundColor: DarkSurfaces.surface,
+    borderRadius: 10,
+    padding: Spacing[3],
   },
-  resultText: {
-    ...TextVariants.bodyMd,
-    color: DarkText.secondary,
-    textAlign: 'center',
-    marginBottom: Spacing[6],
+  simulationUnavailableText: {
+    ...TextVariants.bodySm,
+    color: DarkText.muted,
   },
-  success: {
-    color: Semantic.success,
-  },
-  error: {
-    color: Semantic.error,
-  },
-  statsRow: {
+  speedActions: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: Spacing[6],
+    justifyContent: 'center',
+    gap: Spacing[2],
   },
-  stat: {
-    ...TextVariants.labelMd,
-    color: Accent[500],
+  speedBtn: {
+    borderWidth: 1,
+    borderColor: DarkSurfaces.border,
+    borderRadius: 16,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1],
+    backgroundColor: DarkSurfaces.surfaceElevated,
+  },
+  speedBtnActive: {
+    borderColor: Accent[500],
+    backgroundColor: 'rgba(0, 212, 255, 0.15)',
+  },
+  speedBtnText: {
+    ...TextVariants.labelSm,
+    color: DarkText.secondary,
+  },
+  speedBtnTextActive: {
+    color: Accent[300],
   },
 });

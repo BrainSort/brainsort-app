@@ -27,9 +27,9 @@ import {
   ActivityIndicator,
   View,
 } from 'react-native';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
+import { Primary, Neutral, Semantic } from '../../styles/colors';
+import { Spacing } from '../../styles/spacing';
+import { TextVariants, FontSizes, FontFamilies, FontWeights } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ const getVariantStyles = (
   };
 
   const baseText: TextStyle = {
-    ...typography.button,
+    ...TextVariants.labelMd,
     fontWeight: '600',
   };
 
@@ -66,11 +66,11 @@ const getVariantStyles = (
       return {
         container: {
           ...baseContainer,
-          backgroundColor: disabled ? colors.gray400 : colors.primary,
+          backgroundColor: disabled ? Neutral[400] : Primary[500],
         },
         text: {
           ...baseText,
-          color: colors.white,
+          color: Neutral[0],
         },
       };
 
@@ -78,13 +78,13 @@ const getVariantStyles = (
       return {
         container: {
           ...baseContainer,
-          backgroundColor: disabled ? colors.gray200 : colors.gray100,
+          backgroundColor: disabled ? Neutral[200] : Neutral[100],
           borderWidth: 1,
-          borderColor: disabled ? colors.gray300 : colors.gray400,
+          borderColor: disabled ? Neutral[300] : Neutral[400],
         },
         text: {
           ...baseText,
-          color: disabled ? colors.gray400 : colors.gray700,
+          color: disabled ? Neutral[400] : Neutral[700],
         },
       };
 
@@ -96,7 +96,7 @@ const getVariantStyles = (
         },
         text: {
           ...baseText,
-          color: disabled ? colors.gray400 : colors.primary,
+          color: disabled ? Neutral[400] : Primary[500],
         },
       };
 
@@ -115,8 +115,8 @@ const getSizeStyles = (
     case 'small':
       return {
         container: {
-          paddingVertical: spacing.sm,
-          paddingHorizontal: spacing.md,
+          paddingVertical: Spacing[2],
+          paddingHorizontal: Spacing[3],
           minHeight: 32,
         },
         text: {
@@ -127,8 +127,8 @@ const getSizeStyles = (
     case 'large':
       return {
         container: {
-          paddingVertical: spacing.lg,
-          paddingHorizontal: spacing.xl,
+          paddingVertical: Spacing[6],
+          paddingHorizontal: Spacing[8],
           minHeight: 48,
         },
         text: {
@@ -140,8 +140,8 @@ const getSizeStyles = (
     default:
       return {
         container: {
-          paddingVertical: spacing.md,
-          paddingHorizontal: spacing.lg,
+          paddingVertical: Spacing[3],
+          paddingHorizontal: Spacing[6],
           minHeight: 40,
         },
         text: {
@@ -200,7 +200,7 @@ export const Button: React.FC<ButtonProps> = ({
         <ActivityIndicator
           color={variantStyles.text.color as string}
           size="small"
-          style={{ marginRight: spacing.sm }}
+          style={{ marginRight: Spacing[2] }}
         />
       )}
       <Text style={[variantStyles.text, sizeStyles.text]}>{title}</Text>
