@@ -53,7 +53,7 @@ export default function LearningPathScreen({ navigation }: any) {
           <TouchableOpacity 
             key={algo.id} 
             style={styles.node}
-            onPress={() => navigation.navigate('Library', { screen: 'AlgorithmDetail', params: { algoritmoId: algo.id } })}
+            onPress={() => navigation.navigate('Biblioteca', { screen: 'AlgorithmDetail', params: { algoritmoId: algo.id } })}
           >
             <View style={styles.circle}>
               <Text style={styles.stepNum}>{idx + 1}</Text>
