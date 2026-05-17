@@ -95,6 +95,20 @@ function RootNavigator() {
 
   // Al montar, intentar restaurar sesión desde almacenamiento persistente
   useEffect(() => {
+    // DEV: saltar autenticación automáticamente en desarrollo
+    if (__DEV__) {
+      setAuth(
+        {
+          id: 'dev-001',
+          nombre: 'Dev User',
+          correo: 'dev@brainsort.app',
+          rol: 'Estudiante',
+        },
+        { accessToken: 'dev-token', refreshToken: 'dev-refresh' },
+        'usuario',
+      );
+      return;
+    }
     restoreSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
