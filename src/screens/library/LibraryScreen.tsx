@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: DarkSurfaces.background,
+    overflow: 'hidden' as any,
   },
 
   // Header

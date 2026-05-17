@@ -15,6 +15,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import LibraryStackNavigator from './LibraryStackNavigator';
+import LearningPathScreen from '../screens/learning-path/LearningPathScreen';
 import { DarkSurfaces, DarkText, Accent } from '../styles/colors';
 import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
@@ -22,7 +23,7 @@ import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
 export type MainTabParamList = {
   Biblioteca: undefined;
-  Progreso: undefined;
+  Ruta: undefined;
   Offline: undefined;
   Perfil: undefined;
 };
@@ -89,11 +90,11 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Progreso"
-        children={() => <PlaceholderScreen label="Progreso" />}
+        name="Ruta"
+        component={LearningPathScreen}
         options={{
-          tabBarIcon: ({ color }) => tabIcon('📈', color),
-          tabBarAccessibilityLabel: 'Mi progreso',
+          tabBarIcon: ({ color }) => tabIcon('🗺️', color),
+          tabBarAccessibilityLabel: 'Mi ruta de aprendizaje',
         }}
       />
       <Tab.Screen

@@ -40,9 +40,9 @@ export interface UseResponsiveColumnsReturn {
 
 /** Breakpoints para responsive design */
 const BREAKPOINTS = {
-  DESKTOP: 1024,
-  TABLET: 768,
-  PHABLET: 480,
+  DESKTOP: 1280,
+  TABLET: 900,
+  PHABLET: 600,
 } as const;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -74,10 +74,10 @@ export function useResponsiveColumns(): UseResponsiveColumnsReturn {
 
   const numColumns = useMemo(() => {
     if (width >= BREAKPOINTS.DESKTOP) {
-      return 4; // Desktop: 4 columnas
+      return 3; // Desktop grande: 3 columnas
     }
     if (width >= BREAKPOINTS.TABLET) {
-      return 3; // Tablet: 3 columnas
+      return 2; // Tablet / Desktop pequeño: 2 columnas
     }
     if (width >= BREAKPOINTS.PHABLET) {
       return 2; // Phablet: 2 columnas
