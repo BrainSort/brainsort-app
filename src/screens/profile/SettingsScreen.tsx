@@ -20,7 +20,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -49,10 +48,10 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper>
-      <Header 
-        title="Configuración" 
-        showBackButton 
-        onBackPress={() => navigation.goBack()} 
+      <Header
+        title="Configuración"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Appearance */}

@@ -23,7 +23,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -285,10 +284,10 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
   if (!ejercicios || ejercicios.length === 0) {
     return (
       <SafeAreaWrapper>
-        <Header 
-          title="Ejercicios" 
-          showBackButton 
-          onBackPress={() => navigation.goBack()} 
+        <Header
+          title="Ejercicios"
+          showBackButton
+          onBackPress={() => navigation.goBack()}
         />
         <View style={styles.center}>
           <Text style={styles.emptyText}>No hay ejercicios disponibles para este algoritmo</Text>
@@ -299,10 +298,10 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
 
   return (
     <SafeAreaWrapper>
-      <Header 
-        title="Ejercicio" 
-        showBackButton 
-        onBackPress={() => navigation.goBack()} 
+      <Header
+        title="Ejercicio"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
       />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {ejercicios.map((ejercicio) => (
