@@ -148,6 +148,25 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.lg,
     borderTopRightRadius: BorderRadius.lg,
   },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[1],
+    marginBottom: Spacing[2],
+  },
+  tagBadge: {
+    backgroundColor: DarkSurfaces.surfaceHighlight,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing[2],
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.border,
+  },
+  tagText: {
+    ...TextVariants.bodySm,
+    fontSize: 10,
+    color: DarkText.secondary,
+  },
 });
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -211,6 +230,17 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
         <Text style={styles.description} numberOfLines={3}>
           {truncatedDesc}
         </Text>
+
+        {/* Tags */}
+        {algoritmo.tags && algoritmo.tags.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {algoritmo.tags.map((tag) => (
+              <View key={tag} style={styles.tagBadge}>
+                <Text style={styles.tagText}>#{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Footer: complejidades */}
         <View style={styles.footer}>
