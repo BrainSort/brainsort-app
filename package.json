@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "test": "jest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:api-types": "openapi-typescript https://brainsort-api.railway.app/api/docs-json --output src/generated/api-types.ts",
