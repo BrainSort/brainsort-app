@@ -33,6 +33,7 @@ export interface AlgoritmoEnBiblioteca {
   complejidadTiempo: string; // Ej: "O(n²)"
   complejidadEspacio: string; // Ej: "O(1)"
   categoria: string; // "Ordenamiento", "Busqueda", "EstructurasLineales"
+  tags?: string[];
 }
 
 /** Response de GET /api/biblioteca (CO1) */

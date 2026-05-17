@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     ...TextVariants.h4,
     color: DarkText.primary,
     marginBottom: Spacing[1],
-    flex: 1,
+    flexGrow: 1,
     marginRight: Spacing[2],
   },
   description: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     color: DarkText.secondary,
     lineHeight: 20,
     marginBottom: Spacing[3],
-    flex: 1,
+    flexGrow: 1,
   },
   footer: {
     flexDirection: 'row',
@@ -147,6 +147,25 @@ const styles = StyleSheet.create({
     backgroundColor: Primary[500],
     borderTopLeftRadius: BorderRadius.lg,
     borderTopRightRadius: BorderRadius.lg,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[1],
+    marginBottom: Spacing[2],
+  },
+  tagBadge: {
+    backgroundColor: DarkSurfaces.surfaceHighlight,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing[2],
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.border,
+  },
+  tagText: {
+    ...TextVariants.bodySm,
+    fontSize: 10,
+    color: DarkText.secondary,
   },
 });
 
@@ -189,6 +208,7 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
       accessibilityLabel={`Ver algoritmo ${algoritmo.nombre}, dificultad ${dificultad}`}
       accessibilityHint="Toca dos veces para abrir el detalle del algoritmo"
       testID={`algorithm-card-${algoritmo.id}`}
+      style={{ flex: 1 }}
     >
       <View style={[styles.card, pressed && styles.cardPressed]}>
         {/* Línea de acento superior */}
@@ -211,6 +231,17 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
         <Text style={styles.description} numberOfLines={3}>
           {truncatedDesc}
         </Text>
+
+        {/* Tags */}
+        {algoritmo.tags && algoritmo.tags.length > 0 && (
+          <View style={styles.tagsContainer}>
+            {algoritmo.tags.map((tag) => (
+              <View key={tag} style={styles.tagBadge}>
+                <Text style={styles.tagText}>#{tag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Footer: complejidades */}
         <View style={styles.footer}>

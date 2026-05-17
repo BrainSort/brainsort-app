@@ -6,6 +6,9 @@ export { BubbleSortEngine } from './engines/bubble-sort';
 export { SelectionSortEngine } from './engines/selection-sort';
 export { InsertionSortEngine } from './engines/insertion-sort';
 export { MergeSortEngine } from './engines/merge-sort';
+export { StackEngine } from './engines/stack';
+export { QueueEngine } from './engines/queue';
+export { LinkedListEngine } from './engines/linked-list';
 
 // math/
 export { createScales } from './math/scales';

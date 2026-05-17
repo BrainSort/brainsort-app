@@ -21,6 +21,8 @@ import { NavigationContainer } from '@react-navigation/native';
 
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
+import DiagnosticTestScreen from '../screens/onboarding/DiagnosticTestScreen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthContext } from '../context/AuthContext';
 import { useApiTokenSync } from '../services/api';
@@ -84,6 +86,19 @@ function SplashLoader() {
   );
 }
 
+// ─── Authenticated Navigator ──────────────────────────────────────────────────
+
+const AuthStack = createNativeStackNavigator();
+
+function AuthenticatedNavigator() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="MainTabs" component={MainTabNavigator} />
+      <AuthStack.Screen name="DiagnosticTest" component={DiagnosticTestScreen} options={{ presentation: 'fullScreenModal' }} />
+    </AuthStack.Navigator>
+  );
+}
+
 // ─── Root navigator ───────────────────────────────────────────────────────────
 
 function RootNavigator() {
@@ -121,7 +136,7 @@ function RootNavigator() {
 
   return (
     <>
-      {isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />}
+      {isAuthenticated ? <AuthenticatedNavigator /> : <AuthNavigator />}
 
       {/* Botón flotante DEV — solo aparece en modo desarrollo y sin sesión */}
       {__DEV__ && !isAuthenticated && (
