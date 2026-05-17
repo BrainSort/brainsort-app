@@ -121,7 +121,7 @@ export const ProfileScreen: React.FC = () => {
     if (!editedName.trim()) return;
     setIsSaving(true);
     try {
-      await apiClient.patch('/api/users/me', { nombre: editedName });
+      await apiClient.patch('/users/me', { nombre: editedName });
       setLocalName(editedName);
       setIsEditing(false);
     } catch (error) {
