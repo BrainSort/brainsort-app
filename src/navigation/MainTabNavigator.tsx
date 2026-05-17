@@ -15,6 +15,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import LibraryStackNavigator from './LibraryStackNavigator';
+import ProfileStackNavigator from './ProfileStackNavigator';
 import LearningPathScreen from '../screens/learning-path/LearningPathScreen';
 import { DarkSurfaces, DarkText, Accent } from '../styles/colors';
 import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
@@ -107,7 +108,7 @@ export default function MainTabNavigator() {
       />
       <Tab.Screen
         name="Perfil"
-        children={() => <PlaceholderScreen label="Perfil" />}
+        component={ProfileStackNavigator}
         options={{
           tabBarIcon: ({ color }) => tabIcon('👤', color),
           tabBarAccessibilityLabel: 'Mi perfil',
