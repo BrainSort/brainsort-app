@@ -5,11 +5,11 @@
  * Renderiza visualmente:
  *   - Stack: bloques apilados verticalmente, top resaltado
  *   - Queue: nodos en fila horizontal con punteros head/tail
- *   - Linked List: cajas de nodos conectadas con flechas
+ *   - Linked List: cajas de nodos conectadas con flechas animadas
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Accent, DarkSurfaces, DarkText, Semantic, SimulationColors } from '../../styles/colors';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
@@ -168,10 +168,178 @@ function QueueCanvas({ step, isCompleted }: { step: SimulationStep | null; isCom
   );
 }
 
+// ─── Linked List: animation helpers ─────────────────────────────────────────
+
+interface NodeAnimValues {
+  scale: Animated.Value;
+  opacity: Animated.Value;
+  glowOpacity: Animated.Value;
+  arrowOpacity: Animated.Value;
+  arrowX: Animated.Value;
+  pointerPulse: Animated.Value;
+}
+
+function useNodeAnimValues(count: number): React.MutableRefObject<NodeAnimValues[]> {
+  const animsRef = useRef<NodeAnimValues[]>([]);
+
+  // Grow the array when count increases (new nodes added)
+  while (animsRef.current.length < count) {
+    animsRef.current.push({
+      scale: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      glowOpacity: new Animated.Value(0),
+      arrowOpacity: new Animated.Value(0),
+      arrowX: new Animated.Value(-12),
+      pointerPulse: new Animated.Value(1),
+    });
+  }
+
+  // Trim when count shrinks
+  if (animsRef.current.length > count) {
+    animsRef.current = animsRef.current.slice(0, count);
+  }
+
+  return animsRef;
+}
+
 function LinkedListCanvas({ step, isCompleted }: { step: SimulationStep | null; isCompleted: boolean }) {
   const items = step?.estadoArray ?? [];
   const active = step?.indicesActivos ?? [];
   const op = step?.tipoOperacion ?? 'idle';
+
+  const animsRef = useNodeAnimValues(items.length);
+  const headSlide = useRef(new Animated.Value(-8)).current;
+  const headOpacity = useRef(new Animated.Value(0)).current;
+  const nullFade = useRef(new Animated.Value(0)).current;
+  const glowLoopsRef = useRef<Animated.CompositeAnimation[]>([]);
+  const prevCountRef = useRef(0);
+
+  // ── Entry animations for newly added nodes (prepend = index 0 is always newest)
+  useEffect(() => {
+    const anims = animsRef.current;
+    if (items.length === 0) return;
+
+    const newCount = items.length;
+    const oldCount = prevCountRef.current;
+    prevCountRef.current = newCount;
+
+    // Animate each node that is new (all nodes shift on prepend)
+    anims.forEach((a, i) => {
+      const isNew = newCount > oldCount && i === 0;
+      if (isNew || (a.scale as any)._value === 0) {
+        // pop-in spring for new head
+        Animated.parallel([
+          Animated.spring(a.scale, {
+            toValue: 1,
+            tension: 180,
+            friction: 10,
+            useNativeDriver: true,
+          }),
+          Animated.timing(a.opacity, {
+            toValue: 1,
+            duration: 200,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(a.arrowOpacity, {
+            toValue: 1,
+            duration: 300,
+            delay: 120,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.spring(a.arrowX, {
+            toValue: 0,
+            tension: 140,
+            friction: 10,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    });
+
+    // HEAD indicator slide
+    headSlide.setValue(-8);
+    headOpacity.setValue(0);
+    Animated.parallel([
+      Animated.spring(headSlide, { toValue: 0, tension: 200, friction: 10, useNativeDriver: true }),
+      Animated.timing(headOpacity, { toValue: 1, duration: 250, useNativeDriver: true }),
+    ]).start();
+
+    // NULL fade-in
+    Animated.timing(nullFade, {
+      toValue: 1,
+      duration: 400,
+      delay: 80,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items.length]);
+
+  // ── Glow pulse for active nodes
+  useEffect(() => {
+    // Stop previous loops
+    glowLoopsRef.current.forEach((l) => l.stop());
+    glowLoopsRef.current = [];
+
+    const anims = animsRef.current;
+    active.forEach((idx) => {
+      if (!anims[idx]) return;
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(anims[idx].glowOpacity, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anims[idx].glowOpacity, {
+            toValue: 0.25,
+            duration: 400,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      loop.start();
+      glowLoopsRef.current.push(loop);
+    });
+
+    // Reset glow on inactive nodes
+    anims.forEach((a, i) => {
+      if (!active.includes(i)) {
+        Animated.timing(a.glowOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }).start();
+      }
+    });
+
+    // Pointer pulse on active nodes (→ cell)
+    const pointerPulseAnims: Animated.CompositeAnimation[] = [];
+    anims.forEach((a, i) => {
+      if (active.includes(i) && (op === 'comparacion' || op === 'insercion')) {
+        const pulse = Animated.loop(
+          Animated.sequence([
+            Animated.timing(a.pointerPulse, { toValue: 0.3, duration: 350, useNativeDriver: true }),
+            Animated.timing(a.pointerPulse, { toValue: 1, duration: 350, useNativeDriver: true }),
+          ]),
+        );
+        pulse.start();
+        pointerPulseAnims.push(pulse);
+        glowLoopsRef.current.push(pulse);
+      } else {
+        a.pointerPulse.setValue(1);
+      }
+    });
+
+    return () => {
+      glowLoopsRef.current.forEach((l) => l.stop());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active.join(','), op]);
 
   if (items.length === 0) {
     return (
@@ -183,41 +351,80 @@ function LinkedListCanvas({ step, isCompleted }: { step: SimulationStep | null; 
 
   return (
     <View style={styles.linkedListWrapper}>
-      {/* Puntero HEAD */}
-      <Text style={styles.pointerLabel}>HEAD</Text>
-      <Text style={[styles.pointerLabel, { marginBottom: 8 }]}>↓</Text>
+      {/* Animated HEAD indicator */}
+      <Animated.View
+        style={[
+          styles.llHeadPointer,
+          { opacity: headOpacity, transform: [{ translateY: headSlide }] },
+        ]}
+      >
+        <Text style={styles.llHeadLabel}>HEAD</Text>
+        <Text style={styles.llHeadArrow}>↓</Text>
+      </Animated.View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.linkedListContainer}>
         {items.map((val, idx) => {
           const bgColor = getNodeColor(idx, active, op, isCompleted);
           const borderColor = getNodeBorderColor(idx, active, op, isCompleted);
-          const isHead = idx === 0;
+          const anim = animsRef.current[idx];
+          const isActive = active.includes(idx);
+
+          if (!anim) return null;
 
           return (
-            <View key={`node-${idx}-${val}`} style={styles.llNodeWrapper}>
-              {/* Nodo: [valor | →] */}
+            <Animated.View
+              key={`node-${idx}`}
+              style={[
+                styles.llNodeWrapper,
+                {
+                  opacity: anim.opacity,
+                  transform: [{ scale: anim.scale }],
+                },
+              ]}
+            >
+              {/* Glow ring behind node */}
+              {isActive && (
+                <Animated.View
+                  style={[
+                    styles.llGlowRing,
+                    { borderColor, opacity: anim.glowOpacity },
+                  ]}
+                />
+              )}
+
+              {/* Node box: [value | →] */}
               <View style={[styles.llNode, { borderColor }]}>
                 <View style={[styles.llNodeValue, { backgroundColor: bgColor }]}>
                   <Text style={styles.nodeValue}>{val}</Text>
-                  {isHead && <Text style={styles.topLabel}>HEAD</Text>}
                 </View>
-                <View style={styles.llNodePointer}>
-                  <Text style={styles.llPointerText}>→</Text>
-                </View>
+                {/* Pointer cell with pulse animation */}
+                <Animated.View style={[styles.llNodePointer, { opacity: anim.pointerPulse }]}>
+                  <Text style={[styles.llPointerText, isActive && { color: borderColor }]}>→</Text>
+                </Animated.View>
               </View>
 
-              {/* Flecha entre nodos */}
+              {/* Animated connecting arrow between nodes */}
               {idx < items.length - 1 && (
-                <Text style={styles.llArrow}>─</Text>
+                <Animated.View
+                  style={[
+                    styles.llArrowWrapper,
+                    {
+                      opacity: anim.arrowOpacity,
+                      transform: [{ translateX: anim.arrowX }],
+                    },
+                  ]}
+                >
+                  <Text style={styles.llArrow}>──</Text>
+                </Animated.View>
               )}
-            </View>
+            </Animated.View>
           );
         })}
 
-        {/* NULL terminal */}
-        <View style={styles.llNullNode}>
+        {/* NULL terminal with fade-in */}
+        <Animated.View style={[styles.llNullNode, { opacity: nullFade }]}>
           <Text style={styles.llNullText}>NULL</Text>
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -243,14 +450,24 @@ export function LinearStructureCanvas({ step, isCompleted, algorithmName, height
     }
   };
 
-  // Badge de operación actual
-  const opLabel = step ? {
-    insercion: '⬆ Push / Insert',
-    intercambio: '⬇ Pop / Dequeue',
-    comparacion: '👁 Inspeccionar',
-    final: '✅ Completado',
-    idle: '',
-  }[step.tipoOperacion] : '';
+  // Badge de operación actual — extendido para Linked List
+  const isLinkedList = algorithmName === 'Linked List';
+  const opLabelMap = isLinkedList
+    ? {
+        insercion: '⬅ prepend()',
+        intercambio: '✂ remove()',
+        comparacion: '→ traverse',
+        final: '✅ Listo',
+        idle: '',
+      }
+    : {
+        insercion: '⬆ Push / Insert',
+        intercambio: '⬇ Pop / Dequeue',
+        comparacion: '👁 Inspeccionar',
+        final: '✅ Completado',
+        idle: '',
+      };
+  const opLabel = step ? opLabelMap[step.tipoOperacion] : '';
 
   return (
     <View style={[styles.container, { minHeight: height }]}>
@@ -408,14 +625,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[2],
     alignItems: 'flex-start',
   },
+  llHeadPointer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginLeft: Spacing[4],
+    marginBottom: 2,
+  },
+  llHeadLabel: {
+    color: Accent[400],
+    fontSize: FontSizes.xs,
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    letterSpacing: 0.5,
+  },
+  llHeadArrow: {
+    color: Accent[400],
+    fontSize: FontSizes.sm,
+    lineHeight: 14,
+  },
   linkedListContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing[1],
+    paddingVertical: Spacing[2],
+    paddingHorizontal: Spacing[1],
   },
   llNodeWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
+  },
+  llGlowRing: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    borderWidth: 2,
+    borderRadius: BorderRadius.lg,
+    zIndex: 0,
   },
   llNode: {
     flexDirection: 'row',
@@ -423,6 +670,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
     height: 56,
+    zIndex: 1,
   },
   llNodeValue: {
     width: 52,
@@ -441,12 +689,17 @@ const styles = StyleSheet.create({
   llPointerText: {
     color: Accent[400],
     fontSize: FontSizes.sm,
+    fontFamily: FontFamilies.semiBold,
+  },
+  llArrowWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   llArrow: {
     color: DarkText.muted,
     fontSize: FontSizes.lg,
     marginHorizontal: 1,
-    letterSpacing: -2,
+    letterSpacing: -4,
   },
   llNullNode: {
     width: 52,
@@ -457,7 +710,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderStyle: 'dashed' as any,
-    marginLeft: 2,
+    marginLeft: 4,
   },
   llNullText: {
     color: DarkText.muted,
