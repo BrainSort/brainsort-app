@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     ...TextVariants.h4,
     color: DarkText.primary,
     marginBottom: Spacing[1],
-    flex: 1,
+    flexGrow: 1,
     marginRight: Spacing[2],
   },
   description: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     color: DarkText.secondary,
     lineHeight: 20,
     marginBottom: Spacing[3],
-    flex: 1,
+    flexGrow: 1,
   },
   footer: {
     flexDirection: 'row',
@@ -208,6 +208,7 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
       accessibilityLabel={`Ver algoritmo ${algoritmo.nombre}, dificultad ${dificultad}`}
       accessibilityHint="Toca dos veces para abrir el detalle del algoritmo"
       testID={`algorithm-card-${algoritmo.id}`}
+      style={{ flex: 1 }}
     >
       <View style={[styles.card, pressed && styles.cardPressed]}>
         {/* Línea de acento superior */}

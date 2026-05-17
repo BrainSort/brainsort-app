@@ -22,12 +22,16 @@ export default function DiagnosticTestScreen({ navigation }: any) {
       // Terminado
       diagnosticsService.evaluar(nuevasRespuestas).then((res) => {
         // Redirigir a la ruta de aprendizaje
-        navigation.replace('LearningPath');
+        navigation.navigate('MainTabs', { screen: 'Ruta' });
       }).catch(console.error);
     }
   };
 
-  if (!preguntas.length) return <Text>Cargando test diagnóstico...</Text>;
+  if (!preguntas.length) return (
+    <View style={styles.container}>
+      <Text style={{color:'white', textAlign:'center'}}>Cargando test diagnóstico... (o no hay preguntas disponibles)</Text>
+    </View>
+  );
 
   const pregunta = preguntas[currentIdx];
 

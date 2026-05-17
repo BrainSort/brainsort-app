@@ -48,8 +48,10 @@ import { useAnimationController } from '../../hooks/useAnimationController';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { BarChart } from '../../components/simulation/BarChart';
 import { ControlBar } from '../../components/simulation/ControlBar';
+import { LinearStructureCanvas } from '../../components/simulation/LinearStructureCanvas';
 import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
+import { AnimationEngine } from '../../visualization/AnimationEngine';
 import {
   DarkSurfaces,
   DarkText,
@@ -417,6 +419,8 @@ export function SimulationContent({
   const pseudoLines = pseudocode;
   const hasSteps = steps.length > 0;
   const progressPercent = currentStep.progress;
+  const isLinear = AnimationEngine.isLinearStructure((algoritmo as any)?.categoria);
+  const legend = AnimationEngine.getLegend((algoritmo as any)?.categoria);
 
   return (
     <KeyboardAvoidingView
@@ -490,11 +494,20 @@ export function SimulationContent({
               <Spinner size="large" />
             </View>
           ) : hasSteps ? (
-            <BarChart
-              step={currentStepData}
-              isCompleted={isCompleted}
-              height={220}
-            />
+            isLinear ? (
+              <LinearStructureCanvas
+                step={currentStepData as any}
+                isCompleted={isCompleted}
+                algorithmName={algoritmo?.nombre ?? ''}
+                height={220}
+              />
+            ) : (
+              <BarChart
+                step={currentStepData}
+                isCompleted={isCompleted}
+                height={220}
+              />
+            )
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>📊</Text>
@@ -507,12 +520,7 @@ export function SimulationContent({
 
         {/* Leyenda de colores */}
         <View style={styles.legend}>
-          {[
-            { color: SimulationColors.idle, label: 'Inactivo' },
-            { color: SimulationColors.comparacion, label: 'Comparando' },
-            { color: SimulationColors.intercambio, label: 'Intercambiando' },
-            { color: SimulationColors.final, label: 'Finalizado' },
-          ].map(({ color, label }) => (
+          {legend.map(({ color, label }) => (
             <View key={label} style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: color }]} />
               <Text style={styles.legendText}>{label}</Text>

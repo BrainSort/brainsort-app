@@ -20,9 +20,10 @@ export const diagnosticsService = {
   },
 
   async evaluar(respuestas: number[]): Promise<ResultadoEvaluacion> {
-    return apiClient.post<ResultadoEvaluacion>('/diagnostico/evaluar', {
-      data: { respuestas },
-      public: false,
-    });
+    return apiClient.post<ResultadoEvaluacion>(
+      '/diagnostico/evaluar',
+      { respuestas },
+      { public: false }
+    );
   },
 };
