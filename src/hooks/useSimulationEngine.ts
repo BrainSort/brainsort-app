@@ -28,6 +28,9 @@ import {
   SelectionSortEngine,
   InsertionSortEngine,
   MergeSortEngine,
+  StackEngine,
+  QueueEngine,
+  LinkedListEngine,
 } from '@brainsort/core';
 import type { SortEngine } from '@brainsort/core';
 import { useSimulationContext } from '../context/SimulationContext';
@@ -76,6 +79,9 @@ const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
   'Selection Sort': SelectionSortEngine,
   'Insertion Sort': InsertionSortEngine,
   'Merge Sort': MergeSortEngine,
+  'Stack': StackEngine,
+  'Queue': QueueEngine,
+  'Linked List': LinkedListEngine,
 };
 
 /**
@@ -96,6 +102,12 @@ const ENGINE_ALIASES: Record<string, keyof typeof ENGINE_REGISTRY> = {
   mergesort: 'Merge Sort',
   merge: 'Merge Sort',
   ordenamientomerge: 'Merge Sort',
+  stack: 'Stack',
+  pila: 'Stack',
+  queue: 'Queue',
+  cola: 'Queue',
+  linkedlist: 'Linked List',
+  listaenlazada: 'Linked List',
 };
 
 // ─── Helper: Obtener Engine ───────────────────────────────────────────────────
