@@ -59,35 +59,6 @@ import {
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
 import type { UsuarioProgreso } from '../../services/progress.service';
 
-// ─── Datos mock para DEV ──────────────────────────────────────────────────────
-
-/**
- * Progreso de ejemplo para usar cuando el backend no está disponible.
- * Consistente con el patrón DEV BYPASS de AppNavigator.tsx.
- */
-const PROGRESO_DEV_MOCK: UsuarioProgreso = {
-  puntosTotales: 350,
-  nivelActual: 5,
-  rachaDias: 4,
-  posicionRanking: 12,
-  ultimaActividad: new Date().toISOString(),
-  insignias: [
-    {
-      nombre: 'Primer Paso',
-      imagen: '🥇',
-      fechaObtencion: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      nombre: 'Explorador',
-      imagen: '🧭',
-      fechaObtencion: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ],
-  simulacionesCompletadas: 8,
-  ejerciciosCorrectos: 15,
-  ejerciciosTotales: 20,
-};
-
 // ─── Tipos de Navegación ──────────────────────────────────────────────────────
 
 type ProfileNavProp = NativeStackNavigationProp<ProfileStackParamList, 'Profile'>;
@@ -111,8 +82,8 @@ export const ProfileScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [localName, setLocalName] = useState<string | null>(null);
 
-  // Usar datos reales o fallback a mock en DEV
-  const datosProgreso = progreso ?? (__DEV__ ? PROGRESO_DEV_MOCK : undefined);
+  // Usar datos reales de la API
+  const datosProgreso = progreso;
   const nombreMostrado = localName ?? usuario?.nombre ?? '';
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
@@ -121,7 +92,7 @@ export const ProfileScreen: React.FC = () => {
     if (!editedName.trim()) return;
     setIsSaving(true);
     try {
-      await apiClient.patch('/api/users/me', { nombre: editedName });
+      await apiClient.patch('/users/me', { nombre: editedName });
       setLocalName(editedName);
       setIsEditing(false);
     } catch (error) {
@@ -183,7 +154,7 @@ export const ProfileScreen: React.FC = () => {
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
-                {nombreMostrado.charAt(0).toUpperCase()}
+                {nombreMostrado ? nombreMostrado.charAt(0).toUpperCase() : '?'}
               </Text>
             </View>
             {/* Tier badge superpuesto */}
@@ -328,12 +299,6 @@ export const ProfileScreen: React.FC = () => {
           />
         </View>
 
-        {/* DEV: Indicador de datos mock */}
-        {__DEV__ && !progreso && (
-          <View style={styles.devBanner}>
-            <Text style={styles.devText}>⚡ DEV — Mostrando datos de ejemplo (sin backend)</Text>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaWrapper>
   );
