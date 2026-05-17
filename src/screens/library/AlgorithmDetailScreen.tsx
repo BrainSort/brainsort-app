@@ -403,7 +403,98 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     color: '#FFFFFF',
   },
+  consejoCard: {
+    backgroundColor: 'rgba(0, 212, 255, 0.05)',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 255, 0.2)',
+    padding: Spacing[4],
+    marginTop: Spacing[5],
+    marginBottom: Spacing[3],
+  },
+  consejoText: {
+    ...TextVariants.bodyMd,
+    color: '#00D4FF',
+    lineHeight: 22,
+    fontFamily: FontFamilies.medium,
+  },
 });
+
+// ─── Auxiliar Didáctico ───────────────────────────────────────────────────────
+
+interface DidacticaItem {
+  icon: string;
+  text: string;
+}
+
+interface DidacticaConfig {
+  tituloLeyenda: string;
+  items: DidacticaItem[];
+  consejoDidactico: string;
+}
+
+const getDidactica = (nombre: string, categoria: string): DidacticaConfig => {
+  const normalizado = nombre.toLowerCase();
+  
+  if (categoria === 'EstructurasLineales') {
+    if (normalizado.includes('stack') || normalizado.includes('pila')) {
+      return {
+        tituloLeyenda: 'Visualización de la Pila (Stack)',
+        items: [
+          { icon: '🔵', text: 'Azul — Elemento almacenado en la Pila' },
+          { icon: '🟡', text: 'Amarillo (TOP) — Elemento en el tope (único accesible)' },
+          { icon: '🟢', text: 'Verde — Elemento activo en push o pop' },
+        ],
+        consejoDidactico: '💡 Principio LIFO (Last In, First Out): El último elemento en entrar es el primero en salir. Imagina una pila de platos donde solo puedes interactuar con el plato superior.',
+      };
+    }
+    if (normalizado.includes('queue') || normalizado.includes('cola')) {
+      return {
+        tituloLeyenda: 'Visualización de la Cola (Queue)',
+        items: [
+          { icon: '🔵', text: 'Azul — Elemento esperando en la Cola' },
+          { icon: '🟡', text: 'Amarillo (HEAD) — Frente de la cola, próximo a salir' },
+          { icon: '🟠', text: 'Naranja (TAIL) — Final de la cola, donde se inserta' },
+        ],
+        consejoDidactico: '💡 Principio FIFO (First In, First Out): El primer elemento en entrar es el primero en salir. Funciona exactamente como una cola de supermercado.',
+      };
+    }
+    // Linked List
+    return {
+      tituloLeyenda: 'Visualización de la Lista Enlazada',
+      items: [
+        { icon: '🟣', text: 'Púrpura (HEAD) — Apunta al nodo inicial de la lista' },
+        { icon: '🔵', text: 'Azul (Nodo) — Caja con el dato y puntero "siguiente"' },
+        { icon: '🟡', text: 'Amarillo (Visita) — Nodo visitado durante el recorrido' },
+        { icon: '⚪', text: 'Blanco (NULL) — Fin de la lista, no apunta a nada' },
+      ],
+      consejoDidactico: '💡 Enlace Dinámico: A diferencia de los arreglos, los nodos de una lista enlazada están dispersos en memoria y se conectan dinámicamente mediante punteros.',
+    };
+  }
+
+  // Ordenamiento (Sorting)
+  let consejo = '💡 Ordenamiento de Arreglos: Reorganiza los elementos en un orden específico (ascendente o descendente) comparando valores.';
+  if (normalizado.includes('bubble')) {
+    consejo = '💡 Comparación Adyacente: Bubble Sort recorre el arreglo comparando pares vecinos e intercambiándolos si están en orden incorrecto. El elemento mayor "flota" al final en cada pasada.';
+  } else if (normalizado.includes('selection')) {
+    consejo = '💡 Selección Mínima: Selection Sort busca repetidamente el valor mínimo de la sección desordenada y lo intercambia con el primer elemento desordenado, construyendo la lista ordenada de izquierda a derecha.';
+  } else if (normalizado.includes('insertion')) {
+    consejo = '💡 Inserción en Sublista: Insertion Sort funciona como ordenar cartas en la mano. Toma cada elemento y lo inserta en su posición correcta dentro de la sublista que ya está ordenada.';
+  } else if (normalizado.includes('merge')) {
+    consejo = '💡 Divide y Vencerás: Merge Sort divide recursivamente el arreglo por la mitad hasta obtener subarreglos de un solo elemento, y luego los fusiona (merge) ordenadamente.';
+  }
+
+  return {
+    tituloLeyenda: 'Estados en la Simulación',
+    items: [
+      { icon: '🔵', text: 'Azul — Elemento en reposo / base' },
+      { icon: '🟡', text: 'Amarillo — Comparando elementos' },
+      { icon: '🔴', text: 'Rojo — Intercambiando posiciones' },
+      { icon: '🟢', text: 'Verde — Posición final confirmado' },
+    ],
+    consejoDidactico: consejo,
+  };
+};
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -452,6 +543,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
   const dificultad =
     ((algoritmo as any).dificultad as Dificultad | undefined) ?? 'Facil';
   const esActivo = (algoritmo as any).activo !== false;
+  const didactica = getDidactica(algoritmo.nombre, algoritmo.categoria);
 
   const handleStartSimulation = () => {
     if (!esActivo) {
@@ -507,18 +599,17 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
         <Text style={styles.sectionTitle}>Descripción</Text>
         <Text style={styles.descriptionText}>{algoritmo.descripcion}</Text>
 
-        <Text style={styles.sectionTitle}>En la simulación verás</Text>
-        {[
-          { icon: '🔵', text: 'Azul — elemento inactivo / base' },
-          { icon: '🟡', text: 'Amarillo — comparando elementos' },
-          { icon: '🔴', text: 'Rojo — intercambiando posiciones' },
-          { icon: '🟢', text: 'Verde — posición final confirmada' },
-        ].map(({ icon, text }) => (
+        <Text style={styles.sectionTitle}>{didactica.tituloLeyenda}</Text>
+        {didactica.items.map(({ icon, text }) => (
           <View key={text} style={styles.featureRow}>
             <Text style={styles.featureIcon}>{icon}</Text>
             <Text style={styles.featureText}>{text}</Text>
           </View>
         ))}
+
+        <View style={styles.consejoCard}>
+          <Text style={styles.consejoText}>{didactica.consejoDidactico}</Text>
+        </View>
 
         <TouchableOpacity
           style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
