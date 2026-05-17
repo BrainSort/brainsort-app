@@ -17,7 +17,7 @@
  *            04-contratos-api.md §5 Exercises Module
  */
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   exerciseService,
@@ -98,7 +98,7 @@ export interface UseExerciseReturn {
  * }
  */
 export function useExercise(algoritmoId: string | null | undefined): UseExerciseReturn {
-  const lastResultRef = useRef<ExerciseResult | null>(null);
+  const [lastResult, setLastResult] = useState<ExerciseResult | null>(null);
 
   // ─── Fetch de ejercicios ──────────────────────────────────────────────────
 
@@ -124,7 +124,7 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
   } = useMutation<ExerciseResult, Error, { id: string; respuesta: string }>({
     mutationFn: async ({ id, respuesta }) => {
       const resultado = await exerciseService.answerExercise(id, respuesta);
-      lastResultRef.current = resultado;
+      setLastResult(resultado);
       return resultado;
     },
     onError: (error) => {
@@ -155,6 +155,6 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
     // Estado de respuesta
     isSubmittingAnswer,
     submitError: submitError instanceof Error ? submitError : null,
-    lastResult: lastResultRef.current,
+    lastResult,
   };
 }

@@ -45,6 +45,7 @@ export interface ModuloOfflineCompleto {
   algoritmoId: string;
   version: string;
   meta: {
+    id: string;
     nombre: string;
     descripcion: string;
     complejidadTiempo: string;

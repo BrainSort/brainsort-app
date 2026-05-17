@@ -49,8 +49,10 @@ export interface UsuarioProgresoActualizado {
 /** Response si respuesta es correcta — 200 /api/ejercicios/:id/responder */
 export interface ExerciseResultCorrect {
   correcto: true;
+  feedback: string;
   feedbackPositivo: string;
   puntosGanados: number;
+  puntosTotales: number;
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
@@ -59,8 +61,10 @@ export interface ExerciseResultCorrect {
 /** Response si respuesta es incorrecta — 200 /api/ejercicios/:id/responder */
 export interface ExerciseResultIncorrect {
   correcto: false;
+  feedback: string;
   feedbackNegativo: string;
   puntosGanados: 0;
+  puntosTotales: number;
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
