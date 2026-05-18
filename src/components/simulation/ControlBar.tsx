@@ -75,7 +75,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconButtonDisabled: { opacity: 0.4 },
-  iconText: { fontSize: 18 },
+  iconText: { fontSize: 18, color: DarkText.primary },
+  resetIconText: { fontSize: 18, color: Semantic.error },
 
   // Botón Play/Pause (prominente)
   playButton: {
@@ -233,7 +234,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           accessibilityLabel="Reiniciar simulación"
           testID="btn-reset"
         >
-          <Text style={styles.iconText}>↺</Text>
+          <Text style={styles.resetIconText}>↺</Text>
         </TouchableOpacity>
       </View>
 

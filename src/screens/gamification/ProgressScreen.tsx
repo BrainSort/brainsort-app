@@ -58,6 +58,7 @@ export const ProgressScreen: React.FC = () => {
   if (isLoadingProgreso) {
     return (
       <SafeAreaWrapper>
+        <Header title="Mi Progreso" showBackButton />
         <View style={styles.center}>
           <ActivityIndicator color={Accent[500]} size="large" />
         </View>

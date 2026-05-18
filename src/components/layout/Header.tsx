@@ -23,10 +23,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ViewStyle,
-  TextStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, DarkText, DarkSurfaces } from '../../styles/colors';
+import { useBackToMenu } from '../../hooks/useBackToMenu';
+import { DarkText, DarkSurfaces } from '../../styles/colors';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -64,14 +64,19 @@ export const Header: React.FC<HeaderProps> = ({
   rightComponent,
   style,
 }) => {
+  const backToMenu = useBackToMenu();
+  const handleBackPress = onBackPress ?? backToMenu;
+
   return (
     <SafeAreaView edges={['top']} style={[styles.container, style]}>
       <View style={styles.content}>
         {showBackButton && (
           <TouchableOpacity
-            onPress={onBackPress}
+            onPress={handleBackPress}
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel="Volver al menú"
           >
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>

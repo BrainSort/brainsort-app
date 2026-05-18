@@ -117,6 +117,7 @@ export const ProfileScreen: React.FC = () => {
   if (isLoadingAuth) {
     return (
       <SafeAreaWrapper>
+        <Header title="Mi Perfil" showBackButton />
         <View style={styles.center}>
           <ActivityIndicator color={Accent[500]} size="large" />
         </View>
@@ -127,7 +128,7 @@ export const ProfileScreen: React.FC = () => {
   if (!usuario) {
     return (
       <SafeAreaWrapper>
-        <Header title="Perfil" />
+        <Header title="Perfil" showBackButton />
         <View style={styles.center}>
           <Text style={styles.errorText}>Error cargando perfil</Text>
         </View>
@@ -146,7 +147,7 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <SafeAreaWrapper>
-      <Header title="Mi Perfil" />
+      <Header title="Mi Perfil" showBackButton />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
 
         {/* ── Avatar + Nombre ── */}

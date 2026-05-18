@@ -18,12 +18,13 @@
  */
 
 import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   progressService,
   UsuarioProgreso,
   LeaderboardResponse,
 } from '../services/progress.service';
+import { useAuthContext } from '../context/AuthContext';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -82,7 +83,9 @@ export interface UseProgressReturn {
  * }
  */
 export function useProgress(): UseProgressReturn {
-  const queryClient = useQueryClient();
+  const { tokens } = useAuthContext();
+  const hasBackendToken =
+    Boolean(tokens?.accessToken) && tokens?.accessToken !== 'dev-token';
 
   // ─── Fetch de progreso personal ────────────────────────────────────────────
 
@@ -97,6 +100,7 @@ export function useProgress(): UseProgressReturn {
     staleTime: 1000 * 60 * 3, // 3 minutos
     gcTime: 1000 * 60 * 10,   // 10 minutos
     retry: 2,
+    enabled: hasBackendToken,
   });
 
   // ─── Fetch del leaderboard ────────────────────────────────────────────────
@@ -112,6 +116,7 @@ export function useProgress(): UseProgressReturn {
     staleTime: 1000 * 60 * 5, // 5 minutos
     gcTime: 1000 * 60 * 15,   // 15 minutos
     retry: 2,
+    enabled: hasBackendToken,
   });
 
   // ─── Helpers para refetch ──────────────────────────────────────────────────
