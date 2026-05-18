@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "test:e2e": "playwright test",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:api-types": "openapi-typescript https://brainsort-api.railway.app/api/docs-json --output src/generated/api-types.ts",
@@ -38,6 +39,7 @@
     "react-native-webview": "^13.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/d3-interpolate": "^3.0.4",
     "@types/d3-scale": "^4.0.9",
     "@types/jest": "^29.5.14",
