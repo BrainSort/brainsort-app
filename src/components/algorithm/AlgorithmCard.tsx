@@ -22,6 +22,10 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { AlgoritmoEnBiblioteca } from '../../services/library.service';
+import {
+  DifficultyBadge,
+  normalizeDificultad,
+} from './DifficultyBadge';
 import { DarkText } from '../../styles/colors';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
@@ -37,24 +41,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   Ordenamiento: 'Ordenamiento',
   Busqueda: 'Búsqueda',
   EstructurasLineales: 'Estructuras lineales',
-};
-
-const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  Ordenamiento: {
-    bg: 'rgba(166, 255, 46, 0.17)',
-    text: '#B7FF55',
-    border: 'rgba(166, 255, 46, 0.38)',
-  },
-  Busqueda: {
-    bg: 'rgba(32, 216, 226, 0.16)',
-    text: '#28D8E4',
-    border: 'rgba(32, 216, 226, 0.38)',
-  },
-  EstructurasLineales: {
-    bg: 'rgba(35, 127, 255, 0.16)',
-    text: '#8EBBFF',
-    border: 'rgba(35, 127, 255, 0.34)',
-  },
 };
 
 function AlgorithmArt({ name }: { name: string }) {
@@ -188,13 +174,14 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
   }, [algoritmo, onPress]);
 
   const categoryLabel = CATEGORY_LABELS[algoritmo.categoria] ?? algoritmo.categoria;
-  const categoryColor =
-    CATEGORY_COLORS[algoritmo.categoria] ?? {
-      bg: 'rgba(32, 216, 226, 0.16)',
-      text: '#28D8E4',
-      border: 'rgba(32, 216, 226, 0.34)',
-    };
-  const tags = algoritmo.tags?.slice(0, 3) ?? [categoryLabel];
+  const dificultad = normalizeDificultad(algoritmo.dificultad);
+  const categoryKey = categoryLabel.trim().toLowerCase();
+  const tags = [
+    categoryLabel,
+    ...(algoritmo.tags ?? []).filter(
+      (tag) => tag.trim().toLowerCase() !== categoryKey,
+    ),
+  ].slice(0, 4);
   const truncatedDesc =
     algoritmo.descripcion.length > MAX_DESC_CHARS
       ? `${algoritmo.descripcion.slice(0, MAX_DESC_CHARS - 3)}...`
@@ -221,16 +208,7 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
         ]}
       >
         <View style={styles.topLayer}>
-          <View
-            style={[
-              styles.categoryBadge,
-              { backgroundColor: categoryColor.bg, borderColor: categoryColor.border },
-            ]}
-          >
-            <Text style={[styles.categoryBadgeText, { color: categoryColor.text }]}>
-              {categoryLabel}
-            </Text>
-          </View>
+          <DifficultyBadge dificultad={dificultad} />
         </View>
 
         <View style={styles.artWrap}>
@@ -244,23 +222,11 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
           <Text style={styles.description} numberOfLines={2}>
             {truncatedDesc}
           </Text>
+          <View style={styles.tagsSpacer} />
           <View style={styles.tagsContainer}>
             {tags.map((tag) => (
-              <View
-                key={tag}
-                style={[
-                  styles.tagBadge,
-                  algoritmo.categoria === 'EstructurasLineales' && styles.greenTag,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tagText,
-                    algoritmo.categoria === 'EstructurasLineales' && styles.greenTagText,
-                  ]}
-                >
-                  {tag}
-                </Text>
+              <View key={tag} style={styles.tagBadge}>
+                <Text style={styles.tagText}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -287,6 +253,7 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
+    flexDirection: 'column',
     minHeight: 176,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
@@ -315,22 +282,9 @@ const styles = StyleSheet.create({
   topLayer: {
     minHeight: 24,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     alignItems: 'flex-start',
     zIndex: 3,
-  },
-  categoryBadge: {
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    paddingHorizontal: Spacing[3],
-    paddingVertical: Spacing[1.5],
-    maxWidth: 152,
-  },
-  categoryBadgeText: {
-    fontFamily: FontFamilies.bold,
-    fontWeight: FontWeights.bold,
-    fontSize: FontSizes.sm,
-    lineHeight: 14,
   },
   artWrap: {
     height: 46,
@@ -345,6 +299,8 @@ const styles = StyleSheet.create({
   },
   copyBlock: {
     flex: 1,
+    flexDirection: 'column',
+    minHeight: 0,
   },
   name: {
     fontFamily: FontFamilies.bold,
@@ -359,14 +315,21 @@ const styles = StyleSheet.create({
     fontWeight: FontWeights.regular,
     fontSize: FontSizes.sm,
     lineHeight: 16,
+    minHeight: 32,
     color: '#C4CDD5',
-    marginBottom: Spacing[2],
+    marginBottom: Spacing[3],
+  },
+  tagsSpacer: {
+    flex: 1,
+    minHeight: Spacing[2],
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing[1],
-    alignContent: 'flex-start',
+    alignContent: 'flex-end',
+    alignItems: 'flex-end',
+    marginBottom: Spacing[4],
   },
   tagBadge: {
     borderRadius: BorderRadius.full,
@@ -376,10 +339,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[2],
     paddingVertical: Spacing[1],
   },
-  greenTag: {
-    backgroundColor: 'rgba(80, 136, 31, 0.34)',
-    borderColor: 'rgba(166, 255, 78, 0.2)',
-  },
   tagText: {
     color: '#D7E2E8',
     fontFamily: FontFamilies.medium,
@@ -387,13 +346,11 @@ const styles = StyleSheet.create({
     fontSize: 9,
     lineHeight: 11,
   },
-  greenTagText: {
-    color: '#BFFB6F',
-  },
   footer: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(126, 157, 183, 0.19)',
-    paddingTop: Spacing[1],
+    paddingTop: Spacing[3],
+    marginTop: Spacing[1],
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[3],

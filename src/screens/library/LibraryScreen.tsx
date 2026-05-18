@@ -88,7 +88,11 @@ export default function LibraryScreen({ navigation }: Props) {
       : totalAlgoritmos && totalAlgoritmos > 0 && completedSimulations !== undefined
         ? Math.min(100, Math.round((completedSimulations / totalAlgoritmos) * 100))
         : 0;
-  const loadingMetric = isLoadingProgreso ? '...' : '—';
+  const metricSimulations = isLoadingProgreso ? '...' : String(completedSimulations ?? 0);
+  const metricExercises = isLoadingProgreso
+    ? '...'
+    : `${correctExercises ?? 0}/${totalExercises ?? 0}`;
+  const metricStreak = isLoadingProgreso ? '...' : `${progreso?.rachaDias ?? 0} días`;
 
   const handleCardPress = useCallback(
     (algo: AlgoritmoEnBiblioteca) => {
@@ -234,23 +238,19 @@ export default function LibraryScreen({ navigation }: Props) {
           <StatCard
             icon="check"
             label="Simulaciones completadas"
-            value={completedSimulations !== undefined ? `${completedSimulations}` : loadingMetric}
+            value={metricSimulations}
             tone="success"
           />
           <StatCard
             icon="exercise"
             label="Ejercicios correctos"
-            value={
-              correctExercises !== undefined && totalExercises !== undefined
-                ? `${correctExercises}/${totalExercises}`
-                : loadingMetric
-            }
+            value={metricExercises}
             tone="warning"
           />
           <StatCard
             icon="streak"
             label="Racha actual"
-            value={progreso?.rachaDias !== undefined ? `${progreso.rachaDias} días` : loadingMetric}
+            value={metricStreak}
             tone="info"
           />
         </View>
@@ -338,7 +338,7 @@ function StatCard({
       : tone === 'warning'
         ? '#F0CB25'
         : tone === 'info'
-          ? '#04CCEF'
+          ? '#F5A623'
           : '#DCE6EE';
 
   return (
@@ -366,6 +366,10 @@ function DashboardStatIcon({
   color: string;
   size: number;
 }) {
+  if (name === 'streak') {
+    return <Text style={[styles.streakEmoji, { fontSize: size, lineHeight: size + 4 }]}>🔥</Text>;
+  }
+
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       {name === 'library' && (
@@ -401,12 +405,6 @@ function DashboardStatIcon({
         <>
           <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={1.8} />
           <Path d="M12 6.7v5.6h5.1" stroke={color} strokeWidth={2} strokeLinecap="round" />
-        </>
-      )}
-      {name === 'streak' && (
-        <>
-          <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={1.8} />
-          <Path d="M12 7.2v5.2l3.4 2" stroke={color} strokeWidth={2} strokeLinecap="round" />
         </>
       )}
     </Svg>
@@ -472,12 +470,10 @@ function DesktopSidebar({
           <Text style={styles.progressCount}>{progressCount}</Text>
         </View>
         <View style={styles.streakPanel}>
-          <Text style={styles.streakIcon}>♦</Text>
+          <Text style={styles.streakEmoji}>🔥</Text>
           <View>
             <Text style={styles.streakLabel}>Racha actual</Text>
-            <Text style={styles.streakValue}>
-              {streakDays !== undefined ? `${streakDays} días` : 'Sin datos'}
-            </Text>
+            <Text style={styles.streakValue}>{streakDays ?? 0} días</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -763,8 +759,8 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing[6],
     borderWidth: 1,
-    borderColor: 'rgba(35, 127, 255, 0.28)',
-    backgroundColor: '#1ED5D8',
+    borderColor: 'rgba(35, 127, 255, 0.45)',
+    backgroundColor: '#237FFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1044,9 +1040,9 @@ const styles = StyleSheet.create({
     gap: Spacing[3],
     paddingHorizontal: Spacing[5],
   },
-  streakIcon: {
-    color: Semantic.warning,
+  streakEmoji: {
     fontSize: 22,
+    lineHeight: 26,
   },
   streakLabel: {
     color: '#AEBBC4',
@@ -1054,7 +1050,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
   },
   streakValue: {
-    color: '#9EFF4E',
+    color: '#F5A623',
     fontFamily: FontFamilies.bold,
     fontWeight: FontWeights.bold,
     fontSize: FontSizes.lg,

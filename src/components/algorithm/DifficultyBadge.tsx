@@ -5,8 +5,8 @@
  * task_breakdown.md T-FE-063
  *
  * Muestra un chip de color con el nivel de dificultad:
- *   - Facil   → Verde (#7ED321)
- *   - Medio   → Amarillo (#F5A623)
+ *   - Facil   → Verde lima (dashboard HU-01)
+ *   - Medio   → Cian (#19BFD2)
  *   - Dificil → Rojo (#D0021B)
  *
  * Intencionalmente no usa ThemeContext para poder ser un
@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { SimulationColors } from '../../styles/colors';
+import { Semantic } from '../../styles/colors';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
@@ -29,26 +29,41 @@ export interface DifficultyBadgeProps {
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const DIFFICULTY_CONFIG: Record<
+export const DIFFICULTY_CONFIG: Record<
   Dificultad,
-  { label: string; color: string; background: string }
+  { label: string; color: string; background: string; border: string }
 > = {
   Facil: {
     label: 'Fácil',
-    color: SimulationColors.final,         // #7ED321 verde
-    background: 'rgba(126, 211, 33, 0.15)',
+    color: '#B7FF55',
+    background: 'rgba(166, 255, 46, 0.17)',
+    border: 'rgba(166, 255, 46, 0.38)',
   },
   Medio: {
     label: 'Medio',
-    color: SimulationColors.comparacion,   // #F5A623 amarillo
-    background: 'rgba(245, 166, 35, 0.15)',
+    color: '#19BFD2',
+    background: 'rgba(25, 191, 210, 0.16)',
+    border: 'rgba(25, 191, 210, 0.38)',
   },
   Dificil: {
     label: 'Difícil',
-    color: SimulationColors.intercambio,   // #D0021B rojo
-    background: 'rgba(208, 2, 27, 0.15)',
+    color: Semantic.error,
+    background: 'rgba(208, 2, 27, 0.16)',
+    border: 'rgba(208, 2, 27, 0.38)',
   },
 };
+
+/** Normaliza valores de API o legacy al enum de dificultad. */
+export function normalizeDificultad(value?: string): Dificultad {
+  if (!value) return 'Facil';
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  if (normalized.includes('dific')) return 'Dificil';
+  if (normalized.includes('medi')) return 'Medio';
+  return 'Facil';
+}
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
@@ -56,15 +71,17 @@ const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing[2],   // 8 dp
-    paddingVertical: Spacing[1],     // 4 dp
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1.5],
     borderWidth: 1,
+    maxWidth: 152,
   },
   label: {
-    fontFamily: FontFamilies.semiBold,
-    fontWeight: FontWeights.semiBold,
-    fontSize: FontSizes.xs,          // 10 dp — caption size
-    letterSpacing: 0.4,
+    fontFamily: FontFamilies.bold,
+    fontWeight: FontWeights.bold,
+    fontSize: FontSizes.sm,
+    lineHeight: 14,
+    letterSpacing: 0.2,
   },
 });
 
@@ -88,7 +105,7 @@ export const DifficultyBadge: React.FC<DifficultyBadgeProps> = ({
         styles.badge,
         {
           backgroundColor: config.background,
-          borderColor: config.color,
+          borderColor: config.border,
         },
       ]}
       accessibilityLabel={`Dificultad: ${config.label}`}

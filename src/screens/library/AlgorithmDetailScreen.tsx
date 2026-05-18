@@ -29,7 +29,10 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { Spinner } from '../../components/common/Spinner';
-import { DifficultyBadge, Dificultad } from '../../components/algorithm/DifficultyBadge';
+import {
+  DifficultyBadge,
+  normalizeDificultad,
+} from '../../components/algorithm/DifficultyBadge';
 import {
   DarkSurfaces,
   DarkText,
@@ -540,8 +543,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const dificultad =
-    ((algoritmo as any).dificultad as Dificultad | undefined) ?? 'Facil';
+  const dificultad = normalizeDificultad(algoritmo.dificultad);
   const esActivo = (algoritmo as any).activo !== false;
   const didactica = getDidactica(algoritmo.nombre, algoritmo.categoria);
 
