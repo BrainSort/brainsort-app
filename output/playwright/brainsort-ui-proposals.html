@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BrainSort UI Proposals</title>
+  <style>
+    :root {
+      --ink: #071014;
+      --panel: #101820;
+      --panel-2: #17212b;
+      --panel-3: #202d38;
+      --line: #314251;
+      --text: #f3f8fb;
+      --muted: #90a5b4;
+      --blue: #2f80d1;
+      --cyan: #12c8d9;
+      --green: #65d39c;
+      --yellow: #f2b94b;
+      --rose: #ff6b8b;
+      --violet: #9277ff;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #eaf0f4;
+      color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+
+    .sheet {
+      width: 1440px;
+      padding: 34px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #edf4f7, #dfe8ee);
+    }
+
+    .sheet-head {
+      color: #17212b;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 34px; letter-spacing: 0; }
+    .sheet-head p { color: #526472; font-size: 15px; max-width: 640px; line-height: 1.45; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 420px 420px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .proposal {
+      color: #14202a;
+    }
+
+    .proposal-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: #20313e;
+    }
+
+    .phone {
+      width: 390px;
+      height: 844px;
+      border-radius: 32px;
+      background: var(--ink);
+      border: 8px solid #17212b;
+      box-shadow: 0 24px 70px rgba(16, 24, 32, .22);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .login-art {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 78% 14%, rgba(18, 200, 217, .25), transparent 20%),
+        radial-gradient(circle at 15% 72%, rgba(255, 107, 139, .18), transparent 24%),
+        linear-gradient(180deg, #071014 0%, #0b1218 100%);
+    }
+
+    .login-content {
+      position: relative;
+      height: 100%;
+      padding: 30px 24px 22px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-row, .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 19px;
+    }
+
+    .mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: conic-gradient(from 180deg, var(--cyan), var(--violet), var(--rose), var(--green), var(--cyan));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+    }
+
+    .hint-pill {
+      color: var(--cyan);
+      border: 1px solid rgba(18, 200, 217, .35);
+      background: rgba(18, 200, 217, .08);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .hero-copy {
+      margin-top: 92px;
+    }
+
+    .hero-copy h2 {
+      font-size: 33px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      max-width: 310px;
+    }
+
+    .hero-copy p {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .mini-bars {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      height: 72px;
+      margin: 26px 0 22px;
+    }
+
+    .mini-bars span {
+      width: 32px;
+      border-radius: 7px 7px 4px 4px;
+      background: linear-gradient(180deg, var(--cyan), var(--blue));
+      box-shadow: 0 10px 24px rgba(18, 200, 217, .18);
+    }
+
+    .mini-bars span:nth-child(2) { height: 46px; background: linear-gradient(180deg, var(--yellow), #f08f49); }
+    .mini-bars span:nth-child(1) { height: 32px; }
+    .mini-bars span:nth-child(3) { height: 66px; }
+    .mini-bars span:nth-child(4) { height: 40px; background: linear-gradient(180deg, var(--rose), var(--violet)); }
+    .mini-bars span:nth-child(5) { height: 58px; }
+
+    .form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #c9d6df;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .field {
+      height: 50px;
+      background: var(--panel-2);
+      border: 1px solid #344756;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      color: #8da0ad;
+      font-size: 14px;
+    }
+
+    .primary-btn {
+      height: 52px;
+      margin-top: 6px;
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, var(--cyan), var(--blue));
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: white;
+      box-shadow: 0 14px 26px rgba(47, 128, 209, .25);
+    }
+
+    .link-row {
+      margin-top: 15px;
+      text-align: center;
+      color: #8fa1af;
+      font-size: 13px;
+    }
+
+    .link-row b { color: var(--cyan); }
+
+    .main-screen {
+      background:
+        linear-gradient(180deg, #071014 0%, #0c141a 58%, #091016 100%);
+      padding: 22px 18px 0;
+    }
+
+    .main-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--yellow), var(--rose));
+    }
+
+    .today {
+      background: var(--panel);
+      border: 1px solid #263746;
+      border-radius: var(--radius);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .today h2 {
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 999px;
+      background: #263746;
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      width: 62%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 8px 11px;
+      background: #14202a;
+      border: 1px solid #2b3c49;
+      color: #a9bac6;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .chip.active {
+      color: #061014;
+      background: var(--cyan);
+      border-color: var(--cyan);
+    }
+
+    .cards {
+      display: grid;
+      gap: 11px;
+    }
+
+    .algo-card {
+      background: var(--panel);
+      border: 1px solid #263746;
+      border-radius: var(--radius);
+      padding: 13px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .algo-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .algo-card h3 { font-size: 16px; }
+    .algo-card p { color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .badge {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 850;
+      color: #071014;
+      background: var(--green);
+      white-space: nowrap;
+    }
+
+    .badge.mid { background: var(--yellow); }
+
+    .meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: #b9c7d0;
+      font-size: 12px;
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 74px;
+      background: #101820;
+      border-top: 1px solid #2a3946;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      padding-bottom: 6px;
+    }
+
+    .tab {
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      color: #879aa8;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tab.active { color: var(--cyan); }
+    .tab-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid currentColor;
+      position: relative;
+    }
+
+    .desktop {
+      height: 844px;
+      background: var(--ink);
+      border-radius: 18px;
+      border: 8px solid #17212b;
+      box-shadow: 0 24px 70px rgba(16, 24, 32, .22);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+
+    .side {
+      background: #101820;
+      border-right: 1px solid #2a3946;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .side-nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-item {
+      height: 42px;
+      border-radius: var(--radius);
+      color: #96a9b7;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px;
+      font-weight: 750;
+      font-size: 14px;
+    }
+
+    .nav-item.active {
+      color: white;
+      background: #172b35;
+      border: 1px solid rgba(18, 200, 217, .32);
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      background: currentColor;
+    }
+
+    .work {
+      padding: 26px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+    }
+
+    .work-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .work-head h2 {
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    .search {
+      width: 280px;
+      height: 42px;
+      border: 1px solid #2d3f4e;
+      background: #101820;
+      border-radius: var(--radius);
+      color: #8fa1af;
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid #263746;
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .stat small {
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 26px;
+    }
+
+    .desktop-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      align-content: start;
+    }
+
+    .path-panel {
+      background: var(--panel);
+      border: 1px solid #263746;
+      border-radius: var(--radius);
+      padding: 16px;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: start;
+      color: #c8d6df;
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #20313e;
+      color: var(--cyan);
+      font-weight: 900;
+    }
+
+    .step p {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="sheet-head">
+      <div>
+        <h1>BrainSort — propuestas UI/UX</h1>
+        <p>Basadas en las capturas reales del login y el menú autenticado. La propuesta conserva la navegación actual y vuelve visible el aprendizaje desde el primer vistazo.</p>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="proposal">
+        <div class="proposal-title">Propuesta 1: Login móvil con identidad y contexto</div>
+        <div class="phone">
+          <div class="login-art"></div>
+          <div class="login-content">
+            <div class="brand-row">
+              <div class="brand"><div class="mark">B</div> BrainSort</div>
+              <div class="hint-pill">Modo alumno</div>
+            </div>
+
+            <div class="hero-copy">
+              <h2>Aprende algoritmos con simulaciones claras.</h2>
+              <p>Entra a tu ruta, retoma tu progreso y practica con ejercicios cortos.</p>
+            </div>
+
+            <div class="mini-bars">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+
+            <div class="form">
+              <label>Correo electrónico <div class="field">tu@correo.com</div></label>
+              <label>Contraseña <div class="field">Mínimo 8 caracteres</div></label>
+              <div class="primary-btn">Iniciar sesión</div>
+            </div>
+            <div class="link-row">¿No tienes cuenta? <b>Regístrate</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proposal">
+        <div class="proposal-title">Propuesta 2: Menú principal móvil accionable</div>
+        <div class="phone main-screen">
+          <div class="main-head">
+            <div class="brand"><div class="mark">B</div> BrainSort</div>
+            <div class="avatar"></div>
+          </div>
+
+          <section class="today">
+            <h2>Biblioteca</h2>
+            <p style="color: var(--muted); font-size: 13px; line-height: 1.45;">Explora algoritmos, compara complejidad y abre una simulación en un toque.</p>
+            <div class="progress-row">
+              <div class="progress"><span></span></div>
+              <strong style="color: var(--green);">62%</strong>
+            </div>
+          </section>
+
+          <div class="filter-row">
+            <div class="chip active">Todos</div>
+            <div class="chip">Ordenamiento</div>
+            <div class="chip">Estructuras</div>
+          </div>
+
+          <div class="cards">
+            <article class="algo-card">
+              <div class="algo-top"><h3>Bubble Sort</h3><span class="badge">Fácil</span></div>
+              <p>Compara elementos adyacentes e intercambia si están desordenados.</p>
+              <div class="meta"><span>Tiempo O(n²)</span><span>Espacio O(1)</span></div>
+            </article>
+            <article class="algo-card">
+              <div class="algo-top"><h3>Selection Sort</h3><span class="badge mid">Medio</span></div>
+              <p>Selecciona el menor elemento y lo coloca en su posición correcta.</p>
+              <div class="meta"><span>Tiempo O(n²)</span><span>In-place</span></div>
+            </article>
+            <article class="algo-card">
+              <div class="algo-top"><h3>Stack</h3><span class="badge">Fácil</span></div>
+              <p>Estructura LIFO para llamadas recursivas y acciones de deshacer.</p>
+              <div class="meta"><span>Push O(1)</span><span>Pop O(1)</span></div>
+            </article>
+          </div>
+
+          <nav class="tabbar">
+            <div class="tab active"><div class="tab-icon"></div><span>Biblioteca</span></div>
+            <div class="tab"><div class="tab-icon"></div><span>Ruta</span></div>
+            <div class="tab"><div class="tab-icon"></div><span>Offline</span></div>
+            <div class="tab"><div class="tab-icon"></div><span>Perfil</span></div>
+          </nav>
+        </div>
+      </div>
+
+      <div class="proposal">
+        <div class="proposal-title">Propuesta 3: Desktop como consola de aprendizaje</div>
+        <div class="desktop">
+          <aside class="side">
+            <div class="brand"><div class="mark">B</div> BrainSort</div>
+            <nav class="side-nav">
+              <div class="nav-item active"><span class="dot"></span>Biblioteca</div>
+              <div class="nav-item"><span class="dot"></span>Ruta</div>
+              <div class="nav-item"><span class="dot"></span>Offline</div>
+              <div class="nav-item"><span class="dot"></span>Perfil</div>
+            </nav>
+          </aside>
+          <section class="work">
+            <div class="work-head">
+              <div>
+                <h2>Biblioteca</h2>
+                <p style="color: var(--muted); margin-top: 6px;">6 algoritmos disponibles para simular y practicar.</p>
+              </div>
+              <div class="search">Buscar algoritmo o estructura...</div>
+            </div>
+            <div class="stats">
+              <div class="stat"><small>Progreso</small><strong>62%</strong></div>
+              <div class="stat"><small>Racha</small><strong>7 días</strong></div>
+              <div class="stat"><small>Insignias</small><strong>4</strong></div>
+            </div>
+            <div class="desktop-grid">
+              <div class="library-grid">
+                <article class="algo-card"><div class="algo-top"><h3>Bubble Sort</h3><span class="badge">Fácil</span></div><p>Comparación adyacente, estable e in-place.</p><div class="meta"><span>O(n²)</span><span>O(1)</span></div></article>
+                <article class="algo-card"><div class="algo-top"><h3>Insertion Sort</h3><span class="badge">Fácil</span></div><p>Inserta cada elemento en una sublista ordenada.</p><div class="meta"><span>O(n²)</span><span>Estable</span></div></article>
+                <article class="algo-card"><div class="algo-top"><h3>Queue</h3><span class="badge">Fácil</span></div><p>Estructura FIFO usada en BFS y procesamiento por lotes.</p><div class="meta"><span>O(1)</span><span>FIFO</span></div></article>
+                <article class="algo-card"><div class="algo-top"><h3>Linked List</h3><span class="badge mid">Medio</span></div><p>Nodos enlazados para inserción y eliminación eficiente.</p><div class="meta"><span>O(n)</span><span>Nodos</span></div></article>
+              </div>
+              <aside class="path-panel">
+                <h3 style="font-size: 18px;">Ruta sugerida</h3>
+                <div class="step"><div class="step-num">1</div><div><strong>Ordenamiento básico</strong><p>Bubble Sort, Selection Sort e Insertion Sort.</p></div></div>
+                <div class="step"><div class="step-num">2</div><div><strong>Estructuras lineales</strong><p>Stack, Queue y Linked List con ejercicios cortos.</p></div></div>
+                <div class="step"><div class="step-num">3</div><div><strong>Práctica</strong><p>Predice el siguiente estado antes de simular.</p></div></div>
+                <div class="primary-btn" style="margin-top: 8px;">Continuar ruta</div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
