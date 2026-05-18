@@ -79,6 +79,12 @@ export function useLibrary(): UseLibraryReturn {
     enabled: true, // Ejecutar query al montar el hook
   });
 
+  // Notes on caching strategy:
+  // - `staleTime` avoids network refetches when users navigate away and back
+  //   within a short period (improves perceived performance).
+  // - `retry: 2` helps against transient network issues but surfaces
+  //   persistent errors to the UI quickly.
+
   // ─── Extracto de datos con memoización ─────────────────────────────────────
 
   const { algoritmos, categorias, totalAlgoritmos } = useMemo(() => {
@@ -88,6 +94,10 @@ export function useLibrary(): UseLibraryReturn {
       totalAlgoritmos: data?.totalAlgoritmos,
     };
   }, [data?.algoritmos, data?.categorias, data?.totalAlgoritmos]);
+
+  // `useMemo` prevents recreating the derived objects on every render when
+  // the underlying `data` hasn't changed. This is useful for components that
+  // use strict equality checks to avoid unnecessary re-renders.
 
   // ─── Función de filtrado con memoización ──────────────────────────────────
 
@@ -106,6 +116,10 @@ export function useLibrary(): UseLibraryReturn {
     },
     [algoritmos],
   );
+
+  // Filtering is done in-memory on the client because the API returns the
+  // full catalog. If the catalog grows significantly, consider moving
+  // category filtering to the backend and exposing query parameters.
 
   // ─── Retorno ──────────────────────────────────────────────────────────────
 
