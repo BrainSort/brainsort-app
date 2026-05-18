@@ -66,13 +66,19 @@ export interface UseAlgorithmReturn {
 export function useAlgorithm(
   algoritmoId: string | null | undefined,
 ): UseAlgorithmReturn {
+  // TanStack Query is used for caching and background updates. Behavior notes:
+  // - `staleTime: 10min` avoids refetches when users navigate back and forth.
+  // - `gcTime: 30min` keeps the cached data alive for short-term reuse.
+  // - `retry: 2` attempts transient network errors twice before surfacing.
+  // - `enabled` prevents running the query when `algoritmoId` is falsy.
   const { data, isLoading, isError, error } = useQuery<AlgoritmoDetalle>({
     queryKey: ['algoritmo', algoritmoId],
     queryFn: () => libraryService.getAlgorithm(algoritmoId!),
     staleTime: 1000 * 60 * 10, // 10 minutos
     gcTime: 1000 * 60 * 30,    // 30 minutos
     retry: 2,
-    // Solo ejecutar si tenemos un ID válido
+    // Only execute when a valid algorithm ID is provided to avoid unnecessary
+    // network calls from screens mounted without a selected algorithm.
     enabled: !!algoritmoId,
   });
 

@@ -90,6 +90,14 @@ export function useAnimationController(): UseAnimationControllerReturn {
   const lastFrameTimeRef = useRef<number>(0);
   const stepAccumulatorRef = useRef<number>(0);
 
+  // Rationale:
+  // - We use an accumulator (`stepAccumulatorRef`) to allow fractional step
+  //   advancement based on deltaTime and `speed`. This decouples frame rate
+  //   from logical step progression and keeps movement smooth across devices.
+  // - Using refs avoids re-render storms: the RAF loop reads live state from
+  //   refs and calls `nextStep()` to update the context when a full step is
+  //   accumulated.
+
   // ─── Cleanup helper ───────────────────────────────────────────────────────
 
   const stopAnimation = (): void => {
@@ -129,6 +137,9 @@ export function useAnimationController(): UseAnimationControllerReturn {
     // Avanzar pasos completos acumulados
     let wasAdvanced = false;
     while (stepAccumulatorRef.current >= 1.0) {
+      // Solo avanzamos si no estamos en el último paso y la simulación no
+      // está marcada como completada. `currentStepRef` se mantiene por fuera
+      // del ciclo de render para evitar re-render continuo del effect.
       if (!isCompletedRef.current && currentStepRef.current < stepsCountRef.current - 1) {
         nextStep();
         stepAccumulatorRef.current -= 1.0;
@@ -164,9 +175,12 @@ export function useAnimationController(): UseAnimationControllerReturn {
     return () => {
       stopAnimation();
     };
-    // Eliminamos currentStep de las dependencias para evitar que el efecto 
-    // se reinicie 60 veces por segundo al avanzar pasos.
-    // El loop consume el estado vivo mediante refs.
+    // NOTE: `currentStep` intentionally excluded from dependencies to avoid
+    // restarting the effect on every logical step (which would cause the
+    // effect to re-create the RAF loop at frame rate). The RAF loop reads
+    // dynamic state from refs (`currentStepRef`, `isPlayingRef`, etc.). This
+    // pattern prevents unnecessary re-renders and keeps the animation loop
+    // stable.
   }, [playback.isPlaying, isCompleted, steps.length, nextStep]);
 
   // No retorna nada; el hook maneja todo internamente

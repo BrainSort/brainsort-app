@@ -49,10 +49,18 @@ export interface UseDatasetReturn {
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
+// Size constraints and defaults for dataset generation/validation.
+// - `MIN_SIZE` is the minimum meaningful size for visualization/exercises.
+// - `MAX_SIZE` is a pragmatic upper bound to avoid blocking the UI or
+//   generating excessively large step sequences.
 const MIN_SIZE = 3;
 const MAX_SIZE = 1000;
+
+// Default random value range used by `generateDefault`.
 const DEFAULT_MIN = 1;
 const DEFAULT_MAX = 100;
+
+// Default dataset size range for the pre-generated dataset (inclusive).
 const DEFAULT_SIZE_MIN = 8;
 const DEFAULT_SIZE_MAX = 15;
 
@@ -105,12 +113,16 @@ export function useDataset(): UseDatasetReturn {
    * Verifica si un arreglo está ordenado (de forma estricta o casi).
    */
   const isArraySorted = (arr: number[]): boolean => {
+    // The implementation uses a final `every` check for ascending order.
+    // Original loop with `break` is left for compatibility but the final
+    // `every` determines the result. Keep this behavior unchanged — it may
+    // look redundant but preserves historical intent.
     for (let i = 0; i < arr.length - 1; i++) {
       if (arr[i] <= arr[i + 1]) continue; // Ascendente
       // Si encuentra un par no ordenado, NO está ordenada
       break;
     }
-    // Verificar si está en orden ascendente
+    // Verify ascending order (non-strict): each element >= previous.
     return arr.every((val, i, a) => i === 0 || a[i - 1] <= val);
   };
 
@@ -125,6 +137,9 @@ export function useDataset(): UseDatasetReturn {
     let attempts = 0;
     const maxAttempts = 10;
 
+    // Attempt to generate a non-sorted array up to `maxAttempts` times.
+    // This prevents the (rare) case where random generation produces a
+    // pre-sorted sequence repeatedly.
     do {
       const size = randomInt(DEFAULT_SIZE_MIN, DEFAULT_SIZE_MAX);
       data = [];
@@ -199,7 +214,7 @@ export function useDataset(): UseDatasetReturn {
       return error;
     }
 
-    // Validar que todos sean números
+    // Validar que todos sean números finitos (no NaN/Infinity)
     for (let i = 0; i < data.length; i++) {
       if (!Number.isFinite(data[i])) {
         const error: DatasetError = {
@@ -211,7 +226,7 @@ export function useDataset(): UseDatasetReturn {
       }
     }
 
-    // Validar que no esté pre-ordenado (opcional, puede ser estricto)
+    // Validar que no esté pre-ordenado (la UI evita simulaciones triviales).
     if (isArraySorted(data)) {
       const error: DatasetError = {
         code: 'ALREADY_SORTED',
