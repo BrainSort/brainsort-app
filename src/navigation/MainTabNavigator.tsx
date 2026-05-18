@@ -16,8 +16,10 @@ import React from 'react';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet, useWindowDimensions } from 'react-native';
+import { SafeAreaWrapper } from '../components/layout/SafeAreaWrapper';
+import { Header } from '../components/layout/Header';
 import Svg, { Circle, Path } from 'react-native-svg';
-import LibraryStackNavigator from './LibraryStackNavigator';
+import LibraryStackNavigator, { LibraryStackParamList } from './LibraryStackNavigator';
 import ProfileStackNavigator, { ProfileStackParamList } from './ProfileStackNavigator';
 import LearningPathScreen from '../screens/learning-path/LearningPathScreen';
 import { ProgressScreen } from '../screens/gamification/ProgressScreen';
@@ -27,7 +29,7 @@ import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export type MainTabParamList = {
-  Biblioteca: undefined;
+  Biblioteca: NavigatorScreenParams<LibraryStackParamList> | undefined;
   Ruta: undefined;
   Progreso: undefined;
   Offline: undefined;
@@ -38,9 +40,12 @@ type TabIconName = 'library' | 'route' | 'progress' | 'offline' | 'profile';
 // ─── Placeholder genérico ─────────────────────────────────────────────────────
 
 const PlaceholderScreen = ({ label }: { label: string }) => (
-  <View style={placeholderSt.container}>
-    <Text style={placeholderSt.text}>{label} — Próximamente</Text>
-  </View>
+  <SafeAreaWrapper>
+    <Header title={label} showBackButton />
+    <View style={placeholderSt.container}>
+      <Text style={placeholderSt.text}>{label} — Próximamente</Text>
+    </View>
+  </SafeAreaWrapper>
 );
 
 const placeholderSt = StyleSheet.create({
@@ -49,6 +54,7 @@ const placeholderSt = StyleSheet.create({
     backgroundColor: DarkSurfaces.background,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   text: {
     fontFamily: FontFamilies.medium,

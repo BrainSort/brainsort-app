@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { diagnosticsService, PreguntaDiagnostico } from '../../services/diagnostics.service';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-// Supongamos que Navigation Types están adaptados
-export default function DiagnosticTestScreen({ navigation }: any) {
+import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
+import { Header } from '../../components/layout/Header';
+
+export default function DiagnosticTestScreen({ navigation }: { navigation: { goBack: () => void; navigate: (name: string, params?: object) => void } }) {
   const [preguntas, setPreguntas] = useState<PreguntaDiagnostico[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [respuestas, setRespuestas] = useState<number[]>([]);
@@ -27,16 +28,25 @@ export default function DiagnosticTestScreen({ navigation }: any) {
     }
   };
 
-  if (!preguntas.length) return (
-    <View style={styles.container}>
-      <Text style={{color:'white', textAlign:'center'}}>Cargando test diagnóstico... (o no hay preguntas disponibles)</Text>
-    </View>
-  );
+  if (!preguntas.length) {
+    return (
+      <SafeAreaWrapper>
+        <Header title="Test Diagnóstico" showBackButton onBackPress={() => navigation.goBack()} />
+        <View style={styles.body}>
+          <Text style={styles.loadingText}>
+            Cargando test diagnóstico... (o no hay preguntas disponibles)
+          </Text>
+        </View>
+      </SafeAreaWrapper>
+    );
+  }
 
   const pregunta = preguntas[currentIdx];
 
   return (
-    <View style={styles.container}>
+    <SafeAreaWrapper>
+      <Header title="Test Diagnóstico" showBackButton onBackPress={() => navigation.goBack()} />
+      <View style={styles.body}>
       <Text style={styles.title}>Evaluación Inicial</Text>
       <Text style={styles.progress}>Pregunta {currentIdx + 1} de {preguntas.length}</Text>
       
@@ -47,12 +57,14 @@ export default function DiagnosticTestScreen({ navigation }: any) {
           <Text style={styles.optionText}>{opcion}</Text>
         </TouchableOpacity>
       ))}
-    </View>
+      </View>
+    </SafeAreaWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#0A0A0A', justifyContent: 'center' },
+  body: { flex: 1, padding: 20, backgroundColor: '#0A0A0A', justifyContent: 'center' },
+  loadingText: { color: 'white', textAlign: 'center' },
   title: { fontSize: 24, color: 'white', fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
   progress: { fontSize: 14, color: '#888', marginBottom: 30, textAlign: 'center' },
   question: { fontSize: 18, color: 'white', marginBottom: 30, textAlign: 'center' },
