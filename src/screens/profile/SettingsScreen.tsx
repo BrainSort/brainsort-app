@@ -22,6 +22,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/common/Button';
@@ -43,9 +44,15 @@ import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
  * <SettingsScreen />
  */
 export const SettingsScreen: React.FC = () => {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaWrapper>
-      <Header title="Configuración" showBackButton />
+      <Header
+        title="Configuración"
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {/* Appearance */}
         <View style={styles.card}>

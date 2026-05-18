@@ -86,7 +86,7 @@ export const progressService = {
    */
   async getLeaderboard(limit: number = 20, offset: number = 0): Promise<LeaderboardResponse> {
     return apiClient.get<LeaderboardResponse>(
-      `/ranking?limit=${limit}&offset=${offset}`,
+      `/progreso/ranking?limit=${limit}&offset=${offset}`,
       { public: false }, // Autenticado
     );
   },

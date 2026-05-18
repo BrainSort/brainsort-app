@@ -10,6 +10,7 @@ export interface PredictionExerciseProps {
   isSubmittingAnswer: boolean;
   lastResult: {
     correcto: boolean;
+    feedback?: string;
     feedbackPositivo?: string;
     feedbackNegativo?: string;
     puntosGanados: number;
@@ -70,7 +71,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             <>
               <Text style={styles.resultTitle}>¡Correcto!</Text>
               <Text style={[styles.resultText, styles.success]}>
-                {lastResult.feedbackPositivo}
+                {lastResult.feedbackPositivo ?? lastResult.feedback}
               </Text>
               <View style={styles.statsRow}>
                 <Text style={styles.stat}>+{lastResult.puntosGanados} XP</Text>
@@ -81,7 +82,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             <>
               <Text style={styles.resultTitle}>Incorrecto</Text>
               <Text style={[styles.resultText, styles.error]}>
-                {lastResult?.feedbackNegativo}
+                {lastResult?.feedbackNegativo ?? lastResult?.feedback}
               </Text>
             </>
           )}

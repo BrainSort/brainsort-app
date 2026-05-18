@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     borderColor: Accent[500],
   },
   opBadgeText: {
-    color: Accent[400],
+    color: Accent[500],
     fontSize: FontSizes.xs,
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   pointerLabel: {
-    color: Accent[400],
+    color: Accent[500],
     fontSize: FontSizes.xs,
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
@@ -632,14 +632,14 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   llHeadLabel: {
-    color: Accent[400],
+    color: Accent[500],
     fontSize: FontSizes.xs,
     fontFamily: FontFamilies.semiBold,
     fontWeight: FontWeights.semiBold,
     letterSpacing: 0.5,
   },
   llHeadArrow: {
-    color: Accent[400],
+    color: Accent[500],
     fontSize: FontSizes.sm,
     lineHeight: 14,
   },
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     borderLeftColor: DarkSurfaces.border,
   },
   llPointerText: {
-    color: Accent[400],
+    color: Accent[500],
     fontSize: FontSizes.sm,
     fontFamily: FontFamilies.semiBold,
   },
