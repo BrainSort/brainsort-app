@@ -227,6 +227,10 @@ export function useAuth(): UseAuthReturn {
     [],
   );
 
+  // NOTE: token refresh and automatic retry logic is implemented inside
+  // `authService` and `apiClient`. This hook is responsible for persisting
+  // tokens and wiring them into the `AuthContext`.
+
   // ─── Helper: Mapeo de AuthUser a UsuarioAutenticado ───────────────────────
 
   /**
@@ -272,6 +276,8 @@ export function useAuth(): UseAuthReturn {
       }
 
       if (message.includes('validation')) {
+        // When backend returns validation errors we propagate the original
+        // message to the UI so it can render field-specific feedback.
         return {
           code: 'VALIDATION_ERROR',
           message: err.message,
@@ -312,13 +318,16 @@ export function useAuth(): UseAuthReturn {
         };
 
         // Guardar en almacenamiento
+        // Persist tokens and user for session restore across app restarts.
         await saveTokens(tokens);
         await saveUser(usuario, response.usuario.tipo);
 
         // Actualizar contexto
+        // Update AuthContext so the rest of the app becomes authenticated.
         setAuth(usuario, tokens, response.usuario.tipo);
 
         // Actualizar cliente API
+        // Configure API client with the new access token for subsequent calls.
         apiClient.setAuthToken(tokens.accessToken);
       } catch (err) {
         const error = parseError(err);
@@ -361,13 +370,16 @@ export function useAuth(): UseAuthReturn {
         };
 
         // Guardar en almacenamiento
+        // Persist tokens and user after successful registration.
         await saveTokens(tokens);
         await saveUser(usuario, response.usuario.tipo);
 
         // Actualizar contexto
+        // Update AuthContext to reflect logged-in state immediately.
         setAuth(usuario, tokens, response.usuario.tipo);
 
         // Actualizar cliente API
+        // Ensure API client sends the correct auth header for future requests.
         apiClient.setAuthToken(tokens.accessToken);
       } catch (err) {
         const error = parseError(err);
@@ -415,7 +427,10 @@ export function useAuth(): UseAuthReturn {
       const storedUserData = await getStoredUser();
 
       // Temporarily disable session restore to force login screen
-      // TODO: Re-enable this after testing
+      // TODO: The current behavior forcibly clears stored session data and
+      // redirects users to login during testing. When enabling session
+      // restore for production, remove the block below and instead validate
+      // tokens (e.g., call a `/me` endpoint or attempt a token refresh).
       if (storedTokens && storedUserData) {
         // Forzar logout para mostrar login
         await deleteStoredTokens();
