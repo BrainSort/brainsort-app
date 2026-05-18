@@ -30,7 +30,7 @@ export interface CurrentStepInfo {
   /** Índice del paso actual (0-based) */
   index: number;
   /** Paso actual (null si no hay simulación) */
-  step: any; // SimulationStep del packages/core
+  step: any; // SimulationStep del packages/core — puede ser null si no hay pasos
   /** Número de paso para mostrar al usuario (1-based) */
   displayNumber: number;
   /** Total de pasos */
@@ -46,6 +46,9 @@ export interface CurrentStepInfo {
  */
 export interface UseSimulationReturn {
   // Estado
+  // `steps` es la secuencia de pasos generada por el motor de simulación.
+  // Cada elemento es un `SimulationStep` (estructura definida en packages/core)
+  // y describe una transición visualizable (comparaciones, swaps, asignaciones).
   steps: any[]; // SimulationStep[]
   currentStep: CurrentStepInfo;
   data: number[];
@@ -119,6 +122,13 @@ export function useSimulation(): UseSimulationReturn {
 
   // ─── Derivar información del paso actual ───────────────────────────────────
 
+  // Construimos una vista derivada del paso actual para consumo por la UI.
+  // - `index` es 0-based y corresponde al índice en `ctx.steps`.
+  // - `step` puede ser `null` cuando no hay pasos cargados.
+  // - `displayNumber` es 1-based para mostrarse al usuario.
+  // - `progress` se calcula como porcentaje entero del avance sobre el total.
+  // - `isLastStep` permite desactivar controles "siguiente" cuando se alcanza
+  //   el final de la secuencia.
   const currentStepInfo: CurrentStepInfo = {
     index: ctx.currentStep,
     step: ctx.steps[ctx.currentStep] || null,
@@ -140,6 +150,9 @@ export function useSimulation(): UseSimulationReturn {
     data: ctx.data,
     algoritmoId: ctx.algoritmoId,
     isPlaying: ctx.playback.isPlaying,
+    // `speed` is a multiplier used by the playback engine. Valid range is
+    // usually [0.25, 2.0] — UI elements should clamp values before calling
+    // `setSpeed` if necessary. The hook does not re-validate here.
     speed: ctx.playback.speed,
     isCompleted: ctx.isCompleted,
     pseudocode: ctx.pseudocode,

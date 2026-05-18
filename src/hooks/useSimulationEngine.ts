@@ -110,6 +110,12 @@ const ENGINE_ALIASES: Record<string, keyof typeof ENGINE_REGISTRY> = {
   listaenlazada: 'Linked List',
 };
 
+// NOTE: The registry and aliases exist to tolerate differences between the
+// backend algorithm identifiers, localized names (Spanish), and UI variants.
+// Keep these lists in sync with backend `algoritmos` entries. Adding a new
+// engine requires registering the implementation here and (optionally) an
+// alias if the backend sends a different name.
+
 // ─── Helper: Obtener Engine ───────────────────────────────────────────────────
 
 /**
@@ -126,6 +132,7 @@ function normalizeAlgorithmName(nombre: string): string {
 }
 
 function resolveEngineName(nombreAlgoritmo: string): keyof typeof ENGINE_REGISTRY {
+  // First, check for direct registration (exact key match).
   if (nombreAlgoritmo in ENGINE_REGISTRY) {
     return nombreAlgoritmo as keyof typeof ENGINE_REGISTRY;
   }
@@ -179,6 +186,13 @@ function validateData(data: number[]): void {
   }
 }
 
+// Validation notes:
+// - Empty arrays are rejected because engines expect at least one element.
+// - The 1000-element limit is a pragmatic guard against extremely large
+//   payloads that could block the main thread or generate excessive steps.
+// - Non-finite values (NaN, Infinity) are rejected to avoid undefined
+//   behavior in numeric comparisons inside engines.
+
 // ─── Helper: Ejecutar con Timeout ─────────────────────────────────────────────
 
 /**
@@ -217,6 +231,11 @@ async function executeWithTimeout<T>(
     }
   });
 }
+
+// Note: `fn` is executed synchronously here. If engines perform async work
+// internally, they should expose an async `execute` method; the timeout wrapper
+// will reject if the synchronous call itself throws or if it takes too long to
+// return.
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
@@ -267,23 +286,26 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
       errorRef.current = null;
 
       try {
-        // ─── Validar datos ────────────────────────────────────────────────
-
+        // Validate input before executing the engine. This prevents engines
+        // from receiving invalid payloads and provides a consistent error
+        // contract for callers.
         validateData(data);
 
-        // ─── Obtener engine ───────────────────────────────────────────────
-
+        // Resolve and instantiate the appropriate engine implementation.
         const engine = getEngine(algoritmoId);
 
-        // ─── Ejecutar con timeout ─────────────────────────────────────────
-
+        // Execute the engine with a safety timeout. Engines return an array of
+        // `SimulationStep` objects describing the visual transitions.
         const steps = await executeWithTimeout(
           () => engine.execute(data),
           ENGINE_TIMEOUT_MS,
         );
 
-        // ─── Actualizar contexto ──────────────────────────────────────────
-
+        // Update the SimulationContext with generated steps and metadata.
+        // - Copy `data` to preserve immutability and avoid accidental
+        //   mutations by downstream consumers.
+        // - `pseudocode` comes from the engine and is used by the UI to show
+        //   line-by-line execution alongside the visualization.
         setSimulationData({
           steps,
           data: [...data], // Copiar para inmutabilidad
