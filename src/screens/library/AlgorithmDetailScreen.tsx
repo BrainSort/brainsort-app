@@ -71,53 +71,70 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing[16],
   },
 
-  // Encabezado del contenido
+  breadcrumbText: {
+    ...TextVariants.bodyMd,
+    color: DarkText.muted,
+    marginBottom: Spacing[2],
+  },
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing[4],
-    gap: Spacing[3],
+    alignItems: 'center',
+    marginBottom: Spacing[2],
   },
   title: {
-    ...TextVariants.h2,
+    ...TextVariants.h1,
     color: DarkText.primary,
     flex: 1,
   },
-
-  // Tarjeta de complejidades
-  complexityCard: {
-    backgroundColor: DarkSurfaces.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: DarkSurfaces.border,
-    padding: Spacing[4],
+  descriptionTopText: {
+    ...TextVariants.bodyMd,
+    color: DarkText.secondary,
     marginBottom: Spacing[5],
+    lineHeight: 24,
+  },
+  complexityRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    gap: Spacing[2],
+    marginBottom: Spacing[6],
   },
-  complexityItem: {
-    alignItems: 'center',
+  complexityCardIndividual: {
     flex: 1,
+    backgroundColor: DarkSurfaces.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.borderSubtle,
+    padding: Spacing[3],
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
   },
-  complexityDivider: {
-    width: 1,
-    backgroundColor: DarkSurfaces.border,
-    marginVertical: Spacing[1],
+  complexityIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  complexityIconText: {
+    fontSize: 16,
+    color: Accent[400],
+  },
+  complexityContent: {
+    flex: 1,
   },
   complexityLabel: {
     fontFamily: FontFamilies.regular,
     fontSize: FontSizes.xs,
     color: DarkText.muted,
-    marginBottom: Spacing[1],
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    marginBottom: 2,
   },
   complexityValue: {
     fontFamily: FontFamilies.bold,
     fontWeight: FontWeights.bold,
-    fontSize: FontSizes.xl,
-    color: Accent[300],
+    color: DarkText.primary,
   },
 
   // Sección de descripción
@@ -574,32 +591,50 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <Text style={styles.breadcrumbText}>
+          Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
+        </Text>
+
         <View style={styles.titleRow}>
           <Text style={styles.title}>{algoritmo.nombre}</Text>
           <DifficultyBadge dificultad={dificultad} />
         </View>
 
-        <View style={styles.complexityCard}>
-          <View style={styles.complexityItem}>
-            <Text style={styles.complexityLabel}>Tiempo</Text>
-            <Text style={styles.complexityValue}>{algoritmo.complejidadTiempo}</Text>
+        <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
+
+        <View style={styles.complexityRow}>
+          <View style={styles.complexityCardIndividual}>
+            <View style={styles.complexityIconBox}>
+              <Text style={styles.complexityIconText}>🕒</Text>
+            </View>
+            <View style={styles.complexityContent}>
+              <Text style={styles.complexityLabel}>Tiempo</Text>
+              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
+            </View>
           </View>
-          <View style={styles.complexityDivider} />
-          <View style={styles.complexityItem}>
-            <Text style={styles.complexityLabel}>Espacio</Text>
-            <Text style={styles.complexityValue}>{algoritmo.complejidadEspacio}</Text>
+
+          <View style={styles.complexityCardIndividual}>
+            <View style={styles.complexityIconBox}>
+              <Text style={styles.complexityIconText}>📦</Text>
+            </View>
+            <View style={styles.complexityContent}>
+              <Text style={styles.complexityLabel}>Espacio</Text>
+              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
+            </View>
           </View>
-          <View style={styles.complexityDivider} />
-          <View style={styles.complexityItem}>
-            <Text style={styles.complexityLabel}>Categoría</Text>
-            <Text style={[styles.complexityValue, { fontSize: FontSizes.sm }]} numberOfLines={2}>
-              {algoritmo.categoria}
-            </Text>
+
+          <View style={styles.complexityCardIndividual}>
+            <View style={styles.complexityIconBox}>
+              <Text style={styles.complexityIconText}>📁</Text>
+            </View>
+            <View style={styles.complexityContent}>
+              <Text style={styles.complexityLabel}>Categoría</Text>
+              <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
+                {algoritmo.categoria}
+              </Text>
+            </View>
           </View>
         </View>
-
-        <Text style={styles.sectionTitle}>Descripción</Text>
-        <Text style={styles.descriptionText}>{algoritmo.descripcion}</Text>
 
         <Text style={styles.sectionTitle}>{didactica.tituloLeyenda}</Text>
         {didactica.items.map(({ icon, text }) => (
