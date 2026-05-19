@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   complexityIconText: {
     fontSize: 16,
-    color: Accent[400],
+    color: Accent[500],
   },
   complexityContent: {
     flex: 1,

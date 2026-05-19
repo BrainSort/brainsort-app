@@ -262,13 +262,23 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
     isSubmittingAnswer,
     lastResult,
   } = useExercise(algoritmoId);
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+
+  useEffect(() => {
+    setCurrentExerciseIndex(0);
+  }, [algoritmoId]);
 
   const handleResponderEjercicio = async (ejercicioId: string, respuesta: string) => {
     await responderEjercicio(ejercicioId, respuesta);
   };
 
   const handleNext = () => {
-    // Navigate back or reset state, depending on product requirements
+    if (!ejercicios || currentExerciseIndex >= ejercicios.length - 1) {
+      navigation.goBack();
+      return;
+    }
+
+    setCurrentExerciseIndex((prev) => prev + 1);
   };
 
   if (isLoadingExercises) {
@@ -296,6 +306,8 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
     );
   }
 
+  const currentExercise = ejercicios[currentExerciseIndex];
+
   return (
     <SafeAreaWrapper>
       <Header
@@ -304,19 +316,23 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
         onBackPress={() => navigation.goBack()}
       />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        {ejercicios.map((ejercicio) => (
-          <View key={ejercicio.id} style={styles.exerciseBlock}>
-            <Text style={styles.exerciseTitle}>Ejercicio de predicción</Text>
-            <PredictionExercise
-              pregunta={ejercicio.pregunta}
-              isSubmittingAnswer={isSubmittingAnswer}
-              lastResult={lastResult}
-              onSubmit={(respuesta) => handleResponderEjercicio(ejercicio.id, respuesta)}
-              onNext={handleNext}
-            />
-            <ExerciseSimulationCard algoritmoId={ejercicio.algoritmoId} />
-          </View>
-        ))}
+        <View style={styles.exerciseBlock}>
+          <Text style={styles.exerciseTitle}>Sesión de práctica</Text>
+          <PredictionExercise
+            tipo={currentExercise.tipo}
+            pregunta={currentExercise.pregunta}
+            opciones={currentExercise.opciones}
+            contenido={currentExercise.contenido}
+            progressCurrent={currentExerciseIndex + 1}
+            progressTotal={ejercicios.length}
+            isSubmittingAnswer={isSubmittingAnswer}
+            lastResult={lastResult}
+            onSubmit={(respuesta) => handleResponderEjercicio(currentExercise.id, respuesta)}
+            onNext={handleNext}
+            isLastExercise={currentExerciseIndex >= ejercicios.length - 1}
+          />
+          <ExerciseSimulationCard algoritmoId={currentExercise.algoritmoId} />
+        </View>
       </ScrollView>
     </SafeAreaWrapper>
   );
