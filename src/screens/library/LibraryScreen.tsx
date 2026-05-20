@@ -45,12 +45,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   Ordenamiento: 'Ordenamiento',
   Busqueda: 'Búsqueda',
   EstructurasLineales: 'Estructuras lineales',
+  EstructurasArboles: 'Estructuras de árboles',
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
   Ordenamiento: 'sort',
   Busqueda: 'search',
   EstructurasLineales: 'list',
+  EstructurasArboles: 'list',
 };
 
 const PREFERRED_ORDER: Record<string, number> = {
@@ -60,6 +62,7 @@ const PREFERRED_ORDER: Record<string, number> = {
   'Linked List': 4,
   Queue: 5,
   Stack: 6,
+  'Segment Tree': 7,
 };
 
 export default function LibraryScreen({ navigation }: Props) {

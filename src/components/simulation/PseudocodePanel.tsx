@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { DarkSurfaces, DarkText, Accent } from '../../styles/colors';
 import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
-import { FontFamilies, FontSizes } from '../../styles/typography';
+import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 import type { PseudocodeLine } from '../../services/library.service';
 import type { SimulationStep } from '@brainsort/core';
 
@@ -33,14 +33,16 @@ export interface PseudocodePanelProps {
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const INDENT_UNIT = 16; // dp por nivel de indentación
+const LINE_HEIGHT = 26;
+const VISIBLE_CODE_HEIGHT = 170;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: DarkSurfaces.surface,
+    backgroundColor: '#0F1318',
     borderRadius: BorderRadius.lg,
-    borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.borderSubtle,
+    maxHeight: 220,
     overflow: 'hidden',
   },
   header: {
@@ -65,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
     paddingRight: Spacing[3],
-    minHeight: 26,
+    minHeight: LINE_HEIGHT,
   },
   lineActive: {
     backgroundColor: 'rgba(0, 212, 255, 0.1)',
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
     color: DarkText.secondary,
     flex: 1,
   },
-  lineTextActive: { color: DarkText.primary },
+  lineTextActive: { color: '#FFFFFF', fontWeight: FontWeights.semiBold },
 });
 
 // ─── Componente ───────────────────────────────────────────────────────────────
@@ -101,16 +103,18 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
     (currentStep as any)?.pseudocodeLine ??
     (currentStep as any)?.lineaPseudocodigo ??
     -1;
+  const activeIndex = lines.findIndex((lineObj) => lineObj.line === activeLine);
 
   // Auto-scroll a la línea activa
   useEffect(() => {
-    if (activeLine >= 0 && scrollRef.current) {
+    if (activeIndex >= 0 && scrollRef.current) {
+      const centeredOffset = activeIndex * LINE_HEIGHT - VISIBLE_CODE_HEIGHT / 2 + LINE_HEIGHT / 2;
       scrollRef.current.scrollTo({
-        y: activeLine * 26,
+        y: Math.max(0, centeredOffset),
         animated: true,
       });
     }
-  }, [activeLine]);
+  }, [activeIndex, lines.length]);
 
   if (!lines || lines.length === 0) {
     return null;
