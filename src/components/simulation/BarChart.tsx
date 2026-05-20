@@ -13,7 +13,7 @@
  * Animaciones con Animated.Value para transiciones suaves. (≥24 FPS)
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { SimulationColors } from '../../styles/colors';
 import type { SimulationStep } from '@brainsort/core';
@@ -99,6 +99,62 @@ function getBarColor(
   return SimulationColors.idle;
 }
 
+// ─── Algoritmo de emparejamiento para animaciones fluidas ─────────────────────────
+
+interface BarState {
+  id: string;
+  value: number;
+  index: number;
+}
+
+/**
+ * Empareja el nuevo estado del array con las barras del estado anterior.
+ * Esto preserva la identidad de cada barra (mediante su ID único) y solo actualiza
+ * su índice para lograr una animación fluida de deslizamiento horizontal (swaps).
+ */
+function matchNewArrayToBars(
+  newArray: number[],
+  prevBars: BarState[],
+): BarState[] {
+  const matchedBars: BarState[] = new Array(newArray.length);
+  const availableBars = [...prevBars];
+
+  for (let i = 0; i < newArray.length; i++) {
+    const val = newArray[i];
+    
+    // Buscamos la mejor coincidencia en base al valor y la cercanía al índice anterior.
+    let bestIdx = -1;
+    let minDistance = Infinity;
+
+    for (let j = 0; j < availableBars.length; j++) {
+      if (availableBars[j].value === val) {
+        const dist = Math.abs(availableBars[j].index - i);
+        if (dist < minDistance) {
+          minDistance = dist;
+          bestIdx = j;
+        }
+      }
+    }
+
+    if (bestIdx !== -1) {
+      const [bar] = availableBars.splice(bestIdx, 1);
+      matchedBars[i] = {
+        ...bar,
+        index: i, // Actualizamos al nuevo índice
+      };
+    } else {
+      // Generamos un fallback si ocurre un cambio drástico de datos (ej. datos manuales)
+      matchedBars[i] = {
+        id: `bar-${i}-${val}-${Math.random()}`,
+        value: val,
+        index: i,
+      };
+    }
+  }
+
+  return matchedBars;
+}
+
 // ─── Componente de barra individual ──────────────────────────────────────────
 
 interface SingleBarProps {
@@ -109,6 +165,7 @@ interface SingleBarProps {
   availableHeight: number;
   width: number;
   opacity?: number;
+  index: number;
 }
 
 const SingleBar: React.FC<SingleBarProps> = ({
@@ -119,24 +176,43 @@ const SingleBar: React.FC<SingleBarProps> = ({
   availableHeight,
   width,
   opacity = 1,
+  index,
 }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
+  // Animar posición horizontal (left)
+  const xAnim = useRef(new Animated.Value(index * (width + 2))).current;
 
   const barHeight = Math.max(4, (value / maxValue) * availableHeight * 0.9);
 
+  // Animación del alto
   useEffect(() => {
     Animated.spring(heightAnim, {
       toValue: barHeight,
       useNativeDriver: false,
-      tension: 80,
-      friction: 10,
+      tension: 100,
+      friction: 12,
     }).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [barHeight]);
 
+  // Animación del deslizamiento horizontal (X)
+  useEffect(() => {
+    Animated.spring(xAnim, {
+      toValue: index * (width + 2),
+      useNativeDriver: false,
+      tension: 100,
+      friction: 12,
+    }).start();
+  }, [index, width]);
+
   return (
-    <View
-      style={[barStyles.barContainer, { width }]}
+    <Animated.View
+      style={[
+        barStyles.barContainer,
+        {
+          width,
+          left: xAnim,
+        },
+      ]}
       accessibilityLabel={label ? `${label}, valor ${value}` : `Valor ${value}`}
     >
       <View style={barStyles.labelSlot}>
@@ -164,12 +240,14 @@ const SingleBar: React.FC<SingleBarProps> = ({
           },
         ]}
       />
-    </View>
+    </Animated.View>
   );
 };
 
 const barStyles = StyleSheet.create({
   barContainer: {
+    position: 'absolute',
+    bottom: 0,
     justifyContent: 'flex-end',
     alignItems: 'center',
     height: '100%',
@@ -215,6 +293,28 @@ export const BarChart: React.FC<BarChartProps> = ({
   const rawStep = step as any;
   const currentArray: number[] = rawStep?.array ?? rawStep?.estadoArray ?? [];
 
+  const [bars, setBars] = useState<BarState[]>([]);
+
+  // Sincronizar el estado del array de simulación con nuestras barras identificadas únicas
+  useEffect(() => {
+    if (currentArray.length === 0) return;
+
+    setBars((prevBars) => {
+      // Si la longitud cambia o no hay barras previas, inicializamos de nuevo
+      const isNewDataset = prevBars.length !== currentArray.length;
+      if (isNewDataset) {
+        return currentArray.map((value, index) => ({
+          id: `bar-${index}-${value}-${Math.random()}`,
+          value,
+          index,
+        }));
+      }
+
+      // De lo contrario, emparejamos manteniendo la identidad de cada barra
+      return matchNewArrayToBars(currentArray, prevBars);
+    });
+  }, [currentArray]);
+
   if (currentArray.length === 0) {
     return <View style={[styles.container, { height }]} />;
   }
@@ -223,36 +323,46 @@ export const BarChart: React.FC<BarChartProps> = ({
   const barWidth = Math.min(40, Math.floor((SCREEN_WIDTH - 48) / currentArray.length));
   const markerView = getMarkerView(step);
 
-  return (
-    <View style={[styles.container, { height }]}>
-      {currentArray.map((value, index) => {
-        const color = getBarColor(index, step, isCompleted);
-        const marker = step?.marcadores?.find((item) => item.index === index);
-        const isDiscarded = marker?.role === 'descartado';
+  // Ancho total del contenedor para centrar los elementos de posición absoluta
+  const totalWidth = currentArray.length * (barWidth + 2) - 2;
 
-        return (
-          <SingleBar
-            key={index}
-            value={value}
-            maxValue={maxValue}
-            color={color}
-            label={markerView[index]?.label}
-            availableHeight={height - 24}
-            width={barWidth}
-            opacity={isDiscarded ? 0.25 : 1}
-          />
-        );
-      })}
+  return (
+    <View style={styles.wrapper}>
+      <View style={[styles.container, { height, width: totalWidth }]}>
+        {bars.map((bar) => {
+          const color = getBarColor(bar.index, step, isCompleted);
+          const marker = step?.marcadores?.find((item) => item.index === bar.index);
+          const isDiscarded = marker?.role === 'descartado';
+
+          return (
+            <SingleBar
+              key={bar.id}
+              value={bar.value}
+              maxValue={maxValue}
+              color={color}
+              label={markerView[bar.index]?.label}
+              availableHeight={height - 24}
+              width={barWidth}
+              opacity={isDiscarded ? 0.25 : 1}
+              index={bar.index}
+            />
+          );
+        })}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'center',
     paddingHorizontal: 12,
-    gap: 2,
+    position: 'relative',
   },
 });
