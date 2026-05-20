@@ -34,6 +34,7 @@ import {
 } from '../../styles/colors';
 import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
+import { useThemeContext } from '../../context/ThemeContext';
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -45,6 +46,7 @@ import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
  */
 export const SettingsScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { mode, toggleTheme } = useThemeContext();
 
   return (
     <SafeAreaWrapper>
@@ -58,9 +60,16 @@ export const SettingsScreen: React.FC = () => {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Apariencia</Text>
 
-          <TouchableOpacity style={styles.settingRow}>
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={toggleTheme}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: mode === 'dark' }}
+          >
             <Text style={styles.settingLabel}>Modo Oscuro</Text>
-            <View style={[styles.toggle, styles.toggleOn]} />
+            <View style={[styles.toggle, mode === 'dark' ? styles.toggleOn : styles.toggleOff]}>
+              <View style={styles.toggleKnob} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
@@ -75,17 +84,23 @@ export const SettingsScreen: React.FC = () => {
 
           <TouchableOpacity style={styles.settingRow}>
             <Text style={styles.settingLabel}>Notificaciones Push</Text>
-            <View style={[styles.toggle, styles.toggleOn]} />
+            <View style={[styles.toggle, styles.toggleOn]}>
+              <View style={styles.toggleKnob} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
             <Text style={styles.settingLabel}>Recordatorios de Racha</Text>
-            <View style={[styles.toggle, styles.toggleOn]} />
+            <View style={[styles.toggle, styles.toggleOn]}>
+              <View style={styles.toggleKnob} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
             <Text style={styles.settingLabel}>Actualizaciones de Ranking</Text>
-            <View style={[styles.toggle, styles.toggleOff]} />
+            <View style={[styles.toggle, styles.toggleOff]}>
+              <View style={styles.toggleKnob} />
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -183,16 +198,25 @@ const styles = StyleSheet.create({
     color: DarkText.muted,
   },
   toggle: {
-    width: 48,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: DarkSurfaces.border,
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    padding: 2,
+    justifyContent: 'center',
   },
   toggleOn: {
     backgroundColor: Accent[500],
+    alignItems: 'flex-end',
   },
   toggleOff: {
     backgroundColor: DarkSurfaces.border,
+    alignItems: 'flex-start',
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
   },
   infoRow: {
     flexDirection: 'row',

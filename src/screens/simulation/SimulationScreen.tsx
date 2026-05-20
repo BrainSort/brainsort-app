@@ -28,7 +28,7 @@
  *   - Auto-desaparece a los 5 segundos
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -59,11 +59,9 @@ import {
   Primary,
   Accent,
   Semantic,
-  SimulationColors,
 } from '../../styles/colors';
 import {
   BorderRadius,
-  BorderWidths,
   Spacing,
   SpacingAlias,
 } from '../../styles/spacing';
@@ -80,9 +78,7 @@ type SimulationContentProps = {
   showAlgorithmHeader?: boolean;
 };
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
 
-const COMPLETION_TOAST_DURATION = 5000; // 5 segundos (HU-07)
 
 function formatDataset(data: number[]): string {
   return data.join(', ');
@@ -281,50 +277,7 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 36 },
   emptyText: { ...TextVariants.bodyMd, color: DarkText.muted, textAlign: 'center' },
 
-  // Completado modal (HU-07)
-  toastContainer: {
-    position: 'absolute',
-    top: Spacing[4],
-    left: Spacing[4],
-    right: Spacing[4],
-    backgroundColor: 'rgba(30, 40, 30, 0.96)',
-    borderRadius: BorderRadius.xl,
-    borderWidth: 1.5,
-    borderColor: SimulationColors.final,
-    padding: Spacing[4],
-    gap: Spacing[3],
-    zIndex: 100,
-  },
-  toastTitle: {
-    ...TextVariants.h4,
-    color: SimulationColors.final,
-    textAlign: 'center',
-  },
-  toastActions: {
-    flexDirection: 'row',
-    gap: Spacing[2],
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  toastBtn: {
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[2],
-    borderRadius: BorderRadius.md,
-    backgroundColor: DarkSurfaces.surface,
-    borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-  },
-  toastBtnPrimary: {
-    backgroundColor: Primary[500],
-    borderColor: Primary[500],
-  },
-  toastBtnText: {
-    fontFamily: FontFamilies.semiBold,
-    fontWeight: FontWeights.semiBold,
-    fontSize: FontSizes.sm,
-    color: DarkText.secondary,
-  },
-  toastBtnTextPrimary: { color: '#FFFFFF' },
+
 
   // Loading
   loadingContainer: {
@@ -366,9 +319,8 @@ export function SimulationContent({
   // ─── Estado local ─────────────────────────────────────────────────────────
   const [customInput, setCustomInput] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [showInlineValues, setShowInlineValues] = useState(true);
 
   // ─── Cargar datos al montar ───────────────────────────────────────────────
   useEffect(() => {
@@ -384,7 +336,6 @@ export function SimulationContent({
   // Si cambia el algoritmo seleccionado, reinicia el arranque de simulación.
   useEffect(() => {
     setHasStarted(false);
-    setShowToast(false);
     setCustomInput('');
     setInputError(null);
     resetSimulation();
@@ -396,18 +347,7 @@ export function SimulationContent({
     setSpeed(getComfortableDefaultSpeed(algoritmo?.nombre, algoritmo?.categoria));
   }, [algoritmo?.nombre, algoritmo?.categoria, setSpeed]);
 
-  // ─── Mostrar toast al completar (HU-07) ───────────────────────────────────
-  useEffect(() => {
-    if (isCompleted && hasStarted) {
-      setShowToast(true);
-      toastTimer.current = setTimeout(() => {
-        setShowToast(false);
-      }, COMPLETION_TOAST_DURATION);
-    }
-    return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    };
-  }, [isCompleted, hasStarted]);
+
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
@@ -417,7 +357,6 @@ export function SimulationContent({
     setCustomInput(formatDataset(data));
     executeAlgorithm(algoritmoId, data).catch(() => {});
     setInputError(null);
-    setShowToast(false);
   }, [algoritmo, algoritmoId, generateDefault, executeAlgorithm]);
 
   const handleApplyCustom = useCallback(() => {
@@ -431,18 +370,13 @@ export function SimulationContent({
     setInputError(null);
     setCustomInput(formatDataset(parts));
     executeAlgorithm(algoritmoId, parts).catch(() => {});
-    setShowToast(false);
   }, [algoritmo, algoritmoId, customInput, validateDataset, executeAlgorithm]);
 
   const handleReset = useCallback(() => {
     resetSimulation();
-    setShowToast(false);
   }, [resetSimulation]);
 
-  const handleNextAlgorithm = useCallback(() => {
-    setShowToast(false);
-    onRequestBack?.();
-  }, [onRequestBack]);
+
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -467,37 +401,6 @@ export function SimulationContent({
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Toast de completado (HU-07) */}
-      {showToast && (
-        <View style={styles.toastContainer} accessibilityRole="alert">
-          <Text style={{ fontSize: 32, textAlign: 'center' }}>🎉</Text>
-          <Text style={styles.toastTitle}>¡Algoritmo completado!</Text>
-          <View style={styles.toastActions}>
-            <TouchableOpacity
-              style={styles.toastBtn}
-              onPress={handleReset}
-              testID="toast-btn-restart"
-            >
-              <Text style={styles.toastBtnText}>↺ Reiniciar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.toastBtn}
-              onPress={handleGenerateNew}
-              testID="toast-btn-new-data"
-            >
-              <Text style={styles.toastBtnText}>🎲 Nuevos datos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toastBtn, styles.toastBtnPrimary]}
-              onPress={handleNextAlgorithm}
-              testID="toast-btn-next"
-            >
-              <Text style={styles.toastBtnTextPrimary}>← Volver</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -583,7 +486,11 @@ export function SimulationContent({
 
         {/* Pseudocódigo */}
         {pseudoLines.length > 0 && (
-          <PseudocodePanel lines={pseudoLines} currentStep={currentStepData} />
+          <PseudocodePanel
+            lines={pseudoLines}
+            currentStep={currentStepData}
+            showInlineValues={showInlineValues}
+          />
         )}
 
         {/* Input de datos personalizados */}
@@ -664,6 +571,8 @@ export function SimulationContent({
         onPreviousStep={previousStep}
         onNextStep={nextStep}
         onSpeedChange={setSpeed}
+        showInlineValues={showInlineValues}
+        onToggleInlineValues={() => setShowInlineValues((prev) => !prev)}
       />
     </KeyboardAvoidingView>
   );

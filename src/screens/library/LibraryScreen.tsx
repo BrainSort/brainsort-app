@@ -29,6 +29,7 @@ import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import type { MainTabParamList } from '../../navigation/MainTabNavigator';
+import { useThemeContext } from '../../context/ThemeContext';
 
 type Props = NativeStackScreenProps<LibraryStackParamList, 'Library'>;
 type MainTabNav = BottomTabNavigationProp<MainTabParamList>;
@@ -37,6 +38,7 @@ type SidebarNavItem = {
   icon: NavIconName;
   label: string;
   tab: keyof MainTabParamList;
+  accessibilityLabel: string;
 };
 type StatIconName = 'library' | 'check' | 'exercise' | 'streak';
 type FilterIconName = 'all' | 'sort' | 'search' | 'list';
@@ -172,9 +174,6 @@ export default function LibraryScreen({ navigation }: Props) {
         <DesktopSidebar
           activeTab="Biblioteca"
           onNavigate={(tab) => tabNavigation.navigate(tab)}
-          onOpenThemeSettings={() =>
-            tabNavigation.navigate('Perfil', { screen: 'Settings' as const })
-          }
           completionPercent={completionPercent}
           progressCount={
             totalExercises && totalExercises > 0
@@ -415,28 +414,29 @@ function DashboardStatIcon({
 }
 
 const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
-  { icon: 'book', label: 'Biblioteca', tab: 'Biblioteca' },
-  { icon: 'route', label: 'Ruta', tab: 'Ruta' },
-  { icon: 'progress', label: 'Progreso', tab: 'Progreso' },
-  { icon: 'offline', label: 'Offline', tab: 'Offline' },
-  { icon: 'profile', label: 'Perfil', tab: 'Perfil' },
+  { icon: 'book', label: 'Biblioteca', tab: 'Biblioteca', accessibilityLabel: 'Biblioteca de algoritmos' },
+  { icon: 'route', label: 'Ruta', tab: 'Ruta', accessibilityLabel: 'Mi ruta de aprendizaje' },
+  { icon: 'progress', label: 'Progreso', tab: 'Progreso', accessibilityLabel: 'Mi progreso' },
+  { icon: 'offline', label: 'Offline', tab: 'Offline', accessibilityLabel: 'Módulos sin conexión' },
+  { icon: 'profile', label: 'Perfil', tab: 'Perfil', accessibilityLabel: 'Mi perfil' },
 ];
+
+interface DesktopSidebarProps {
+  activeTab: keyof MainTabParamList;
+  onNavigate: (tab: keyof MainTabParamList) => void;
+  completionPercent: number;
+  progressCount: string;
+  streakDays?: number;
+}
 
 function DesktopSidebar({
   activeTab,
   onNavigate,
-  onOpenThemeSettings,
   completionPercent,
   progressCount,
   streakDays,
-}: {
-  activeTab: keyof MainTabParamList;
-  onNavigate: (tab: keyof MainTabParamList) => void;
-  onOpenThemeSettings: () => void;
-  completionPercent: number;
-  progressCount: string;
-  streakDays: number | undefined;
-}) {
+}: DesktopSidebarProps) {
+  const { mode, toggleTheme } = useThemeContext();
   return (
     <View style={styles.sidebar}>
       <View style={styles.brand}>
@@ -447,7 +447,7 @@ function DesktopSidebar({
       </View>
 
       <View style={styles.sideNav}>
-        {SIDEBAR_NAV_ITEMS.map(({ icon, label, tab }) => {
+        {SIDEBAR_NAV_ITEMS.map(({ icon, label, tab, accessibilityLabel }) => {
           const active = activeTab === tab;
           return (
             <TouchableOpacity
@@ -457,7 +457,7 @@ function DesktopSidebar({
               activeOpacity={0.82}
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
-              accessibilityLabel={label}
+              accessibilityLabel={accessibilityLabel}
             >
               <SidebarIcon name={icon} active={active} />
               <Text style={[styles.sideLabel, active && styles.sideTextActive]}>{label}</Text>
@@ -481,14 +481,14 @@ function DesktopSidebar({
         </View>
         <TouchableOpacity
           style={styles.themePanel}
-          onPress={onOpenThemeSettings}
+          onPress={toggleTheme}
           activeOpacity={0.82}
           accessibilityRole="button"
           accessibilityLabel="Configurar tema oscuro"
         >
           <Text style={styles.themeIcon}>☾</Text>
           <Text style={styles.themeText}>Tema oscuro</Text>
-          <View style={styles.toggle}>
+          <View style={[styles.toggle, mode === 'dark' ? styles.toggleOn : styles.toggleOff]}>
             <View style={styles.toggleKnob} />
           </View>
         </TouchableOpacity>
@@ -1083,9 +1083,15 @@ const styles = StyleSheet.create({
     width: 38,
     height: 22,
     borderRadius: BorderRadius.full,
-    backgroundColor: '#12CCE0',
     padding: 3,
+  },
+  toggleOn: {
+    backgroundColor: '#12CCE0',
     alignItems: 'flex-end',
+  },
+  toggleOff: {
+    backgroundColor: '#7A8C9E',
+    alignItems: 'flex-start',
   },
   toggleKnob: {
     width: 16,

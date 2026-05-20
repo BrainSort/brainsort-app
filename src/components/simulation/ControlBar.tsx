@@ -37,6 +37,8 @@ export interface ControlBarProps {
   onPreviousStep: () => void;
   onNextStep: () => void;
   onSpeedChange: (speed: number) => void;
+  showInlineValues?: boolean;
+  onToggleInlineValues?: () => void;
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -138,6 +140,27 @@ const styles = StyleSheet.create({
     color: DarkText.muted,
   },
   speedChipTextActive: { color: Accent[500] },
+  variablesToggleChip: {
+    paddingHorizontal: Spacing[2],
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    borderWidth: BorderWidths.thin,
+    borderColor: DarkSurfaces.border,
+    backgroundColor: DarkSurfaces.surface,
+  },
+  variablesToggleChipActive: {
+    borderColor: Accent[500],
+    backgroundColor: 'rgba(0, 212, 255, 0.15)',
+  },
+  variablesToggleText: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.xs,
+    color: DarkText.muted,
+  },
+  variablesToggleTextActive: {
+    color: Accent[500],
+  },
 
   // Indicador de estado completado
   completedBanner: {
@@ -170,6 +193,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   onPreviousStep,
   onNextStep,
   onSpeedChange,
+  showInlineValues = false,
+  onToggleInlineValues,
 }) => {
   const canPlay = hasSteps && !isCompleted;
 
@@ -263,6 +288,32 @@ export const ControlBar: React.FC<ControlBarProps> = ({
               </TouchableOpacity>
             );
           })}
+
+          {onToggleInlineValues && (
+            <>
+              {/* Separador visual ligero */}
+              <View
+                style={{
+                  width: 1,
+                  height: 16,
+                  backgroundColor: DarkSurfaces.border,
+                  marginHorizontal: Spacing[1],
+                  alignSelf: 'center',
+                }}
+              />
+              <TouchableOpacity
+                style={[styles.variablesToggleChip, showInlineValues && styles.variablesToggleChipActive]}
+                onPress={onToggleInlineValues}
+                accessibilityRole="button"
+                accessibilityLabel="Activar/desactivar valores de variables inline"
+                testID="btn-toggle-inline-values"
+              >
+                <Text style={[styles.variablesToggleText, showInlineValues && styles.variablesToggleTextActive]}>
+                  {showInlineValues ? 'Var: On' : 'Var: Off'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </View>

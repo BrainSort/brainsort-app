@@ -7,6 +7,8 @@
  *   - LinearStructureCanvas (estructuras lineales: Stack, Queue, Linked List)
  */
 
+import { SimulationColors, Accent } from '../styles/colors';
+
 export const AnimationEngine = {
   /**
    * Devuelve el tipo de visualizador según la categoría del algoritmo.
@@ -34,28 +36,36 @@ export const AnimationEngine = {
    * Devuelve la leyenda de operaciones apropiada para el tipo de algoritmo.
    */
   getLegend(categoria: string | undefined): Array<{ color: string; label: string }> {
+    if (categoria === 'Busqueda') {
+      return [
+        { color: SimulationColors.idle, label: 'Buscando' },
+        { color: SimulationColors.comparacion, label: 'Elemento Medio (mid)' },
+        { color: '#1A2333', label: 'Descartado' },
+        { color: SimulationColors.final, label: 'Encontrado' },
+      ];
+    }
     if (categoria === 'EstructurasArboles') {
       return [
         { color: '#555', label: 'Pendiente' },
-        { color: '#F5A623', label: 'Visitando' },
-        { color: '#00D4FF', label: 'Construyendo' },
-        { color: '#2ECC71', label: 'Listo' },
+        { color: SimulationColors.comparacion, label: 'Visitando' },
+        { color: Accent[500], label: 'Construyendo' },
+        { color: SimulationColors.final, label: 'Listo' },
       ];
     }
     if (categoria === 'EstructurasLineales') {
       return [
-        { color: '#00D4FF', label: 'Insertar' },
-        { color: '#F5A623', label: 'Inspeccionar' },
-        { color: '#E74C3C', label: 'Extraer' },
-        { color: '#2ECC71', label: 'Finalizado' },
+        { color: Accent[500], label: 'Insertar' },
+        { color: SimulationColors.comparacion, label: 'Inspeccionar' },
+        { color: SimulationColors.intercambio, label: 'Extraer' },
+        { color: SimulationColors.final, label: 'Finalizado' },
       ];
     }
     // Ordenamiento (default)
     return [
-      { color: '#555', label: 'Inactivo' },
-      { color: '#F5A623', label: 'Comparando' },
-      { color: '#E74C3C', label: 'Intercambiando' },
-      { color: '#2ECC71', label: 'Finalizado' },
+      { color: SimulationColors.idle, label: 'Inactivo' },
+      { color: SimulationColors.comparacion, label: 'Comparando' },
+      { color: SimulationColors.intercambio, label: 'Intercambiando' },
+      { color: SimulationColors.final, label: 'Finalizado' },
     ];
   },
 };

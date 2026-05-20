@@ -63,7 +63,12 @@ function getBarColor(
 
   if (!step) return SimulationColors.idle;
   const marker = step.marcadores?.find((item) => item.index === index);
-  if (marker) return marker.color;
+  if (marker) {
+    if (marker.role === 'descartado') {
+      return SimulationColors.idle; // Keep original idle color (blue)
+    }
+    return marker.color;
+  }
 
   const rawStep = step as any;
   const highlightIndices = rawStep.highlightIndices;
@@ -103,6 +108,7 @@ interface SingleBarProps {
   label?: string;
   availableHeight: number;
   width: number;
+  opacity?: number;
 }
 
 const SingleBar: React.FC<SingleBarProps> = ({
@@ -112,6 +118,7 @@ const SingleBar: React.FC<SingleBarProps> = ({
   label,
   availableHeight,
   width,
+  opacity = 1,
 }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
 
@@ -153,6 +160,7 @@ const SingleBar: React.FC<SingleBarProps> = ({
             backgroundColor: color,
             width: width - 2,
             shadowColor: color,
+            opacity: opacity,
           },
         ]}
       />
@@ -219,6 +227,9 @@ export const BarChart: React.FC<BarChartProps> = ({
     <View style={[styles.container, { height }]}>
       {currentArray.map((value, index) => {
         const color = getBarColor(index, step, isCompleted);
+        const marker = step?.marcadores?.find((item) => item.index === index);
+        const isDiscarded = marker?.role === 'descartado';
+
         return (
           <SingleBar
             key={index}
@@ -228,6 +239,7 @@ export const BarChart: React.FC<BarChartProps> = ({
             label={markerView[index]?.label}
             availableHeight={height - 24}
             width={barWidth}
+            opacity={isDiscarded ? 0.25 : 1}
           />
         );
       })}
