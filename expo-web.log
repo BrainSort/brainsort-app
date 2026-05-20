@@ -1,0 +1,7 @@
+> expo start --web
+> brainsort@1.0.0 web
+Starting project at D:\wolas\brainsort-app
+env: load .env
+env: export EXPO_PUBLIC_API_URL
+› Port 8081 is being used by another process
+› Skipping dev server

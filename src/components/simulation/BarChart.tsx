@@ -13,8 +13,8 @@
  * Animaciones con Animated.Value para transiciones suaves. (≥24 FPS)
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Easing, LayoutChangeEvent, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SimulationColors } from '../../styles/colors';
 import type { SimulationStep } from '@brainsort/core';
 
@@ -32,6 +32,22 @@ export interface BarChartProps {
 }
 
 type BarMarkerView = Record<number, { label: string; color: string }>;
+
+const BAR_COLOR_STOPS = [
+  SimulationColors.idle,
+  SimulationColors.comparacion,
+  SimulationColors.intercambio,
+  SimulationColors.final,
+];
+
+function getColorStopIndex(color: string): number {
+  const normalizedColor = color.toLowerCase();
+  const exactIndex = BAR_COLOR_STOPS.findIndex(
+    (item) => item.toLowerCase() === normalizedColor,
+  );
+
+  return exactIndex === -1 ? 0 : exactIndex;
+}
 
 function getMarkerView(step: SimulationStep | null): BarMarkerView {
   const markers = step?.marcadores ?? [];
@@ -166,6 +182,7 @@ interface SingleBarProps {
   width: number;
   opacity?: number;
   index: number;
+  slotWidth: number;
 }
 
 const SingleBar: React.FC<SingleBarProps> = ({
@@ -177,32 +194,104 @@ const SingleBar: React.FC<SingleBarProps> = ({
   width,
   opacity = 1,
   index,
+  slotWidth,
 }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
   // Animar posición horizontal (left)
-  const xAnim = useRef(new Animated.Value(index * (width + 2))).current;
+  const xAnim = useRef(new Animated.Value(index * slotWidth)).current;
+  const liftAnim = useRef(new Animated.Value(0)).current;
+  const colorAnim = useRef(new Animated.Value(getColorStopIndex(color))).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const previousIndexRef = useRef(index);
 
   const barHeight = Math.max(4, (value / maxValue) * availableHeight * 0.9);
 
   // Animación del alto
   useEffect(() => {
-    Animated.spring(heightAnim, {
+    Animated.timing(heightAnim, {
       toValue: barHeight,
       useNativeDriver: false,
-      tension: 100,
-      friction: 12,
+      duration: 260,
+      easing: Easing.out(Easing.cubic),
     }).start();
-  }, [barHeight]);
+  }, [barHeight, heightAnim]);
 
   // Animación del deslizamiento horizontal (X)
   useEffect(() => {
-    Animated.spring(xAnim, {
-      toValue: index * (width + 2),
+    const didMove = previousIndexRef.current !== index;
+    previousIndexRef.current = index;
+
+    Animated.parallel([
+      Animated.timing(xAnim, {
+        toValue: index * slotWidth,
+        useNativeDriver: true,
+        duration: didMove ? 420 : 220,
+        easing: Easing.inOut(Easing.cubic),
+      }),
+      Animated.sequence([
+        Animated.timing(liftAnim, {
+          toValue: didMove ? 1 : 0,
+          useNativeDriver: true,
+          duration: didMove ? 120 : 1,
+          easing: Easing.out(Easing.cubic),
+        }),
+        Animated.timing(liftAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          duration: didMove ? 300 : 1,
+          easing: Easing.out(Easing.cubic),
+        }),
+      ]),
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: didMove ? 1 : 0.35,
+          useNativeDriver: false,
+          duration: didMove ? 140 : 110,
+          easing: Easing.out(Easing.cubic),
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          useNativeDriver: false,
+          duration: didMove ? 360 : 180,
+          easing: Easing.out(Easing.cubic),
+        }),
+      ]),
+    ]).start();
+  }, [glowAnim, index, liftAnim, slotWidth, xAnim]);
+
+  useEffect(() => {
+    Animated.timing(colorAnim, {
+      toValue: getColorStopIndex(color),
       useNativeDriver: false,
-      tension: 100,
-      friction: 12,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
     }).start();
-  }, [index, width]);
+  }, [color, colorAnim]);
+
+  const lift = liftAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -14],
+  });
+
+  const barScale = liftAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.06],
+  });
+
+  const animatedColor = colorAnim.interpolate({
+    inputRange: BAR_COLOR_STOPS.map((_, index) => index),
+    outputRange: BAR_COLOR_STOPS,
+  });
+
+  const animatedShadowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0.95],
+  });
+
+  const shineOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.18, 0.5],
+  });
 
   return (
     <Animated.View
@@ -210,7 +299,7 @@ const SingleBar: React.FC<SingleBarProps> = ({
         barStyles.barContainer,
         {
           width,
-          left: xAnim,
+          transform: [{ translateX: xAnim }, { translateY: lift }],
         },
       ]}
       accessibilityLabel={label ? `${label}, valor ${value}` : `Valor ${value}`}
@@ -233,13 +322,26 @@ const SingleBar: React.FC<SingleBarProps> = ({
           barStyles.bar,
           {
             height: heightAnim,
-            backgroundColor: color,
+            backgroundColor: animatedColor,
             width: width - 2,
-            shadowColor: color,
+            shadowColor: animatedColor as any,
+            shadowOpacity: animatedShadowOpacity,
             opacity: opacity,
+            transform: [{ scaleX: barScale }],
           },
         ]}
-      />
+      >
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            barStyles.barShine,
+            {
+              opacity: shineOpacity,
+              width: Math.max(3, Math.floor(width * 0.22)),
+            },
+          ]}
+        />
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -247,6 +349,7 @@ const SingleBar: React.FC<SingleBarProps> = ({
 const barStyles = StyleSheet.create({
   barContainer: {
     position: 'absolute',
+    left: 0,
     bottom: 0,
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -274,26 +377,40 @@ const barStyles = StyleSheet.create({
   },
   bar: {
     borderRadius: 3,
+    overflow: 'hidden',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
+    shadowRadius: 10,
     elevation: 4,
+  },
+  barShine: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
+    bottom: 4,
+    position: 'absolute',
+    right: 3,
+    top: 4,
   },
 });
 
 // ─── Componente principal ─────────────────────────────────────────────────────
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export const BarChart: React.FC<BarChartProps> = ({
   step,
   isCompleted,
   height = 220,
 }) => {
-  const rawStep = step as any;
-  const currentArray: number[] = rawStep?.array ?? rawStep?.estadoArray ?? [];
+  const { width: windowWidth } = useWindowDimensions();
+  const currentArray: number[] = useMemo(() => {
+    const rawStep = step as any;
+    return rawStep?.array ?? rawStep?.estadoArray ?? [];
+  }, [step]);
 
   const [bars, setBars] = useState<BarState[]>([]);
+  const [canvasWidth, setCanvasWidth] = useState(0);
+
+  const handleCanvasLayout = (event: LayoutChangeEvent) => {
+    setCanvasWidth(event.nativeEvent.layout.width);
+  };
 
   // Sincronizar el estado del array de simulación con nuestras barras identificadas únicas
   useEffect(() => {
@@ -320,14 +437,20 @@ export const BarChart: React.FC<BarChartProps> = ({
   }
 
   const maxValue = Math.max(...currentArray);
-  const barWidth = Math.min(40, Math.floor((SCREEN_WIDTH - 48) / currentArray.length));
+  const availableWidth = Math.max(160, canvasWidth || windowWidth - 48);
+  const gap = 4;
+  const barWidth = Math.max(
+    12,
+    Math.min(40, Math.floor((availableWidth - gap * (currentArray.length - 1)) / currentArray.length)),
+  );
+  const slotWidth = barWidth + gap;
   const markerView = getMarkerView(step);
 
   // Ancho total del contenedor para centrar los elementos de posición absoluta
-  const totalWidth = currentArray.length * (barWidth + 2) - 2;
+  const totalWidth = currentArray.length * slotWidth - gap;
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.wrapper} onLayout={handleCanvasLayout}>
       <View style={[styles.container, { height, width: totalWidth }]}>
         {bars.map((bar) => {
           const color = getBarColor(bar.index, step, isCompleted);
@@ -343,6 +466,7 @@ export const BarChart: React.FC<BarChartProps> = ({
               label={markerView[bar.index]?.label}
               availableHeight={height - 24}
               width={barWidth}
+              slotWidth={slotWidth}
               opacity={isDiscarded ? 0.25 : 1}
               index={bar.index}
             />
@@ -360,9 +484,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   container: {
-    flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
     position: 'relative',
   },
 });
