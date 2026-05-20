@@ -18,7 +18,7 @@
  */
 
 import { useCallback, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   exerciseService,
   Ejercicio,
@@ -99,6 +99,7 @@ export interface UseExerciseReturn {
  */
 export function useExercise(algoritmoId: string | null | undefined): UseExerciseReturn {
   const [lastResult, setLastResult] = useState<ExerciseResult | null>(null);
+  const queryClient = useQueryClient();
 
   // ─── Fetch de ejercicios ──────────────────────────────────────────────────
 
@@ -126,6 +127,10 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
       const resultado = await exerciseService.answerExercise(id, respuesta);
       setLastResult(resultado);
       return resultado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['progreso', 'me'] });
+      queryClient.invalidateQueries({ queryKey: ['ranking'] });
     },
     onError: (error) => {
       console.error('Error responder ejercicio:', error);
