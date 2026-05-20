@@ -305,17 +305,26 @@ export default function LibraryScreen({ navigation }: Props) {
           </View>
         ) : (
           <View style={styles.cardGrid}>
-            {displayedAlgoritmos.map((algo) => (
-              <View
-                key={algo.id}
-                style={[
-                  styles.cardColumn,
-                  { width: `${100 / numColumns}%` as any },
-                ]}
-              >
-                <AlgorithmCard algoritmo={algo} onPress={handleCardPress} />
-              </View>
-            ))}
+            {displayedAlgoritmos.map((algo) => {
+              const algoProg = progreso?.algoritmosProgreso?.find(
+                (p) => p.algoritmoId === algo.id,
+              );
+              return (
+                <View
+                  key={algo.id}
+                  style={[
+                    styles.cardColumn,
+                    { width: `${100 / numColumns}%` as any },
+                  ]}
+                >
+                  <AlgorithmCard
+                    algoritmo={algo}
+                    onPress={handleCardPress}
+                    progreso={algoProg}
+                  />
+                </View>
+              );
+            })}
           </View>
         )}
       </ScrollView>

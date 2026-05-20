@@ -251,6 +251,17 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             </>
           )}
 
+          {!lastResult?.correcto && (
+            <View style={{ marginBottom: Spacing[3], width: '100%' }}>
+              <Button
+                title="Volver a intentar"
+                onPress={() => setShowResult(false)}
+                variant="primary"
+                size="large"
+              />
+            </View>
+          )}
+
           <Button
             title={isLastExercise ? 'Terminar sesión' : 'Siguiente'}
             onPress={handleNext}

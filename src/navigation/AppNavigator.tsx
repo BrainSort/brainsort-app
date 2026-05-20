@@ -108,7 +108,14 @@ function RootNavigator() {
  */
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      documentTitle={{
+        formatter: (options, route) => {
+          const title = options?.title ?? route?.name;
+          return title ? `${title} | BrainSort` : 'BrainSort';
+        },
+      }}
+    >
       <RootNavigator />
     </NavigationContainer>
   );

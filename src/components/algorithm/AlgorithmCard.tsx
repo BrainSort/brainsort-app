@@ -22,6 +22,7 @@ import Svg, {
   Text as SvgText,
 } from 'react-native-svg';
 import { AlgoritmoEnBiblioteca } from '../../services/library.service';
+import { AlgoritmoProgreso } from '../../services/progress.service';
 import {
   DifficultyBadge,
   normalizeDificultad,
@@ -33,6 +34,7 @@ import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 export interface AlgorithmCardProps {
   algoritmo: AlgoritmoEnBiblioteca;
   onPress: (algoritmo: AlgoritmoEnBiblioteca) => void;
+  progreso?: AlgoritmoProgreso;
 }
 
 const MAX_DESC_CHARS = 118;
@@ -165,6 +167,7 @@ function AlgorithmArt({ name }: { name: string }) {
 export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
   algoritmo,
   onPress,
+  progreso,
 }) => {
   const [pressed, setPressed] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
@@ -230,6 +233,32 @@ export const AlgorithmCard: React.FC<AlgorithmCardProps> = ({
               </View>
             ))}
           </View>
+
+          {progreso && progreso.ejerciciosTotales > 0 && (
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.round(
+                        (progreso.ejerciciosCorrectos /
+                          progreso.ejerciciosTotales) *
+                          100,
+                      )}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.progressText}>
+                {Math.round(
+                  (progreso.ejerciciosCorrectos /
+                    progreso.ejerciciosTotales) *
+                    100,
+                )}%
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
@@ -370,5 +399,32 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.bold,
     fontWeight: FontWeights.bold,
     fontSize: FontSizes.md,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing[1],
+    marginBottom: Spacing[2],
+    gap: Spacing[2],
+  },
+  progressBarTrack: {
+    flex: 1,
+    height: 5,
+    borderRadius: BorderRadius.full,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: BorderRadius.full,
+    backgroundColor: '#9EFF4E',
+  },
+  progressText: {
+    color: '#D7E2E8',
+    fontFamily: FontFamilies.semiBold,
+    fontSize: 10,
+    lineHeight: 12,
+    minWidth: 26,
+    textAlign: 'right',
   },
 });
