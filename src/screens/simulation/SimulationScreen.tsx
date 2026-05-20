@@ -49,6 +49,7 @@ import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { BarChart } from '../../components/simulation/BarChart';
 import { ControlBar } from '../../components/simulation/ControlBar';
 import { LinearStructureCanvas } from '../../components/simulation/LinearStructureCanvas';
+import { TreeStructureCanvas } from '../../components/simulation/TreeStructureCanvas';
 import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
 import { AnimationEngine } from '../../visualization/AnimationEngine';
@@ -83,6 +84,36 @@ type SimulationContentProps = {
 
 const COMPLETION_TOAST_DURATION = 5000; // 5 segundos (HU-07)
 
+function formatDataset(data: number[]): string {
+  return data.join(', ');
+}
+
+function getComfortableDefaultSpeed(nombre?: string, categoria?: string): number {
+  if (!nombre) return 1.0;
+
+  const recursiveOrTree = new Set([
+    'Merge Sort',
+    'Quick Sort',
+    'Segment Tree',
+  ]);
+  const denseStructures = new Set(['Heap Sort', 'Priority Queue']);
+  const quickRead = new Set(['Linear Search', 'Binary Search', 'Stack', 'Queue', 'Deque']);
+
+  if (recursiveOrTree.has(nombre) || categoria === 'EstructurasArboles') {
+    return 0.5;
+  }
+
+  if (denseStructures.has(nombre)) {
+    return 0.75;
+  }
+
+  if (quickRead.has(nombre)) {
+    return 1.0;
+  }
+
+  return 0.75;
+}
+
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -95,9 +126,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: SpacingAlias.screenPaddingX,
-    paddingTop: Spacing[4],
-    paddingBottom: Spacing[6],
-    gap: Spacing[4],
+    paddingTop: Spacing[6],
+    paddingBottom: Spacing[8],
+    gap: Spacing[5],
   },
 
   // Header del algoritmo
@@ -133,11 +164,11 @@ const styles = StyleSheet.create({
 
   // Canvas de barras
   canvasContainer: {
-    backgroundColor: DarkSurfaces.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    padding: Spacing[3],
+    backgroundColor: '#0F1318',
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.borderSubtle,
+    padding: Spacing[5],
     overflow: 'hidden',
   },
 
@@ -162,7 +193,7 @@ const styles = StyleSheet.create({
 
   // Input de datos personalizados
   dataInputSection: {
-    gap: Spacing[2],
+    gap: Spacing[3],
   },
   dataInputLabel: {
     fontFamily: FontFamilies.medium,
@@ -174,26 +205,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing[2],
   },
-  dataInput: {
+  dataInputShell: {
     flex: 1,
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    borderWidth: BorderWidths.thin,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F1318',
+    borderWidth: 1,
     borderColor: DarkSurfaces.border,
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing[3],
-    paddingVertical: Spacing[2],
+    overflow: 'hidden',
+  },
+  dataInput: {
+    flex: 1,
+    paddingLeft: Spacing[4],
+    paddingRight: Spacing[2],
+    paddingVertical: Spacing[3],
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.sm,
     color: DarkText.primary,
-    minHeight: 44,
   },
   dataInputError: { borderColor: Semantic.error },
+  diceButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    alignSelf: 'stretch',
+    borderLeftWidth: 1,
+    borderLeftColor: DarkSurfaces.border,
+  },
+  diceButtonText: {
+    fontSize: 16,
+  },
   applyButton: {
     backgroundColor: Primary[500],
     borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing[4],
+    paddingHorizontal: Spacing[5],
     justifyContent: 'center',
-    minHeight: 44,
   },
   applyButtonText: {
     fontFamily: FontFamilies.semiBold,
@@ -201,36 +248,20 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: '#FFFFFF',
   },
-  generateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing[2],
-    paddingVertical: Spacing[2],
-    borderRadius: BorderRadius.md,
-    borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-  },
-  generateButtonText: {
-    fontFamily: FontFamilies.medium,
-    fontWeight: FontWeights.medium,
-    fontSize: FontSizes.sm,
-    color: DarkText.secondary,
-  },
   practiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing[2],
-    paddingVertical: Spacing[2],
+    paddingVertical: Spacing[3],
     borderRadius: BorderRadius.md,
-    borderWidth: BorderWidths.thin,
-    borderColor: Accent[500],
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 255, 0.4)',
+    backgroundColor: 'rgba(0, 212, 255, 0.05)',
   },
   practiceButtonText: {
-    fontFamily: FontFamilies.medium,
-    fontWeight: FontWeights.medium,
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.sm,
     color: Accent[500],
   },
@@ -343,11 +374,12 @@ export function SimulationContent({
   useEffect(() => {
     if (algoritmo && !hasStarted) {
       const initialData = generateDefault();
-      executeAlgorithm(algoritmo.nombre, initialData)
+      setCustomInput(formatDataset(initialData));
+      executeAlgorithm(algoritmoId, initialData)
         .then(() => setHasStarted(true))
         .catch(() => {});
     }
-  }, [algoritmo, hasStarted, generateDefault, executeAlgorithm]);
+  }, [algoritmo, algoritmoId, hasStarted, generateDefault, executeAlgorithm]);
 
   // Si cambia el algoritmo seleccionado, reinicia el arranque de simulación.
   useEffect(() => {
@@ -357,6 +389,12 @@ export function SimulationContent({
     setInputError(null);
     resetSimulation();
   }, [algoritmoId, resetSimulation]);
+
+  // Velocidad pedagógica por algoritmo: 1x ahora es legible, y los recursivos
+  // arrancan más lento para que el usuario pueda seguir la pila de llamadas.
+  useEffect(() => {
+    setSpeed(getComfortableDefaultSpeed(algoritmo?.nombre, algoritmo?.categoria));
+  }, [algoritmo?.nombre, algoritmo?.categoria, setSpeed]);
 
   // ─── Mostrar toast al completar (HU-07) ───────────────────────────────────
   useEffect(() => {
@@ -376,11 +414,11 @@ export function SimulationContent({
   const handleGenerateNew = useCallback(() => {
     if (!algoritmo) return;
     const data = generateDefault();
-    executeAlgorithm(algoritmo.nombre, data).catch(() => {});
-    setCustomInput('');
+    setCustomInput(formatDataset(data));
+    executeAlgorithm(algoritmoId, data).catch(() => {});
     setInputError(null);
     setShowToast(false);
-  }, [algoritmo, generateDefault, executeAlgorithm]);
+  }, [algoritmo, algoritmoId, generateDefault, executeAlgorithm]);
 
   const handleApplyCustom = useCallback(() => {
     if (!algoritmo || !customInput.trim()) return;
@@ -391,9 +429,10 @@ export function SimulationContent({
       return;
     }
     setInputError(null);
-    executeAlgorithm(algoritmo.nombre, parts).catch(() => {});
+    setCustomInput(formatDataset(parts));
+    executeAlgorithm(algoritmoId, parts).catch(() => {});
     setShowToast(false);
-  }, [algoritmo, customInput, validateDataset, executeAlgorithm]);
+  }, [algoritmo, algoritmoId, customInput, validateDataset, executeAlgorithm]);
 
   const handleReset = useCallback(() => {
     resetSimulation();
@@ -419,7 +458,8 @@ export function SimulationContent({
   const pseudoLines = pseudocode;
   const hasSteps = steps.length > 0;
   const progressPercent = currentStep.progress;
-  const isLinear = AnimationEngine.isLinearStructure((algoritmo as any)?.categoria);
+  const isTree = AnimationEngine.isTreeStructure((algoritmo as any)?.categoria, algoritmo?.nombre);
+  const isLinear = !isTree && AnimationEngine.isLinearStructure((algoritmo as any)?.categoria);
   const legend = AnimationEngine.getLegend((algoritmo as any)?.categoria);
 
   return (
@@ -466,10 +506,15 @@ export function SimulationContent({
       >
         {/* Header: nombre + contador de paso */}
         {showAlgorithmHeader && (
-          <View style={styles.headerRow}>
-            <Text style={styles.algoName} numberOfLines={1}>
-              {algoritmo?.nombre ?? 'Simulación'}
-            </Text>
+          <View style={[styles.headerRow, { marginBottom: Spacing[2] }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing[3] }}>
+              <TouchableOpacity onPress={onRequestBack} accessibilityLabel="Volver">
+                <Text style={{ color: DarkText.primary, fontSize: 20 }}>←</Text>
+              </TouchableOpacity>
+              <Text style={[styles.algoName, { fontSize: 20 }]} numberOfLines={1}>
+                {algoritmo?.nombre ?? 'Simulación'}
+              </Text>
+            </View>
             {hasSteps && (
               <Text style={styles.stepCounter}>
                 {currentStep.displayNumber} / {currentStep.totalSteps}
@@ -494,7 +539,14 @@ export function SimulationContent({
               <Spinner size="large" />
             </View>
           ) : hasSteps ? (
-            isLinear ? (
+            isTree ? (
+              <TreeStructureCanvas
+                step={currentStepData}
+                isCompleted={isCompleted}
+                algorithmName={algoritmo?.nombre ?? ''}
+                height={220}
+              />
+            ) : isLinear ? (
               <LinearStructureCanvas
                 step={currentStepData as any}
                 isCompleted={isCompleted}
@@ -503,6 +555,7 @@ export function SimulationContent({
               />
             ) : (
               <BarChart
+                algorithmName={algoritmo?.nombre}
                 step={currentStepData}
                 isCompleted={isCompleted}
                 height={220}
@@ -537,24 +590,38 @@ export function SimulationContent({
         <View style={styles.dataInputSection}>
           <Text style={styles.dataInputLabel}>Datos personalizados</Text>
           <View style={styles.dataInputRow}>
-            <TextInput
+            <View
               style={[
-                styles.dataInput,
+                styles.dataInputShell,
                 inputError ? styles.dataInputError : null,
               ]}
-              value={customInput}
-              onChangeText={(text) => {
-                setCustomInput(text);
-                setInputError(null);
-              }}
-              placeholder="5, 3, 8, 1, 9, 2"
-              placeholderTextColor={DarkText.muted}
-              keyboardType="default"
-              returnKeyType="done"
-              onSubmitEditing={handleApplyCustom}
-              accessibilityLabel="Datos personalizados en formato CSV"
-              testID="input-custom-data"
-            />
+            >
+              <TextInput
+                style={styles.dataInput}
+                value={customInput}
+                onChangeText={(text) => {
+                  setCustomInput(text);
+                  setInputError(null);
+                }}
+                placeholder="5, 3, 8, 1, 9, 2"
+                placeholderTextColor={DarkText.muted}
+                keyboardType="default"
+                returnKeyType="done"
+                onSubmitEditing={handleApplyCustom}
+                accessibilityLabel="Datos personalizados en formato CSV"
+                testID="input-custom-data"
+              />
+              <TouchableOpacity
+                style={styles.diceButton}
+                onPress={handleGenerateNew}
+                disabled={isExecuting}
+                accessibilityRole="button"
+                accessibilityLabel="Generar nuevos datos aleatorios"
+                testID="btn-generate-new"
+              >
+                <Text style={styles.diceButtonText}>🎲</Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               style={styles.applyButton}
               onPress={handleApplyCustom}
@@ -569,19 +636,6 @@ export function SimulationContent({
           {inputError && (
             <Text style={styles.inputErrorText}>{inputError}</Text>
           )}
-
-          {/* Botón Generar nuevos datos */}
-          <TouchableOpacity
-            style={styles.generateButton}
-            onPress={handleGenerateNew}
-            disabled={isExecuting}
-            accessibilityRole="button"
-            accessibilityLabel="Generar nuevos datos aleatorios"
-            testID="btn-generate-new"
-          >
-            <Text style={{ fontSize: 16 }}>🎲</Text>
-            <Text style={styles.generateButtonText}>Generar nuevos datos</Text>
-          </TouchableOpacity>
 
           {/* Botón Practicar */}
           <TouchableOpacity

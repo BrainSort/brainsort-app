@@ -5,6 +5,7 @@
  * Renderiza visualmente:
  *   - Stack: bloques apilados verticalmente, top resaltado
  *   - Queue: nodos en fila horizontal con punteros head/tail
+ *   - Deque: nodos en fila con operaciones por ambos extremos
  *   - Linked List: cajas de nodos conectadas con flechas animadas
  */
 
@@ -26,7 +27,7 @@ interface SimulationStep {
 interface Props {
   step: SimulationStep | null;
   isCompleted: boolean;
-  algorithmName: string; // 'Stack' | 'Queue' | 'Linked List'
+  algorithmName: string; // 'Stack' | 'Queue' | 'Deque' | 'Linked List'
   height?: number;
 }
 
@@ -163,6 +164,51 @@ function QueueCanvas({ step, isCompleted }: { step: SimulationStep | null; isCom
         <Text style={styles.directionLabel}>↑ dequeue()</Text>
         <View style={{ flex: 1 }} />
         <Text style={styles.directionLabel}>enqueue() ↑</Text>
+      </View>
+    </View>
+  );
+}
+
+function DequeCanvas({ step, isCompleted }: { step: SimulationStep | null; isCompleted: boolean }) {
+  const items = step?.estadoArray ?? [];
+  const active = step?.indicesActivos ?? [];
+  const op = step?.tipoOperacion ?? 'idle';
+
+  if (items.length === 0) {
+    return (
+      <View style={styles.emptyMessage}>
+        <Text style={styles.emptyText}>Deque vacío</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.queueWrapper}>
+      <View style={styles.queuePointers}>
+        <Text style={styles.pointerLabel}>FRONT ↓</Text>
+        <View style={{ flex: 1 }} />
+        <Text style={styles.pointerLabel}>↓ BACK</Text>
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.queueContainer}>
+        {items.map((val, idx) => {
+          const bgColor = getNodeColor(idx, active, op, isCompleted);
+          const borderColor = getNodeBorderColor(idx, active, op, isCompleted);
+          return (
+            <View key={`deque-${idx}-${val}`} style={styles.queueNodeWrapper}>
+              <View style={[styles.queueNode, { backgroundColor: bgColor, borderColor }]}>
+                <Text style={styles.nodeValue}>{val}</Text>
+                {idx === 0 && <Text style={styles.topLabel}>F</Text>}
+                {idx === items.length - 1 && <Text style={[styles.topLabel, { color: Accent[300] }]}>B</Text>}
+              </View>
+              {idx < items.length - 1 && <Text style={styles.arrow}>↔</Text>}
+            </View>
+          );
+        })}
+      </ScrollView>
+      <View style={styles.queueDirectionLabels}>
+        <Text style={styles.directionLabel}>push/pop front</Text>
+        <View style={{ flex: 1 }} />
+        <Text style={styles.directionLabel}>push/pop back</Text>
       </View>
     </View>
   );
@@ -439,6 +485,8 @@ export function LinearStructureCanvas({ step, isCompleted, algorithmName, height
         return <StackCanvas step={step} isCompleted={isCompleted} />;
       case 'Queue':
         return <QueueCanvas step={step} isCompleted={isCompleted} />;
+      case 'Deque':
+        return <DequeCanvas step={step} isCompleted={isCompleted} />;
       case 'Linked List':
         return <LinkedListCanvas step={step} isCompleted={isCompleted} />;
       default:
