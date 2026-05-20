@@ -9,7 +9,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PredictionExercise } from '../../components/gamification/PredictionExercise';
-import { Header } from '../../components/layout/Header';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { useExercise } from '../../hooks/useExercise';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
@@ -62,11 +61,6 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
   if (!ejercicios || ejercicios.length === 0) {
     return (
       <SafeAreaWrapper>
-        <Header
-          title="Ejercicios"
-          showBackButton
-          onBackPress={() => navigation.goBack()}
-        />
         <View style={styles.center}>
           <Text style={styles.emptyText}>No hay ejercicios disponibles para este algoritmo</Text>
         </View>
@@ -78,11 +72,6 @@ export const ExerciseScreen: React.FC<Props> = ({ route }) => {
 
   return (
     <SafeAreaWrapper>
-      <Header
-        title="Ejercicio"
-        showBackButton
-        onBackPress={() => navigation.goBack()}
-      />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.exerciseBlock}>
           <Text style={styles.exerciseTitle}>Sesión de práctica</Text>

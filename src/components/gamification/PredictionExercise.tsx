@@ -68,16 +68,29 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     setBars(barsContent?.inicial ?? []);
   }, [barsContent?.inicial, pregunta]);
 
+  const isModoSeleccion = tipo === 'OrdenarBarras' && (contenido as any)?.modoSeleccion;
+
   const progressPercent = progressTotal > 0 ? progressCurrent / progressTotal : 0;
   const maxBarValue = useMemo(() => Math.max(...bars, 1), [bars]);
   const canSubmit =
     tipo === 'CompletarPseudocodigo'
       ? !!selectedOption
       : tipo === 'OrdenarBarras'
-        ? bars.length > 0
+        ? isModoSeleccion
+          ? selectedBarIndex !== null
+          : bars.length > 0
         : !!respuesta.trim();
 
   const handleBarPress = (index: number) => {
+    if (isModoSeleccion) {
+      if (selectedBarIndex === index) {
+        setSelectedBarIndex(null);
+      } else {
+        setSelectedBarIndex(index);
+      }
+      return;
+    }
+
     if (selectedBarIndex === null) {
       setSelectedBarIndex(index);
       return;
@@ -103,7 +116,9 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
       tipo === 'CompletarPseudocodigo'
         ? selectedOption ?? ''
         : tipo === 'OrdenarBarras'
-          ? JSON.stringify(bars)
+          ? isModoSeleccion
+            ? String(selectedBarIndex)
+            : JSON.stringify(bars)
           : respuesta;
 
     await onSubmit(payload);
@@ -127,7 +142,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
         </View>
       </View>
 
-      <Text style={styles.typeLabel}>{getTypeLabel(tipo)}</Text>
+      <Text style={styles.typeLabel}>{getTypeLabel(tipo, isModoSeleccion)}</Text>
       <Text style={styles.question}>{pregunta}</Text>
 
       {!showResult ? (
@@ -187,7 +202,9 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                 })}
               </View>
               <Text style={styles.barsHint}>
-                Toca dos barras para intercambiarlas.
+                {isModoSeleccion
+                  ? 'Toca la barra que corresponde a la respuesta.'
+                  : 'Toca dos barras para intercambiarlas.'}
               </Text>
             </View>
           )}
@@ -246,12 +263,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   );
 };
 
-function getTypeLabel(tipo: TipoEjercicio): string {
+function getTypeLabel(tipo: TipoEjercicio, isModoSeleccion?: boolean): string {
   switch (tipo) {
     case 'CompletarPseudocodigo':
       return 'Completa el pseudocódigo';
     case 'OrdenarBarras':
-      return 'Predice el estado visual';
+      return isModoSeleccion ? 'Selecciona la barra correcta' : 'Predice el estado visual';
     default:
       return 'Predicción';
   }

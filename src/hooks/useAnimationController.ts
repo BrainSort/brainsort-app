@@ -130,6 +130,10 @@ export function useAnimationController(): UseAnimationControllerReturn {
       if (!isCompletedRef.current && currentStepRef.current < stepsCountRef.current - 1) {
         nextStep();
         stepAccumulatorRef.current -= 1.0;
+      } else if (!isCompletedRef.current && currentStepRef.current === stepsCountRef.current - 1) {
+        nextStep();
+        stopAnimation();
+        return;
       } else {
         // Simulación completada o sin pasos restantes
         stopAnimation();
