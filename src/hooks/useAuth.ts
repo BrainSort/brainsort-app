@@ -33,7 +33,11 @@ import {
   RegisterRequest,
 } from '../services/auth.service';
 import { useAuthContext } from '../context/AuthContext';
-import type { UsuarioAutenticado, AuthTokens } from '../context/AuthContext';
+import type {
+  UsuarioAutenticado,
+  AuthTokens,
+  TipoSesion,
+} from '../context/AuthContext';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -173,10 +177,7 @@ export function useAuth(): UseAuthReturn {
    * Guarda el usuario en almacenamiento.
    */
   const saveUser = useCallback(
-    async (
-      usuario: UsuarioAutenticado,
-      tipo: 'usuario' | 'administrador',
-    ) => {
+    async (usuario: UsuarioAutenticado, tipo: TipoSesion) => {
       try {
         if (Platform.OS === 'web') {
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(usuario));
@@ -199,7 +200,7 @@ export function useAuth(): UseAuthReturn {
    * Recupera el usuario del almacenamiento.
    */
   const getStoredUser = useCallback(
-    async (): Promise<{ usuario: UsuarioAutenticado; tipo: 'usuario' | 'administrador' } | null> => {
+    async (): Promise<{ usuario: UsuarioAutenticado; tipo: TipoSesion } | null> => {
       try {
         let userStr: string | null = null;
         let tipoStr: string | null = null;
@@ -214,7 +215,7 @@ export function useAuth(): UseAuthReturn {
 
         if (userStr && tipoStr) {
           const usuario = JSON.parse(userStr) as UsuarioAutenticado;
-          const tipo = tipoStr as 'usuario' | 'administrador';
+          const tipo = tipoStr as TipoSesion;
           return { usuario, tipo };
         }
 
@@ -403,8 +404,8 @@ export function useAuth(): UseAuthReturn {
    * Restaura la sesión desde almacenamiento al iniciar la app.
    * Se llama una sola vez en AppNavigator.tsx.
    *
-   * Intenta validar que el token sea válido.
-   * Si hay tokens almacenados, los restaura en el contexto.
+   * Si hay tokens almacenados, intenta renovar el access token con refreshToken.
+   * Si el refresh falla, limpia la sesión para volver al login.
    */
   const restoreSession = useCallback(async () => {
     setLoading(true);
@@ -414,23 +415,40 @@ export function useAuth(): UseAuthReturn {
       const storedTokens = await getStoredTokens();
       const storedUserData = await getStoredUser();
 
-      // Temporarily disable session restore to force login screen
-      // TODO: Re-enable this after testing
-      if (storedTokens && storedUserData) {
-        // Forzar logout para mostrar login
-        await deleteStoredTokens();
+      if (!storedTokens || !storedUserData) {
+        clearAuth();
+        apiClient.setAuthToken(null);
+        return;
       }
 
-      clearAuth();
+      apiClient.setAuthToken(storedTokens.accessToken);
+
+      try {
+        const refreshed = await authService.refresh(storedTokens.refreshToken);
+        const refreshedTokens: AuthTokens = {
+          accessToken: refreshed.token,
+          refreshToken: refreshed.refreshToken,
+        };
+
+        await saveTokens(refreshedTokens);
+        setAuth(storedUserData.usuario, refreshedTokens, storedUserData.tipo);
+        apiClient.setAuthToken(refreshedTokens.accessToken);
+      } catch {
+        await deleteStoredTokens();
+        clearAuth();
+        apiClient.setAuthToken(null);
+      }
     } catch (err) {
       console.error('Error restoring session:', err);
       clearAuth();
+      apiClient.setAuthToken(null);
     } finally {
       setLoading(false);
     }
   }, [
     getStoredTokens,
     getStoredUser,
+    saveTokens,
     setAuth,
     clearAuth,
     setLoading,

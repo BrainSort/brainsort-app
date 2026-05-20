@@ -1,4 +1,4 @@
-export type CategoriaAlgoritmo = 'Ordenamiento' | 'Busqueda' | 'EstructurasLineales';
+export type CategoriaAlgoritmo = 'Ordenamiento' | 'Busqueda' | 'EstructurasLineales' | 'EstructurasArboles';
 
 export interface AlgoritmoMeta {
   nombre: string;

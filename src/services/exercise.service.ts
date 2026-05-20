@@ -20,13 +20,31 @@ import { apiClient } from './api';
 
 /** Dificultad de un ejercicio */
 export type DificultadEjercicio = 'Facil' | 'Medio' | 'Dificil';
+export type TipoEjercicio =
+  | 'PrediccionTexto'
+  | 'CompletarPseudocodigo'
+  | 'OrdenarBarras';
+
+export interface PseudocodeExerciseContent {
+  antes?: string;
+  despues?: string;
+}
+
+export interface BarsExerciseContent {
+  inicial?: number[];
+  objetivo?: number[];
+  pasoObjetivo?: string;
+}
 
 /** Ejercicio de predicción (GET /api/ejercicios/:algoritmoId) */
 export interface Ejercicio {
   id: string;
+  tipo: TipoEjercicio;
   pregunta: string;
   dificultad: DificultadEjercicio;
   algoritmoId: string;
+  opciones?: string[];
+  contenido?: PseudocodeExerciseContent | BarsExerciseContent | null;
 }
 
 /** Response de GET /api/ejercicios/:algoritmoId */
@@ -49,8 +67,10 @@ export interface UsuarioProgresoActualizado {
 /** Response si respuesta es correcta — 200 /api/ejercicios/:id/responder */
 export interface ExerciseResultCorrect {
   correcto: true;
+  feedback: string;
   feedbackPositivo: string;
   puntosGanados: number;
+  puntosTotales: number;
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
@@ -59,8 +79,10 @@ export interface ExerciseResultCorrect {
 /** Response si respuesta es incorrecta — 200 /api/ejercicios/:id/responder */
 export interface ExerciseResultIncorrect {
   correcto: false;
+  feedback: string;
   feedbackNegativo: string;
   puntosGanados: 0;
+  puntosTotales: number;
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;

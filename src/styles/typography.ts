@@ -26,15 +26,35 @@ import { Platform } from 'react-native';
  */
 export const FontFamilies = {
   /** Regular weight — body text */
-  regular: 'Inter-Regular',
+  regular: Platform.select({
+    ios: 'System',
+    android: 'sans-serif',
+    default: 'Inter, "Segoe UI", Arial, sans-serif',
+  }) as string,
   /** Medium weight — labels, subtítulos */
-  medium: 'Inter-Medium',
+  medium: Platform.select({
+    ios: 'System',
+    android: 'sans-serif-medium',
+    default: 'Inter, "Segoe UI", Arial, sans-serif',
+  }) as string,
   /** Semi-bold — card titles, UI emphasis */
-  semiBold: 'Inter-SemiBold',
+  semiBold: Platform.select({
+    ios: 'System',
+    android: 'sans-serif-medium',
+    default: 'Inter, "Segoe UI", Arial, sans-serif',
+  }) as string,
   /** Bold — section headings */
-  bold: 'Inter-Bold',
+  bold: Platform.select({
+    ios: 'System',
+    android: 'sans-serif',
+    default: 'Inter, "Segoe UI", Arial, sans-serif',
+  }) as string,
   /** Extra-bold — hero headings, brand marks */
-  extraBold: 'Inter-ExtraBold',
+  extraBold: Platform.select({
+    ios: 'System',
+    android: 'sans-serif',
+    default: 'Inter, "Segoe UI", Arial, sans-serif',
+  }) as string,
   /**
    * Monospace — pseudocode panel, code snippets.
    * Falls back to system monospace if not loaded.

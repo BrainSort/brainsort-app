@@ -23,6 +23,7 @@ export interface SesionOfflineACompletar {
   fechaInicio: string; // ISO 8601 timestamp
   fechaFin: string; // ISO 8601 timestamp
   pasosCompletados: number;
+  completada: boolean;
 }
 
 /** Request para sincronizar progreso — POST /api/progress/sync */
@@ -60,10 +61,11 @@ export const syncService = {
    * const result = await syncService.syncProgress([
    *   {
    *     algoritmoId: 'uuid-bubble',
-   *     fechaInicio: '2026-04-06T10:00:00Z',
-   *     fechaFin: '2026-04-06T10:15:00Z',
-   *     pasosCompletados: 45
-   *   }
+ *     fechaInicio: '2026-04-06T10:00:00Z',
+ *     fechaFin: '2026-04-06T10:15:00Z',
+ *     pasosCompletados: 45,
+ *     completada: true
+ *   }
    * ]);
    * console.log(`Sincronizadas ${result.sincronizados} sesiones`);
    */

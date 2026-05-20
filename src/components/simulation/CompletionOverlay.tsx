@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { ThemeColors } from '../../constants/colors';
+import { Colors } from '../../styles/colors';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface CompletionOverlayProps {
@@ -48,19 +48,19 @@ export const CompletionOverlay: React.FC<CompletionOverlayProps> = ({
     <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
       <View style={styles.card}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="check-circle" size={60} color={ThemeColors.secondary} />
+          <MaterialIcons name="check-circle" size={60} color={Colors.primary[600]} />
         </View>
         <Text style={styles.title}>¡Simulación Completada!</Text>
         <Text style={styles.subtitle}>Has dominado los pasos de este algoritmo.</Text>
         
         <View style={styles.buttonGroup}>
           <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={onRestart}>
-            <MaterialIcons name="replay" size={20} color={ThemeColors.white} />
+            <MaterialIcons name="replay" size={20} color={Colors.neutral[0]} />
             <Text style={styles.buttonText}>Reiniciar</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.button} onPress={onNext}>
-            <MaterialIcons name="skip-next" size={20} color={ThemeColors.text} />
+            <MaterialIcons name="skip-next" size={20} color={Colors.neutral[900]} />
             <Text style={styles.buttonText}>Siguiente</Text>
           </TouchableOpacity>
         </View>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '85%',
-    backgroundColor: ThemeColors.surface,
+    backgroundColor: Colors.neutral[0],
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    color: ThemeColors.text,
+    color: Colors.neutral[900],
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
-    color: ThemeColors.textSecondary,
+    color: Colors.neutral[500],
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,
@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   primaryButton: {
-    backgroundColor: ThemeColors.primary,
+    backgroundColor: Colors.primary[500],
   },
   buttonText: {
-    color: ThemeColors.white,
+    color: Colors.neutral[0],
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   textButtonLabel: {
-    color: ThemeColors.secondary,
+    color: Colors.primary[600],
     fontSize: 14,
     textDecorationLine: 'underline',
   },

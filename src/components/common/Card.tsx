@@ -23,8 +23,8 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
+import { Colors } from '../../styles/colors';
+import { Spacing } from '../../styles/spacing';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -39,10 +39,10 @@ export interface CardProps {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: Colors.neutral[0],
     borderRadius: 12,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+    padding: Spacing[6],
+    marginBottom: Spacing[4],
     ...Platform.select({
       ios: {
         shadowColor: '#000',

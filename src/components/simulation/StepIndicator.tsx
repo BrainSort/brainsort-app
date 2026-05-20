@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemeColors } from '../../constants/colors';
+import { Colors } from '../../styles/colors';
 
 interface StepIndicatorProps {
   current: number;

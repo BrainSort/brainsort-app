@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemeColors } from '../../constants/colors';
+import { Colors } from '../../styles/colors';
 
 interface SpeedSliderProps {
   speed: number;
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    color: ThemeColors.text,
+    color: Colors.neutral[900],
     fontSize: 14,
     marginBottom: 10,
   },
@@ -59,13 +59,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   speedText: {
-    color: ThemeColors.textSecondary,
+    color: Colors.neutral[500],
     fontSize: 12,
   },
   activeButton: {
-    backgroundColor: ThemeColors.primary,
+    backgroundColor: Colors.primary[500],
   },
   activeText: {
-    color: ThemeColors.white,
+    color: Colors.neutral[0],
   },
 });

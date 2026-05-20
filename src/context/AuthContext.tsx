@@ -30,7 +30,11 @@ import React, {
 /**
  * Rol del usuario — alineado con Enum `Rol` del backend (T-BE-011).
  */
-export type RolUsuario = 'Estudiante' | 'Profesor' | 'Autodidacta';
+export type RolUsuario =
+  | 'Estudiante'
+  | 'Profesor'
+  | 'Autodidacta'
+  | 'Administrador';
 
 /**
  * Tipo de sesión — alineado con campo `tipo` del JWT payload (T-BE-092).

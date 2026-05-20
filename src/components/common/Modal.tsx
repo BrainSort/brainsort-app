@@ -27,9 +27,9 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
-import { typography } from '../../styles/typography';
+import { Colors } from '../../styles/colors';
+import { Spacing } from '../../styles/spacing';
+import { TextVariants } from '../../styles/typography';
 import { Button } from './Button';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -57,44 +57,44 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.lg,
+    padding: Spacing[6],
   },
   modalContent: {
-    backgroundColor: colors.white,
+    backgroundColor: Colors.neutral[0],
     borderRadius: 12,
-    padding: spacing.lg,
+    padding: Spacing[6],
     minWidth: '80%',
     maxWidth: 500,
   },
   title: {
-    ...typography.heading2,
-    color: colors.gray900,
-    marginBottom: spacing.md,
+    ...TextVariants.h2,
+    color: Colors.neutral[900],
+    marginBottom: Spacing[4],
   },
   body: {
-    marginBottom: spacing.lg,
+    marginBottom: Spacing[6],
   },
   bodyText: {
-    ...typography.body,
-    color: colors.gray700,
+    ...TextVariants.bodyMd,
+    color: Colors.neutral[700],
     lineHeight: 24,
   },
   buttonsContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: Spacing[4],
   },
   button: {
     flex: 1,
   },
   closeButton: {
     position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
-    padding: spacing.sm,
+    top: Spacing[4],
+    right: Spacing[4],
+    padding: Spacing[2],
   },
   closeButtonText: {
     fontSize: 24,
-    color: colors.gray500,
+    color: Colors.neutral[500],
     fontWeight: '300',
   },
 });

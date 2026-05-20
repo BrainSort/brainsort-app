@@ -211,20 +211,28 @@ export function SimulationProvider({
       if (isAtEnd) {
         setIsCompletedState(true);
         setIsPlayingState(false);
+      } else {
+        setIsCompletedState(false);
       }
       return isAtEnd ? prev : nextIdx;
     });
   }, [steps.length]);
 
   const previousStep = useCallback(() => {
-    setCurrentStepState((prev) => (prev > 0 ? prev - 1 : 0));
-  }, []);
+    setCurrentStepState((prev) => {
+      const prevIdx = prev > 0 ? prev - 1 : 0;
+      const isAtEnd = prevIdx === steps.length - 1 && steps.length > 0;
+      setIsCompletedState(isAtEnd);
+      return prevIdx;
+    });
+  }, [steps.length]);
 
   const goToStep = useCallback((stepIndex: number) => {
     if (stepIndex >= 0 && stepIndex < steps.length) {
       setCurrentStepState(stepIndex);
-      if (stepIndex === steps.length - 1) {
-        setIsCompletedState(true);
+      const isAtEnd = stepIndex === steps.length - 1;
+      setIsCompletedState(isAtEnd);
+      if (isAtEnd) {
         setIsPlayingState(false);
       }
     }

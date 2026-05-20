@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemeColors } from '../../constants/colors';
+import { Colors } from '../../styles/colors';
 
 interface ComplexityInfoProps {
   time: string;
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     padding: 15,
-    backgroundColor: ThemeColors.surface,
+    backgroundColor: Colors.neutral[0],
     borderRadius: 8,
     marginVertical: 10,
     justifyContent: 'space-around',
@@ -39,13 +39,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    color: ThemeColors.textSecondary,
+    color: Colors.neutral[500],
     fontSize: 10,
     textTransform: 'uppercase',
     marginBottom: 5,
   },
   value: {
-    color: ThemeColors.secondary,
+    color: Colors.primary[600],
     fontSize: 18,
     fontWeight: 'bold',
   },

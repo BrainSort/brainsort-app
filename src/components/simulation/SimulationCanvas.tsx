@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg from 'react-native-svg';
-import { AlgorithmAnimationSelector } from './AlgorithmAnimationSelector';
-import { OperationType } from '../../types/simulation';
+import { BarChart } from './BarChart';
+import type { SimulationStep } from '@brainsort/core';
 
 interface SimulationCanvasProps {
-  algorithmName: string;
-  data: number[];
-  indicesActivos: number[];
-  tipoOperacion: OperationType;
+  algorithmName?: string;
+  step: SimulationStep | null;
   isCompleted?: boolean;
 }
 
@@ -17,9 +15,7 @@ interface SimulationCanvasProps {
  */
 export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   algorithmName,
-  data,
-  indicesActivos,
-  tipoOperacion,
+  step,
   isCompleted = false,
 }) => {
   // Hard-coded dimensions for Web reliability to prevent 0x0 situations
@@ -29,14 +25,11 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   return (
     <View style={styles.container}>
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
-        <AlgorithmAnimationSelector
+        <BarChart
           algorithmName={algorithmName}
-          data={data}
-          indicesActivos={indicesActivos}
-          tipoOperacion={tipoOperacion}
-          width={width}
-          height={height}
+          step={step}
           isCompleted={isCompleted}
+          height={height}
         />
       </Svg>
     </View>
@@ -45,9 +38,9 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 300, // Explicit height for Web reliability
+    height: 300,
     width: '100%',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     overflow: 'hidden',
   },
