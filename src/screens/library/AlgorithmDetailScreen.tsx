@@ -25,9 +25,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
+import { AlgorithmTheory } from '../../components/algorithm/AlgorithmTheory';
 import { Spinner } from '../../components/common/Spinner';
 import {
   DifficultyBadge,
@@ -394,6 +396,30 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     color: '#FFFFFF',
   },
+  fixedFooter: {
+    width: '100%',
+    padding: Spacing[4],
+    backgroundColor: DarkSurfaces.surface,
+    borderTopWidth: 1,
+    borderTopColor: DarkSurfaces.border,
+  },
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 960,
+    alignSelf: 'center',
+  },
+  footerInner: {
+    width: '100%',
+    maxWidth: 960,
+    alignSelf: 'center',
+  },
+  theoryWrapper: {
+    marginTop: Spacing[6],
+    paddingTop: Spacing[6],
+    borderTopWidth: 1,
+    borderTopColor: DarkSurfaces.borderSubtle,
+  },
 });
 
 
@@ -408,6 +434,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
   const { algoritmo, isLoading, isError } = useAlgorithm(algoritmoId);
   const [showProximamente, setShowProximamente] = useState(false);
   const [showSimulation, setShowSimulation] = useState(false);
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (algoritmo?.nombre) {
@@ -442,136 +469,166 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const dificultad = normalizeDificultad(algoritmo.dificultad);
-  const esActivo = (algoritmo as any).activo !== false;
+  try {
+    const dificultad = normalizeDificultad(algoritmo.dificultad);
+    const esActivo = (algoritmo as any).activo !== false;
 
-  const handleStartSimulation = () => {
-    if (!esActivo) {
-      setShowProximamente(true);
-      return;
+    const handleStartSimulation = () => {
+      if (!esActivo) {
+        setShowProximamente(true);
+        return;
+      }
+      setShowSimulation(true);
+    };
+
+    if (showSimulation && esActivo) {
+      return (
+        <View style={styles.container}>
+          <SimulationContent
+            algoritmoId={algoritmoId}
+            onRequestBack={() => setShowSimulation(false)}
+            showAlgorithmHeader={false}
+          />
+        </View>
+      );
     }
-    setShowSimulation(true);
-  };
 
-  if (showSimulation && esActivo) {
+    const startButtonElement = (
+      <TouchableOpacity
+        style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
+        onPress={handleStartSimulation}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={
+          esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
+        }
+        testID="btn-start-simulation"
+      >
+        <Text style={styles.startButtonIcon}>▶</Text>
+        <Text style={styles.startButtonText}>
+          {esActivo
+            ? showSimulation
+              ? 'Simulación activa'
+              : 'Iniciar Simulación'
+            : 'Próximamente'}
+        </Text>
+      </TouchableOpacity>
+    );
+
     return (
       <View style={styles.container}>
-        <SimulationContent
-          algoritmoId={algoritmoId}
-          onRequestBack={() => setShowSimulation(false)}
-          showAlgorithmHeader={false}
-        />
+        <View style={styles.contentWrapper}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+          >
+            <Text style={styles.breadcrumbText}>
+              Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
+            </Text>
+
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{algoritmo.nombre}</Text>
+              <DifficultyBadge dificultad={dificultad} />
+            </View>
+
+            <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
+
+            <View style={styles.complexityRow}>
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>🕒</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Tiempo</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
+                </View>
+              </View>
+
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>📦</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Espacio</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
+                </View>
+              </View>
+
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>📁</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Categoría</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
+                    {algoritmo.categoria}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {algoritmo?.nombre && (
+              <View style={styles.theoryWrapper}>
+                <AlgorithmTheory algoritmoNombre={algoritmo.nombre} />
+              </View>
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Botón de Iniciar Simulación anclado abajo y centrado */}
+        <View style={styles.fixedFooter}>
+          <View style={styles.footerInner}>
+            {startButtonElement}
+          </View>
+        </View>
+
+        <Modal
+          visible={showProximamente}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowProximamente(false)}
+          accessibilityViewIsModal
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowProximamente(false)}
+            accessibilityLabel="Cerrar modal"
+          >
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Text style={styles.modalIcon}>🚧</Text>
+              <Text style={styles.modalTitle}>Próximamente</Text>
+              <Text style={styles.modalDesc}>
+                Este algoritmo estará disponible muy pronto. Mientras tanto,
+                explora los demás algoritmos de la biblioteca.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowProximamente(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar"
+              >
+                <Text style={styles.modalCloseText}>Entendido</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </View>
+    );
+  } catch (e: any) {
+    console.error("DEBUG ERROR IN RENDER:", e);
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0A0E17', padding: 24, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#FF4A4A', fontSize: 22, fontWeight: 'bold', marginBottom: 16 }}>
+          Error de Renderizado (Debug)
+        </Text>
+        <Text style={{ color: '#E2E8F0', fontSize: 16, fontFamily: 'monospace', marginBottom: 16, textAlign: 'center' }}>
+          {e?.message || String(e)}
+        </Text>
+        <Text style={{ color: '#94A3B8', fontSize: 12, fontFamily: 'monospace', width: '100%', backgroundColor: '#1E293B', padding: 12, borderRadius: 8 }}>
+          {e?.stack || 'No stack trace available'}
+        </Text>
       </View>
     );
   }
-
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.breadcrumbText}>
-          Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
-        </Text>
-
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{algoritmo.nombre}</Text>
-          <DifficultyBadge dificultad={dificultad} />
-        </View>
-
-        <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
-
-        <View style={styles.complexityRow}>
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>🕒</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Tiempo</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
-            </View>
-          </View>
-
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>📦</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Espacio</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
-            </View>
-          </View>
-
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>📁</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Categoría</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
-                {algoritmo.categoria}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-
-
-        <TouchableOpacity
-          style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
-          onPress={handleStartSimulation}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={
-            esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
-          }
-          testID="btn-start-simulation"
-        >
-          <Text style={styles.startButtonIcon}>▶</Text>
-          <Text style={styles.startButtonText}>
-            {esActivo
-              ? showSimulation
-                ? 'Simulación activa'
-                : 'Iniciar Simulación'
-              : 'Próximamente'}
-          </Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-
-      <Modal
-        visible={showProximamente}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowProximamente(false)}
-        accessibilityViewIsModal
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowProximamente(false)}
-          accessibilityLabel="Cerrar modal"
-        >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
-            <Text style={styles.modalIcon}>🚧</Text>
-            <Text style={styles.modalTitle}>Próximamente</Text>
-            <Text style={styles.modalDesc}>
-              Este algoritmo estará disponible muy pronto. Mientras tanto,
-              explora los demás algoritmos de la biblioteca.
-            </Text>
-            <TouchableOpacity
-              style={styles.modalClose}
-              onPress={() => setShowProximamente(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Cerrar"
-            >
-              <Text style={styles.modalCloseText}>Entendido</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-    </View>
-  );
 }
