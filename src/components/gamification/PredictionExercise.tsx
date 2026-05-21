@@ -283,17 +283,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             </>
           )}
 
-          {lastResult?.feedbackConceptual && (
+          {!lastResult?.correcto && lastResult?.feedbackConceptual && (
             <View style={styles.conceptBox}>
               <Text style={styles.conceptTitle}>Feedback</Text>
               <Text style={styles.conceptText}>
                 {lastResult.feedbackConceptual}
               </Text>
-              {lastResult.mensajeProgreso && !lastResult.yaResuelto && (
-                <Text style={styles.progressMessage}>
-                  {lastResult.mensajeProgreso}
-                </Text>
-              )}
             </View>
           )}
 
