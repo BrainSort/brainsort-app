@@ -261,7 +261,7 @@ async function mockApi(page: any) {
 
 test('Verificar simulación visual de búsqueda binaria y resolución de ejercicio interactivo', async ({ page }) => {
   await mockApi(page);
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   // 1. Iniciar sesión
   await page.getByTestId('input-correo').fill('ada@example.com');
@@ -338,7 +338,9 @@ test('Verificar simulación visual de búsqueda binaria y resolución de ejercic
 
   // Terminar sesión de práctica
   await page.locator('text=Terminar sesión').first().click();
-  
-  // Regresar a la pantalla de Simulación (pantalla anterior en el stack)
-  await expect(page.getByTestId('btn-practice').first()).toBeVisible();
+
+  // La pantalla actual de dev muestra un resumen de práctica con opciones de navegación.
+  await expect(page.getByText('¡Práctica Completada!')).toBeVisible();
+  await expect(page.getByText('Volver a Mi Ruta')).toBeVisible();
+  await expect(page.getByText('Volver a la Biblioteca')).toBeVisible();
 });

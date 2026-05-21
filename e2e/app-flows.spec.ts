@@ -57,6 +57,19 @@ async function mockApi(page: Page) {
     });
   });
 
+  await page.route('**/api/auth/refresh', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          token: 'e2e-access-token',
+          refreshToken: 'e2e-refresh-token',
+        },
+      }),
+    });
+  });
+
   await page.route('**/api/progreso/me', async (route) => {
     await route.fulfill({
       status: 200,
@@ -150,8 +163,12 @@ async function mockApi(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+  });
   await mockApi(page);
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 });
 
 test('login permite autenticarse y entrar a la app principal', async ({ page }) => {
