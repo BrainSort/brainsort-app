@@ -264,11 +264,11 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                 {lastResult.feedbackPositivo ?? lastResult.feedback}
               </Text>
               <View style={styles.statsRow}>
-                <Text style={styles.stat}>
-                  {lastResult.yaResuelto
-                    ? 'Repaso sin XP'
-                    : `+${lastResult.puntosGanados} XP`}
-                </Text>
+                {!lastResult.yaResuelto && (
+                  <Text style={styles.stat}>
+                    +{lastResult.puntosGanados} XP
+                  </Text>
+                )}
                 <Text style={styles.stat}>
                   Racha: {lastResult.rachaDias} días
                 </Text>
@@ -289,7 +289,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
               <Text style={styles.conceptText}>
                 {lastResult.feedbackConceptual}
               </Text>
-              {lastResult.mensajeProgreso && (
+              {lastResult.mensajeProgreso && !lastResult.yaResuelto && (
                 <Text style={styles.progressMessage}>
                   {lastResult.mensajeProgreso}
                 </Text>
