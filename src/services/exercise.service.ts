@@ -74,6 +74,10 @@ export interface ExerciseResultCorrect {
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
+  yaResuelto?: boolean;
+  intentoNumero?: number;
+  feedbackConceptual?: string;
+  mensajeProgreso?: string;
 }
 
 /** Response si respuesta es incorrecta — 200 /api/ejercicios/:id/responder */
@@ -86,6 +90,10 @@ export interface ExerciseResultIncorrect {
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
+  yaResuelto?: boolean;
+  intentoNumero?: number;
+  feedbackConceptual?: string;
+  mensajeProgreso?: string;
 }
 
 /** Response unificada */

@@ -31,6 +31,10 @@ export interface PredictionExerciseProps {
     feedbackNegativo?: string;
     puntosGanados: number;
     rachaDias: number;
+    yaResuelto?: boolean;
+    intentoNumero?: number;
+    feedbackConceptual?: string;
+    mensajeProgreso?: string;
   } | null;
   onSubmit: (respuesta: string) => Promise<void>;
   onNext: () => void;
@@ -56,9 +60,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
 
-  const barsContent = tipo === 'OrdenarBarras' ? (contenido as BarsExerciseContent | null) : null;
+  const barsContent =
+    tipo === 'OrdenarBarras' ? (contenido as BarsExerciseContent | null) : null;
   const pseudoContent =
-    tipo === 'CompletarPseudocodigo' ? (contenido as PseudocodeExerciseContent | null) : null;
+    tipo === 'CompletarPseudocodigo'
+      ? (contenido as PseudocodeExerciseContent | null)
+      : null;
 
   useEffect(() => {
     setRespuesta('');
@@ -68,9 +75,11 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     setBars(barsContent?.inicial ?? []);
   }, [barsContent?.inicial, pregunta]);
 
-  const isModoSeleccion = tipo === 'OrdenarBarras' && (contenido as any)?.modoSeleccion;
+  const isModoSeleccion =
+    tipo === 'OrdenarBarras' && (contenido as any)?.modoSeleccion;
 
-  const progressPercent = progressTotal > 0 ? progressCurrent / progressTotal : 0;
+  const progressPercent =
+    progressTotal > 0 ? progressCurrent / progressTotal : 0;
   const maxBarValue = useMemo(() => Math.max(...bars, 1), [bars]);
   const canSubmit =
     tipo === 'CompletarPseudocodigo'
@@ -114,7 +123,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   const handleSubmit = async () => {
     const payload =
       tipo === 'CompletarPseudocodigo'
-        ? selectedOption ?? ''
+        ? (selectedOption ?? '')
         : tipo === 'OrdenarBarras'
           ? isModoSeleccion
             ? String(selectedBarIndex)
@@ -136,13 +145,22 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   return (
     <View style={styles.card}>
       <View style={styles.progressHeader}>
-        <Text style={styles.progressText}>{progressCurrent}/{progressTotal}</Text>
+        <Text style={styles.progressText}>
+          {progressCurrent}/{progressTotal}
+        </Text>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${Math.round(progressPercent * 100)}%` }]} />
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${Math.round(progressPercent * 100)}%` },
+            ]}
+          />
         </View>
       </View>
 
-      <Text style={styles.typeLabel}>{getTypeLabel(tipo, isModoSeleccion)}</Text>
+      <Text style={styles.typeLabel}>
+        {getTypeLabel(tipo, isModoSeleccion)}
+      </Text>
       <Text style={styles.question}>{pregunta}</Text>
 
       {!showResult ? (
@@ -160,11 +178,19 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                   return (
                     <TouchableOpacity
                       key={option}
-                      style={[styles.optionChip, active && styles.optionChipActive]}
+                      style={[
+                        styles.optionChip,
+                        active && styles.optionChipActive,
+                      ]}
                       onPress={() => setSelectedOption(option)}
                       activeOpacity={0.82}
                     >
-                      <Text style={[styles.optionText, active && styles.optionTextActive]}>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          active && styles.optionTextActive,
+                        ]}
+                      >
                         {option}
                       </Text>
                     </TouchableOpacity>
@@ -238,8 +264,14 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                 {lastResult.feedbackPositivo ?? lastResult.feedback}
               </Text>
               <View style={styles.statsRow}>
-                <Text style={styles.stat}>+{lastResult.puntosGanados} XP</Text>
-                <Text style={styles.stat}>Racha: {lastResult.rachaDias} días</Text>
+                <Text style={styles.stat}>
+                  {lastResult.yaResuelto
+                    ? 'Repaso sin XP'
+                    : `+${lastResult.puntosGanados} XP`}
+                </Text>
+                <Text style={styles.stat}>
+                  Racha: {lastResult.rachaDias} días
+                </Text>
               </View>
             </>
           ) : (
@@ -249,6 +281,20 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                 {lastResult?.feedbackNegativo ?? lastResult?.feedback}
               </Text>
             </>
+          )}
+
+          {lastResult?.feedbackConceptual && (
+            <View style={styles.conceptBox}>
+              <Text style={styles.conceptTitle}>Feedback</Text>
+              <Text style={styles.conceptText}>
+                {lastResult.feedbackConceptual}
+              </Text>
+              {lastResult.mensajeProgreso && (
+                <Text style={styles.progressMessage}>
+                  {lastResult.mensajeProgreso}
+                </Text>
+              )}
+            </View>
           )}
 
           {!lastResult?.correcto && (
@@ -262,12 +308,14 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             </View>
           )}
 
-          <Button
-            title={isLastExercise ? 'Terminar sesión' : 'Siguiente'}
-            onPress={handleNext}
-            variant="secondary"
-            size="large"
-          />
+          {lastResult?.correcto && (
+            <Button
+              title={isLastExercise ? 'Terminar sesión' : 'Siguiente'}
+              onPress={handleNext}
+              variant="secondary"
+              size="large"
+            />
+          )}
         </View>
       )}
     </View>
@@ -279,7 +327,9 @@ function getTypeLabel(tipo: TipoEjercicio, isModoSeleccion?: boolean): string {
     case 'CompletarPseudocodigo':
       return 'Completa el pseudocódigo';
     case 'OrdenarBarras':
-      return isModoSeleccion ? 'Selecciona la barra correcta' : 'Predice el estado visual';
+      return isModoSeleccion
+        ? 'Selecciona la barra correcta'
+        : 'Predice el estado visual';
     default:
       return 'Predicción';
   }
@@ -445,5 +495,29 @@ const styles = StyleSheet.create({
   stat: {
     ...TextVariants.labelMd,
     color: Accent[500],
+  },
+  conceptBox: {
+    width: '100%',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: DarkSurfaces.border,
+    backgroundColor: DarkSurfaces.surfaceElevated,
+    padding: Spacing[4],
+    marginBottom: Spacing[4],
+    gap: Spacing[2],
+  },
+  conceptTitle: {
+    ...TextVariants.labelMd,
+    color: Accent[300],
+  },
+  conceptText: {
+    ...TextVariants.bodySm,
+    color: DarkText.secondary,
+    textAlign: 'center',
+  },
+  progressMessage: {
+    ...TextVariants.labelSm,
+    color: DarkText.muted,
+    textAlign: 'center',
   },
 });
