@@ -25,6 +25,12 @@ export interface InsigniaDesbloqueada {
   fechaObtencion: string; // ISO 8601 timestamp
 }
 
+export interface AlgoritmoProgreso {
+  algoritmoId: string;
+  ejerciciosCorrectos: number;
+  ejerciciosTotales: number;
+}
+
 /** Progreso del usuario actual (GET /api/progreso/me) */
 export interface UsuarioProgreso {
   puntosTotales: number;
@@ -36,6 +42,7 @@ export interface UsuarioProgreso {
   simulacionesCompletadas: number;
   ejerciciosCorrectos: number;
   ejerciciosTotales: number;
+  algoritmosProgreso?: AlgoritmoProgreso[];
 }
 
 /** Entrada en el leaderboard */

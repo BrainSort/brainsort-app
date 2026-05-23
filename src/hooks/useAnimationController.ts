@@ -33,12 +33,12 @@ const MIN_FPS_TARGET = 24;
 const FRAME_INTERVAL_MS = 1000 / MIN_FPS_TARGET;
 
 /**
- * Factor de escala de velocidad.
- * velocidad=1.0 → avanza 0.3 pasos por intervalo de frames
- * velocidad=2.0 → avanza 0.6 pasos por intervalo de frames
- * velocidad=0.25 → avanza 0.075 pasos por intervalo de frames
+ * Duración base pedagógica por paso.
+ * velocidad=1.0 → ~1.1s por paso
+ * velocidad=2.0 → ~0.55s por paso
+ * velocidad=0.25 → ~4.4s por paso
  */
-const SPEED_STEP_MULTIPLIER = 0.3; // 0.3 pasos por intervalo base (velocidad base más lenta)
+const BASE_STEP_DURATION_MS = 1100;
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -112,27 +112,28 @@ export function useAnimationController(): UseAnimationControllerReturn {
       return;
     }
 
-    const deltaTime = lastFrameTimeRef.current
+    const rawDeltaTime = lastFrameTimeRef.current
       ? currentTime - lastFrameTimeRef.current
       : FRAME_INTERVAL_MS;
+    const deltaTime = Math.min(rawDeltaTime, BASE_STEP_DURATION_MS);
 
     lastFrameTimeRef.current = currentTime;
 
     // Acumular "pasos" basado en velocidad y tiempo transcurrido
     const stepsToAdvance =
-      (deltaTime / FRAME_INTERVAL_MS) *
-      speedRef.current *
-      SPEED_STEP_MULTIPLIER;
+      (deltaTime * speedRef.current) / BASE_STEP_DURATION_MS;
 
     stepAccumulatorRef.current += stepsToAdvance;
 
     // Avanzar pasos completos acumulados
-    let wasAdvanced = false;
     while (stepAccumulatorRef.current >= 1.0) {
       if (!isCompletedRef.current && currentStepRef.current < stepsCountRef.current - 1) {
         nextStep();
         stepAccumulatorRef.current -= 1.0;
-        wasAdvanced = true;
+      } else if (!isCompletedRef.current && currentStepRef.current === stepsCountRef.current - 1) {
+        nextStep();
+        stopAnimation();
+        return;
       } else {
         // Simulación completada o sin pasos restantes
         stopAnimation();

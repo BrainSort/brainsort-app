@@ -45,7 +45,7 @@ export interface AuthUser {
   id: string;
   nombre: string;
   correo: string;
-  rol: 'Estudiante' | 'Profesor' | 'Autodidacta';
+  rol: 'Estudiante' | 'Profesor' | 'Autodidacta' | 'Administrador';
   tipo: 'usuario' | 'administrador';
 }
 

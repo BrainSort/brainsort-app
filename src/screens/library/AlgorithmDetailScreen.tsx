@@ -25,9 +25,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
+import { AlgorithmTheory } from '../../components/algorithm/AlgorithmTheory';
 import { Spinner } from '../../components/common/Spinner';
 import {
   DifficultyBadge,
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   },
   complexityIconText: {
     fontSize: 16,
-    color: Accent[400],
+    color: Accent[500],
   },
   complexityContent: {
     flex: 1,
@@ -137,40 +139,11 @@ const styles = StyleSheet.create({
     color: DarkText.primary,
   },
 
-  // Sección de descripción
-  sectionTitle: {
-    ...TextVariants.h4,
-    color: DarkText.secondary,
-    marginBottom: Spacing[2],
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    fontSize: FontSizes.xs,
-  },
   descriptionText: {
     ...TextVariants.bodyLg,
     color: DarkText.primary,
     lineHeight: 26,
     marginBottom: Spacing[6],
-  },
-
-  // Características del algoritmo
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing[3],
-    paddingVertical: Spacing[2],
-    borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.borderSubtle,
-  },
-  featureIcon: {
-    fontSize: 18,
-    width: 28,
-    textAlign: 'center',
-  },
-  featureText: {
-    ...TextVariants.bodyMd,
-    color: DarkText.secondary,
-    flex: 1,
   },
 
   // Botón principal
@@ -423,98 +396,33 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     color: '#FFFFFF',
   },
-  consejoCard: {
-    backgroundColor: 'rgba(0, 212, 255, 0.05)',
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.2)',
+  fixedFooter: {
+    width: '100%',
     padding: Spacing[4],
-    marginTop: Spacing[5],
-    marginBottom: Spacing[3],
+    backgroundColor: DarkSurfaces.surface,
+    borderTopWidth: 1,
+    borderTopColor: DarkSurfaces.border,
   },
-  consejoText: {
-    ...TextVariants.bodyMd,
-    color: '#00D4FF',
-    lineHeight: 22,
-    fontFamily: FontFamilies.medium,
+  contentWrapper: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 960,
+    alignSelf: 'center',
+  },
+  footerInner: {
+    width: '100%',
+    maxWidth: 960,
+    alignSelf: 'center',
+  },
+  theoryWrapper: {
+    marginTop: Spacing[6],
+    paddingTop: Spacing[6],
+    borderTopWidth: 1,
+    borderTopColor: DarkSurfaces.borderSubtle,
   },
 });
 
-// ─── Auxiliar Didáctico ───────────────────────────────────────────────────────
 
-interface DidacticaItem {
-  icon: string;
-  text: string;
-}
-
-interface DidacticaConfig {
-  tituloLeyenda: string;
-  items: DidacticaItem[];
-  consejoDidactico: string;
-}
-
-const getDidactica = (nombre: string, categoria: string): DidacticaConfig => {
-  const normalizado = nombre.toLowerCase();
-  
-  if (categoria === 'EstructurasLineales') {
-    if (normalizado.includes('stack') || normalizado.includes('pila')) {
-      return {
-        tituloLeyenda: 'Visualización de la Pila (Stack)',
-        items: [
-          { icon: '🔵', text: 'Azul — Elemento almacenado en la Pila' },
-          { icon: '🟡', text: 'Amarillo (TOP) — Elemento en el tope (único accesible)' },
-          { icon: '🟢', text: 'Verde — Elemento activo en push o pop' },
-        ],
-        consejoDidactico: '💡 Principio LIFO (Last In, First Out): El último elemento en entrar es el primero en salir. Imagina una pila de platos donde solo puedes interactuar con el plato superior.',
-      };
-    }
-    if (normalizado.includes('queue') || normalizado.includes('cola')) {
-      return {
-        tituloLeyenda: 'Visualización de la Cola (Queue)',
-        items: [
-          { icon: '🔵', text: 'Azul — Elemento esperando en la Cola' },
-          { icon: '🟡', text: 'Amarillo (HEAD) — Frente de la cola, próximo a salir' },
-          { icon: '🟠', text: 'Naranja (TAIL) — Final de la cola, donde se inserta' },
-        ],
-        consejoDidactico: '💡 Principio FIFO (First In, First Out): El primer elemento en entrar es el primero en salir. Funciona exactamente como una cola de supermercado.',
-      };
-    }
-    // Linked List
-    return {
-      tituloLeyenda: 'Visualización de la Lista Enlazada',
-      items: [
-        { icon: '🟣', text: 'Púrpura (HEAD) — Apunta al nodo inicial de la lista' },
-        { icon: '🔵', text: 'Azul (Nodo) — Caja con el dato y puntero "siguiente"' },
-        { icon: '🟡', text: 'Amarillo (Visita) — Nodo visitado durante el recorrido' },
-        { icon: '⚪', text: 'Blanco (NULL) — Fin de la lista, no apunta a nada' },
-      ],
-      consejoDidactico: '💡 Enlace Dinámico: A diferencia de los arreglos, los nodos de una lista enlazada están dispersos en memoria y se conectan dinámicamente mediante punteros.',
-    };
-  }
-
-  // Ordenamiento (Sorting)
-  let consejo = '💡 Ordenamiento de Arreglos: Reorganiza los elementos en un orden específico (ascendente o descendente) comparando valores.';
-  if (normalizado.includes('bubble')) {
-    consejo = '💡 Comparación Adyacente: Bubble Sort recorre el arreglo comparando pares vecinos e intercambiándolos si están en orden incorrecto. El elemento mayor "flota" al final en cada pasada.';
-  } else if (normalizado.includes('selection')) {
-    consejo = '💡 Selección Mínima: Selection Sort busca repetidamente el valor mínimo de la sección desordenada y lo intercambia con el primer elemento desordenado, construyendo la lista ordenada de izquierda a derecha.';
-  } else if (normalizado.includes('insertion')) {
-    consejo = '💡 Inserción en Sublista: Insertion Sort funciona como ordenar cartas en la mano. Toma cada elemento y lo inserta en su posición correcta dentro de la sublista que ya está ordenada.';
-  } else if (normalizado.includes('merge')) {
-    consejo = '💡 Divide y Vencerás: Merge Sort divide recursivamente el arreglo por la mitad hasta obtener subarreglos de un solo elemento, y luego los fusiona (merge) ordenadamente.';
-  }
-
-  return {
-    tituloLeyenda: 'Estados en la Simulación',
-    items: [
-      { icon: '🔵', text: 'Azul — Elemento en reposo / base' },
-      { icon: '🟡', text: 'Amarillo — Comparando elementos' },
-      { icon: '🔴', text: 'Rojo — Intercambiando posiciones' },
-      { icon: '🟢', text: 'Verde — Posición final confirmado' },
-    ],
-    consejoDidactico: consejo,
-  };
-};
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -526,6 +434,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
   const { algoritmo, isLoading, isError } = useAlgorithm(algoritmoId);
   const [showProximamente, setShowProximamente] = useState(false);
   const [showSimulation, setShowSimulation] = useState(false);
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (algoritmo?.nombre) {
@@ -560,147 +469,166 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  const dificultad = normalizeDificultad(algoritmo.dificultad);
-  const esActivo = (algoritmo as any).activo !== false;
-  const didactica = getDidactica(algoritmo.nombre, algoritmo.categoria);
+  try {
+    const dificultad = normalizeDificultad(algoritmo.dificultad);
+    const esActivo = (algoritmo as any).activo !== false;
 
-  const handleStartSimulation = () => {
-    if (!esActivo) {
-      setShowProximamente(true);
-      return;
+    const handleStartSimulation = () => {
+      if (!esActivo) {
+        setShowProximamente(true);
+        return;
+      }
+      setShowSimulation(true);
+    };
+
+    if (showSimulation && esActivo) {
+      return (
+        <View style={styles.container}>
+          <SimulationContent
+            algoritmoId={algoritmoId}
+            onRequestBack={() => setShowSimulation(false)}
+            showAlgorithmHeader={false}
+          />
+        </View>
+      );
     }
-    setShowSimulation(true);
-  };
 
-  if (showSimulation && esActivo) {
+    const startButtonElement = (
+      <TouchableOpacity
+        style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
+        onPress={handleStartSimulation}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={
+          esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
+        }
+        testID="btn-start-simulation"
+      >
+        <Text style={styles.startButtonIcon}>▶</Text>
+        <Text style={styles.startButtonText}>
+          {esActivo
+            ? showSimulation
+              ? 'Simulación activa'
+              : 'Iniciar Simulación'
+            : 'Próximamente'}
+        </Text>
+      </TouchableOpacity>
+    );
+
     return (
       <View style={styles.container}>
-        <SimulationContent
-          algoritmoId={algoritmoId}
-          onRequestBack={() => setShowSimulation(false)}
-          showAlgorithmHeader={false}
-        />
+        <View style={styles.contentWrapper}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+          >
+            <Text style={styles.breadcrumbText}>
+              Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
+            </Text>
+
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{algoritmo.nombre}</Text>
+              <DifficultyBadge dificultad={dificultad} />
+            </View>
+
+            <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
+
+            <View style={styles.complexityRow}>
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>🕒</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Tiempo</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
+                </View>
+              </View>
+
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>📦</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Espacio</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
+                </View>
+              </View>
+
+              <View style={styles.complexityCardIndividual}>
+                <View style={styles.complexityIconBox}>
+                  <Text style={styles.complexityIconText}>📁</Text>
+                </View>
+                <View style={styles.complexityContent}>
+                  <Text style={styles.complexityLabel}>Categoría</Text>
+                  <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
+                    {algoritmo.categoria}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {algoritmo?.nombre && (
+              <View style={styles.theoryWrapper}>
+                <AlgorithmTheory algoritmoNombre={algoritmo.nombre} />
+              </View>
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Botón de Iniciar Simulación anclado abajo y centrado */}
+        <View style={styles.fixedFooter}>
+          <View style={styles.footerInner}>
+            {startButtonElement}
+          </View>
+        </View>
+
+        <Modal
+          visible={showProximamente}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowProximamente(false)}
+          accessibilityViewIsModal
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowProximamente(false)}
+            accessibilityLabel="Cerrar modal"
+          >
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Text style={styles.modalIcon}>🚧</Text>
+              <Text style={styles.modalTitle}>Próximamente</Text>
+              <Text style={styles.modalDesc}>
+                Este algoritmo estará disponible muy pronto. Mientras tanto,
+                explora los demás algoritmos de la biblioteca.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowProximamente(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar"
+              >
+                <Text style={styles.modalCloseText}>Entendido</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </View>
+    );
+  } catch (e: any) {
+    console.error("DEBUG ERROR IN RENDER:", e);
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0A0E17', padding: 24, justifyContent: 'center', alignItems: 'center' }}>
+        <Text style={{ color: '#FF4A4A', fontSize: 22, fontWeight: 'bold', marginBottom: 16 }}>
+          Error de Renderizado (Debug)
+        </Text>
+        <Text style={{ color: '#E2E8F0', fontSize: 16, fontFamily: 'monospace', marginBottom: 16, textAlign: 'center' }}>
+          {e?.message || String(e)}
+        </Text>
+        <Text style={{ color: '#94A3B8', fontSize: 12, fontFamily: 'monospace', width: '100%', backgroundColor: '#1E293B', padding: 12, borderRadius: 8 }}>
+          {e?.stack || 'No stack trace available'}
+        </Text>
       </View>
     );
   }
-
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.breadcrumbText}>
-          Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
-        </Text>
-
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{algoritmo.nombre}</Text>
-          <DifficultyBadge dificultad={dificultad} />
-        </View>
-
-        <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
-
-        <View style={styles.complexityRow}>
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>🕒</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Tiempo</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
-            </View>
-          </View>
-
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>📦</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Espacio</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
-            </View>
-          </View>
-
-          <View style={styles.complexityCardIndividual}>
-            <View style={styles.complexityIconBox}>
-              <Text style={styles.complexityIconText}>📁</Text>
-            </View>
-            <View style={styles.complexityContent}>
-              <Text style={styles.complexityLabel}>Categoría</Text>
-              <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
-                {algoritmo.categoria}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>{didactica.tituloLeyenda}</Text>
-        {didactica.items.map(({ icon, text }) => (
-          <View key={text} style={styles.featureRow}>
-            <Text style={styles.featureIcon}>{icon}</Text>
-            <Text style={styles.featureText}>{text}</Text>
-          </View>
-        ))}
-
-        <View style={styles.consejoCard}>
-          <Text style={styles.consejoText}>{didactica.consejoDidactico}</Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
-          onPress={handleStartSimulation}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={
-            esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
-          }
-          testID="btn-start-simulation"
-        >
-          <Text style={styles.startButtonIcon}>▶</Text>
-          <Text style={styles.startButtonText}>
-            {esActivo
-              ? showSimulation
-                ? 'Simulación activa'
-                : 'Iniciar Simulación'
-              : 'Próximamente'}
-          </Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-
-      <Modal
-        visible={showProximamente}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowProximamente(false)}
-        accessibilityViewIsModal
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setShowProximamente(false)}
-          accessibilityLabel="Cerrar modal"
-        >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
-            <Text style={styles.modalIcon}>🚧</Text>
-            <Text style={styles.modalTitle}>Próximamente</Text>
-            <Text style={styles.modalDesc}>
-              Este algoritmo estará disponible muy pronto. Mientras tanto,
-              explora los demás algoritmos de la biblioteca.
-            </Text>
-            <TouchableOpacity
-              style={styles.modalClose}
-              onPress={() => setShowProximamente(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Cerrar"
-            >
-              <Text style={styles.modalCloseText}>Entendido</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-    </View>
-  );
 }

@@ -26,6 +26,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
     <View style={styles.container}>
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <BarChart
+          algorithmName={algorithmName}
           step={step}
           isCompleted={isCompleted}
           height={height}
@@ -37,9 +38,9 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 300, // Explicit height for Web reliability
+    height: 300,
     width: '100%',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     overflow: 'hidden',
   },

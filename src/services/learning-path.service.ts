@@ -5,6 +5,10 @@ export interface RutaAprendizajeResponse {
   id: string;
   createdAt: string;
   algoritmos: AlgoritmoEnBiblioteca[];
+  diagnostico?: {
+    puntaje: number;
+    fechaEvaluacion: string;
+  } | null;
 }
 
 export const learningPathService = {

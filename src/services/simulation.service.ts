@@ -15,6 +15,7 @@
 
 import { apiClient } from './api';
 import type { SimulationStep } from '@brainsort/core';
+export type { SimulationMarker, SimulationTreeNode } from '@brainsort/core';
 
 // ─── DTOs (Request) ───────────────────────────────────────────────────────────
 

@@ -14,19 +14,42 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, StyleSheet, View } from 'react-native';
+import { Animated, Dimensions, StyleSheet, Text, View } from 'react-native';
 import { SimulationColors } from '../../styles/colors';
 import type { SimulationStep } from '@brainsort/core';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export interface BarChartProps {
+  /** Nombre del algoritmo para derivar etiquetas de variables como i, j, pivot, mid */
+  algorithmName?: string;
   /** Paso actual de simulación (contiene array + highlight info) */
   step: SimulationStep | null;
   /** true cuando la simulación ha terminado — todas las barras en verde */
   isCompleted: boolean;
   /** Altura disponible para el canvas de barras */
   height?: number;
+}
+
+type BarMarkerView = Record<number, { label: string; color: string }>;
+
+function getMarkerView(step: SimulationStep | null): BarMarkerView {
+  const markers = step?.marcadores ?? [];
+  return markers.reduce<BarMarkerView>((acc, marker) => {
+    if (!marker.label) {
+      acc[marker.index] = acc[marker.index] ?? {
+        label: '',
+        color: marker.color,
+      };
+      return acc;
+    }
+    const existing = acc[marker.index];
+    acc[marker.index] = {
+      label: existing?.label ? `${existing.label}/${marker.label}` : marker.label,
+      color: marker.color,
+    };
+    return acc;
+  }, {});
 }
 
 // ─── Helper: color por estado ─────────────────────────────────────────────────
@@ -39,6 +62,13 @@ function getBarColor(
   if (isCompleted) return SimulationColors.final; // Verde total al terminar
 
   if (!step) return SimulationColors.idle;
+  const marker = step.marcadores?.find((item) => item.index === index);
+  if (marker) {
+    if (marker.role === 'descartado') {
+      return SimulationColors.idle; // Keep original idle color (blue)
+    }
+    return marker.color;
+  }
 
   const rawStep = step as any;
   const highlightIndices = rawStep.highlightIndices;
@@ -75,16 +105,20 @@ interface SingleBarProps {
   value: number;
   maxValue: number;
   color: string;
+  label?: string;
   availableHeight: number;
   width: number;
+  opacity?: number;
 }
 
 const SingleBar: React.FC<SingleBarProps> = ({
   value,
   maxValue,
   color,
+  label,
   availableHeight,
   width,
+  opacity = 1,
 }) => {
   const heightAnim = useRef(new Animated.Value(0)).current;
 
@@ -103,8 +137,21 @@ const SingleBar: React.FC<SingleBarProps> = ({
   return (
     <View
       style={[barStyles.barContainer, { width }]}
-      accessibilityLabel={`Valor ${value}`}
+      accessibilityLabel={label ? `${label}, valor ${value}` : `Valor ${value}`}
     >
+      <View style={barStyles.labelSlot}>
+        {label ? (
+          <Text
+            style={[
+              barStyles.variableLabel,
+              { maxWidth: Math.max(width + 18, 42) },
+            ]}
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
+        ) : null}
+      </View>
       <Animated.View
         style={[
           barStyles.bar,
@@ -113,6 +160,7 @@ const SingleBar: React.FC<SingleBarProps> = ({
             backgroundColor: color,
             width: width - 2,
             shadowColor: color,
+            opacity: opacity,
           },
         ]}
       />
@@ -125,6 +173,26 @@ const barStyles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     height: '100%',
+  },
+  labelSlot: {
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  variableLabel: {
+    backgroundColor: 'rgba(8, 11, 15, 0.9)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    lineHeight: 12,
+    overflow: 'hidden',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    textAlign: 'center',
   },
   bar: {
     borderRadius: 3,
@@ -153,19 +221,25 @@ export const BarChart: React.FC<BarChartProps> = ({
 
   const maxValue = Math.max(...currentArray);
   const barWidth = Math.min(40, Math.floor((SCREEN_WIDTH - 48) / currentArray.length));
+  const markerView = getMarkerView(step);
 
   return (
     <View style={[styles.container, { height }]}>
       {currentArray.map((value, index) => {
         const color = getBarColor(index, step, isCompleted);
+        const marker = step?.marcadores?.find((item) => item.index === index);
+        const isDiscarded = marker?.role === 'descartado';
+
         return (
           <SingleBar
             key={index}
             value={value}
             maxValue={maxValue}
             color={color}
-            availableHeight={height}
+            label={markerView[index]?.label}
+            availableHeight={height - 24}
             width={barWidth}
+            opacity={isDiscarded ? 0.25 : 1}
           />
         );
       })}

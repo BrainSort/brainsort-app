@@ -23,17 +23,8 @@
  */
 
 import { useCallback, useRef } from 'react';
-import {
-  BubbleSortEngine,
-  SelectionSortEngine,
-  InsertionSortEngine,
-  MergeSortEngine,
-  StackEngine,
-  QueueEngine,
-  LinkedListEngine,
-} from '@brainsort/core';
-import type { SortEngine } from '@brainsort/core';
 import { useSimulationContext } from '../context/SimulationContext';
+import { simulationService } from '../services/simulation.service';
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -66,88 +57,6 @@ export interface UseSimulationEngineReturn {
   // Estado
   isExecuting: boolean;
   error: EngineError | null;
-}
-
-// ─── Registro de Engines ──────────────────────────────────────────────────────
-
-/**
- * Mapa centralizado de engines disponibles.
- * Se indexan por nombre de algoritmo (debe coincidir con backend).
- */
-const ENGINE_REGISTRY: Record<string, new () => SortEngine> = {
-  'Bubble Sort': BubbleSortEngine,
-  'Selection Sort': SelectionSortEngine,
-  'Insertion Sort': InsertionSortEngine,
-  'Merge Sort': MergeSortEngine,
-  'Stack': StackEngine,
-  'Queue': QueueEngine,
-  'Linked List': LinkedListEngine,
-};
-
-/**
- * Alias por nombre (normalizado) para soportar variantes de backend/UI.
- */
-const ENGINE_ALIASES: Record<string, keyof typeof ENGINE_REGISTRY> = {
-  bubblesort: 'Bubble Sort',
-  burbuja: 'Bubble Sort',
-  ordenamientoburbuja: 'Bubble Sort',
-  selectionsort: 'Selection Sort',
-  seleccion: 'Selection Sort',
-  seleccionsort: 'Selection Sort',
-  ordenamientoseleccion: 'Selection Sort',
-  insertionsort: 'Insertion Sort',
-  insercion: 'Insertion Sort',
-  insercionsort: 'Insertion Sort',
-  ordenamientoinsercion: 'Insertion Sort',
-  mergesort: 'Merge Sort',
-  merge: 'Merge Sort',
-  ordenamientomerge: 'Merge Sort',
-  stack: 'Stack',
-  pila: 'Stack',
-  queue: 'Queue',
-  cola: 'Queue',
-  linkedlist: 'Linked List',
-  listaenlazada: 'Linked List',
-};
-
-// ─── Helper: Obtener Engine ───────────────────────────────────────────────────
-
-/**
- * Obtiene una instancia del engine por nombre.
- *
- * @throws {EngineError} Si el engine no existe
- */
-function normalizeAlgorithmName(nombre: string): string {
-  return nombre
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z]/g, '');
-}
-
-function resolveEngineName(nombreAlgoritmo: string): keyof typeof ENGINE_REGISTRY {
-  if (nombreAlgoritmo in ENGINE_REGISTRY) {
-    return nombreAlgoritmo as keyof typeof ENGINE_REGISTRY;
-  }
-
-  const normalized = normalizeAlgorithmName(nombreAlgoritmo);
-  const alias = ENGINE_ALIASES[normalized];
-  if (alias) return alias;
-
-  throw new Error(
-    `ENGINE_NOT_FOUND: No se encontró engine para '${nombreAlgoritmo}'`,
-  );
-}
-
-function getEngine(nombreAlgoritmo: string): SortEngine {
-  const resolvedEngineName = resolveEngineName(nombreAlgoritmo);
-  const EngineClass = ENGINE_REGISTRY[resolvedEngineName];
-  if (!EngineClass) {
-    throw new Error(
-      `ENGINE_NOT_FOUND: No se encontró engine para '${nombreAlgoritmo}'`,
-    );
-  }
-  return new EngineClass();
 }
 
 // ─── Helper: Validar Datos ────────────────────────────────────────────────────
@@ -271,25 +180,28 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
 
         validateData(data);
 
-        // ─── Obtener engine ───────────────────────────────────────────────
+        // ─── Ejecutar backend con timeout ────────────────────────────────
 
-        const engine = getEngine(algoritmoId);
-
-        // ─── Ejecutar con timeout ─────────────────────────────────────────
-
-        const steps = await executeWithTimeout(
-          () => engine.execute(data),
+        const result = await executeWithTimeout(
+          () =>
+            simulationService.runSimulation({
+              algoritmoId,
+              conjuntoDeDatos: {
+                valores: data,
+                tipoOrigen: 'Personalizado',
+                tamano: data.length,
+              },
+            }),
           ENGINE_TIMEOUT_MS,
         );
 
         // ─── Actualizar contexto ──────────────────────────────────────────
 
         setSimulationData({
-          steps,
+          steps: result.pasos,
           data: [...data], // Copiar para inmutabilidad
           algoritmoId,
-          pseudocode: engine.getPseudocode(),
-          // sesionSimulacion será null por ahora (puede ser poblado desde backend)
+          pseudocode: result.pseudocode,
         });
       } catch (err) {
         // Parsear error en EngineError tipado

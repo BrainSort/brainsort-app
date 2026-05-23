@@ -20,13 +20,31 @@ import { apiClient } from './api';
 
 /** Dificultad de un ejercicio */
 export type DificultadEjercicio = 'Facil' | 'Medio' | 'Dificil';
+export type TipoEjercicio =
+  | 'PrediccionTexto'
+  | 'CompletarPseudocodigo'
+  | 'OrdenarBarras';
+
+export interface PseudocodeExerciseContent {
+  antes?: string;
+  despues?: string;
+}
+
+export interface BarsExerciseContent {
+  inicial?: number[];
+  objetivo?: number[];
+  pasoObjetivo?: string;
+}
 
 /** Ejercicio de predicción (GET /api/ejercicios/:algoritmoId) */
 export interface Ejercicio {
   id: string;
+  tipo: TipoEjercicio;
   pregunta: string;
   dificultad: DificultadEjercicio;
   algoritmoId: string;
+  opciones?: string[];
+  contenido?: PseudocodeExerciseContent | BarsExerciseContent | null;
 }
 
 /** Response de GET /api/ejercicios/:algoritmoId */
