@@ -52,6 +52,7 @@ export interface UseSimulationEngineReturn {
   executeAlgorithm: (
     algoritmoId: string,
     data: number[],
+    options?: { objetivo?: number },
   ) => Promise<void>;
 
   // Estado
@@ -171,7 +172,7 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
    * @throws {EngineError} Si ocurre algún error
    */
   const executeAlgorithm = useCallback(
-    async (algoritmoId: string, data: number[]) => {
+    async (algoritmoId: string, data: number[], options?: { objetivo?: number }) => {
       isExecutingRef.current = true;
       errorRef.current = null;
 
@@ -191,6 +192,7 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
                 tipoOrigen: 'Personalizado',
                 tamano: data.length,
               },
+              objetivo: options?.objetivo,
             }),
           ENGINE_TIMEOUT_MS,
         );

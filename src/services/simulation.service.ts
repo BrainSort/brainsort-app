@@ -30,6 +30,7 @@ export interface ConjuntoDatos {
 export interface RunSimulationRequest {
   algoritmoId: string;
   conjuntoDeDatos: ConjuntoDatos;
+  objetivo?: number;
 }
 
 // ─── DTOs (Response) ──────────────────────────────────────────────────────────
