@@ -8,13 +8,17 @@
  */
 
 import { SimulationColors, Accent } from '../styles/colors';
+import { SearchLegends } from './search/searchPalette';
 
 export const AnimationEngine = {
   /**
    * Devuelve el tipo de visualizador según la categoría del algoritmo.
    * @param categoria CategoriaAlgoritmo del backend
    */
-  getRendererType(categoria: string | undefined, algorithmName?: string): 'bar' | 'linear' | 'tree' {
+  getRendererType(categoria: string | undefined, algorithmName?: string): 'bar' | 'linear' | 'tree' | 'search' {
+    if (categoria === 'Busqueda' || algorithmName === 'Binary Search' || algorithmName === 'Linear Search') {
+      return 'search';
+    }
     if (categoria === 'EstructurasArboles') return 'tree';
     if (algorithmName === 'Heap Sort' || algorithmName === 'Priority Queue') return 'tree';
     if (categoria === 'EstructurasLineales') return 'linear';
@@ -32,17 +36,19 @@ export const AnimationEngine = {
     return categoria === 'EstructurasArboles' || algorithmName === 'Heap Sort' || algorithmName === 'Priority Queue';
   },
 
+  isSearchAlgorithm(categoria: string | undefined, algorithmName?: string): boolean {
+    return categoria === 'Busqueda' || algorithmName === 'Binary Search' || algorithmName === 'Linear Search';
+  },
+
   /**
    * Devuelve la leyenda de operaciones apropiada para el tipo de algoritmo.
    */
-  getLegend(categoria: string | undefined): Array<{ color: string; label: string }> {
-    if (categoria === 'Busqueda') {
-      return [
-        { color: SimulationColors.idle, label: 'Buscando' },
-        { color: SimulationColors.comparacion, label: 'Elemento Medio (mid)' },
-        { color: '#1A2333', label: 'Descartado' },
-        { color: SimulationColors.final, label: 'Encontrado' },
-      ];
+  getLegend(categoria: string | undefined, algorithmName?: string): Array<{ color: string; label: string }> {
+    if (categoria === 'Busqueda' || algorithmName === 'Binary Search' || algorithmName === 'Linear Search') {
+      if (algorithmName === 'Linear Search') {
+        return SearchLegends.linear;
+      }
+      return SearchLegends.binary;
     }
     if (categoria === 'EstructurasArboles') {
       return [
