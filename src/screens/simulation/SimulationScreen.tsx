@@ -50,9 +50,20 @@ import { BarChart } from '../../components/simulation/BarChart';
 import { ControlBar } from '../../components/simulation/ControlBar';
 import { LinearStructureCanvas } from '../../components/simulation/LinearStructureCanvas';
 import { TreeStructureCanvas } from '../../components/simulation/TreeStructureCanvas';
+import { SearchArrayCanvas } from '../../components/search/SearchArrayCanvas';
+import { SearchTargetInput } from '../../components/search/SearchTargetInput';
+import { SearchResultBanner } from '../../components/search/SearchResultBanner';
+import { SearchComplexityPanel } from '../../components/search/SearchComplexityPanel';
 import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import { Spinner } from '../../components/common/Spinner';
 import { AnimationEngine } from '../../visualization/AnimationEngine';
+import { SearchVisualEngine } from '../../visualization/search/SearchVisualEngine';
+import {
+  isSortedAscending,
+  sortAscending,
+  pickSuggestedTarget,
+  validateTargetInput,
+} from '../../utils/search.utils';
 import {
   DarkSurfaces,
   DarkText,
@@ -318,25 +329,55 @@ export function SimulationContent({
 
   // ─── Estado local ─────────────────────────────────────────────────────────
   const [customInput, setCustomInput] = useState('');
+  const [targetInput, setTargetInput] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [showInlineValues, setShowInlineValues] = useState(true);
 
+  const isSearch = AnimationEngine.isSearchAlgorithm(
+    (algoritmo as any)?.categoria,
+    algoritmo?.nombre,
+  );
+  const isBinary = algoritmo?.nombre === 'Binary Search';
+
   // ─── Cargar datos al montar ───────────────────────────────────────────────
   useEffect(() => {
     if (algoritmo && !hasStarted) {
-      const initialData = generateDefault();
+      let initialData = generateDefault();
+      let initialTarget: number | undefined;
+
+      if (isSearch) {
+        if (isBinary) {
+          initialData = sortAscending(initialData);
+        }
+        initialTarget = pickSuggestedTarget(initialData, true);
+        setTargetInput(String(initialTarget));
+      }
+
       setCustomInput(formatDataset(initialData));
-      executeAlgorithm(algoritmoId, initialData)
+      executeAlgorithm(
+        algoritmoId,
+        initialData,
+        initialTarget !== undefined ? { objetivo: initialTarget } : undefined,
+      )
         .then(() => setHasStarted(true))
         .catch(() => {});
     }
-  }, [algoritmo, algoritmoId, hasStarted, generateDefault, executeAlgorithm]);
+  }, [
+    algoritmo,
+    algoritmoId,
+    hasStarted,
+    generateDefault,
+    executeAlgorithm,
+    isSearch,
+    isBinary,
+  ]);
 
   // Si cambia el algoritmo seleccionado, reinicia el arranque de simulación.
   useEffect(() => {
     setHasStarted(false);
     setCustomInput('');
+    setTargetInput('');
     setInputError(null);
     resetSimulation();
   }, [algoritmoId, resetSimulation]);
@@ -347,17 +388,29 @@ export function SimulationContent({
     setSpeed(getComfortableDefaultSpeed(algoritmo?.nombre, algoritmo?.categoria));
   }, [algoritmo?.nombre, algoritmo?.categoria, setSpeed]);
 
-
-
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
   const handleGenerateNew = useCallback(() => {
     if (!algoritmo) return;
-    const data = generateDefault();
+    let data = generateDefault();
+    let targetVal: number | undefined;
+
+    if (isSearch) {
+      if (isBinary) {
+        data = sortAscending(data);
+      }
+      targetVal = pickSuggestedTarget(data, true);
+      setTargetInput(String(targetVal));
+    }
+
     setCustomInput(formatDataset(data));
-    executeAlgorithm(algoritmoId, data).catch(() => {});
+    executeAlgorithm(
+      algoritmoId,
+      data,
+      targetVal !== undefined ? { objetivo: targetVal } : undefined,
+    ).catch(() => {});
     setInputError(null);
-  }, [algoritmo, algoritmoId, generateDefault, executeAlgorithm]);
+  }, [algoritmo, algoritmoId, generateDefault, executeAlgorithm, isSearch, isBinary]);
 
   const handleApplyCustom = useCallback(() => {
     if (!algoritmo || !customInput.trim()) return;
@@ -367,10 +420,72 @@ export function SimulationContent({
       setInputError(error.message);
       return;
     }
+
+    let finalData = parts;
+    let targetVal: number | undefined;
+
+    if (isSearch) {
+      // Validar target
+      const targetRes = validateTargetInput(targetInput);
+      if (targetRes.error) {
+        setInputError(targetRes.error);
+        return;
+      }
+      targetVal = targetRes.value;
+
+      // Si es Búsqueda Binaria, auto-ordenar según decisión de UX
+      if (isBinary && !isSortedAscending(parts)) {
+        finalData = sortAscending(parts);
+      }
+    }
+
     setInputError(null);
-    setCustomInput(formatDataset(parts));
-    executeAlgorithm(algoritmoId, parts).catch(() => {});
-  }, [algoritmo, algoritmoId, customInput, validateDataset, executeAlgorithm]);
+    setCustomInput(formatDataset(finalData));
+    executeAlgorithm(
+      algoritmoId,
+      finalData,
+      targetVal !== undefined ? { objetivo: targetVal } : undefined,
+    ).catch(() => {});
+  }, [
+    algoritmo,
+    algoritmoId,
+    customInput,
+    targetInput,
+    validateDataset,
+    executeAlgorithm,
+    isSearch,
+    isBinary,
+  ]);
+
+  const handleAutoSort = useCallback(() => {
+    if (!customInput.trim()) return;
+    const parts = customInput.split(',').map((s) => Number(s.trim()));
+    const sorted = sortAscending(parts);
+    setCustomInput(formatDataset(sorted));
+    setInputError(null);
+
+    let targetVal: number | undefined;
+    if (targetInput.trim()) {
+      const res = validateTargetInput(targetInput);
+      if (!res.error) targetVal = res.value;
+    }
+
+    executeAlgorithm(
+      algoritmoId,
+      sorted,
+      targetVal !== undefined ? { objetivo: targetVal } : undefined,
+    ).catch(() => {});
+  }, [algoritmoId, customInput, targetInput, executeAlgorithm]);
+
+  const handleRandomTarget = useCallback(() => {
+    if (!customInput.trim()) return;
+    const parts = customInput.split(',').map((s) => Number(s.trim()));
+    const randomTarget = pickSuggestedTarget(parts, true);
+    setTargetInput(String(randomTarget));
+    setInputError(null);
+
+    executeAlgorithm(algoritmoId, parts, { objetivo: randomTarget }).catch(() => {});
+  }, [algoritmoId, customInput, executeAlgorithm]);
 
   const handleReset = useCallback(() => {
     resetSimulation();
@@ -392,9 +507,30 @@ export function SimulationContent({
   const pseudoLines = pseudocode;
   const hasSteps = steps.length > 0;
   const progressPercent = currentStep.progress;
-  const isTree = AnimationEngine.isTreeStructure((algoritmo as any)?.categoria, algoritmo?.nombre);
-  const isLinear = !isTree && AnimationEngine.isLinearStructure((algoritmo as any)?.categoria);
-  const legend = AnimationEngine.getLegend((algoritmo as any)?.categoria);
+  const rendererType = AnimationEngine.getRendererType(
+    (algoritmo as any)?.categoria,
+    algoritmo?.nombre,
+  );
+  const isTree = rendererType === 'tree';
+  const isLinear = rendererType === 'linear';
+  const legend = AnimationEngine.getLegend(
+    (algoritmo as any)?.categoria,
+    algoritmo?.nombre,
+  );
+
+  const searchFrame = isSearch
+    ? SearchVisualEngine.buildFrame(
+        currentStepData,
+        algoritmo?.nombre,
+        isCompleted,
+      )
+    : null;
+
+  const parsedNumbers = customInput
+    .split(',')
+    .map((s) => Number(s.trim()))
+    .filter((n) => !isNaN(n));
+  const isSorted = isSortedAscending(parsedNumbers);
 
   return (
     <KeyboardAvoidingView
@@ -435,14 +571,32 @@ export function SimulationContent({
           </View>
         )}
 
-        {/* Canvas de barras */}
+        {/* Banner de resultado para búsqueda */}
+        {isSearch && searchFrame && (
+          <SearchResultBanner
+            resultado={searchFrame.resultado}
+            comparaciones={searchFrame.comparaciones}
+            indiceEncontrado={searchFrame.indiceEncontrado}
+            objetivo={searchFrame.objetivo}
+            isCompleted={isCompleted}
+          />
+        )}
+
+        {/* Canvas de visualización */}
         <View style={styles.canvasContainer}>
           {isExecuting ? (
             <View style={{ height: 220, alignItems: 'center', justifyContent: 'center' }}>
               <Spinner size="large" />
             </View>
           ) : hasSteps ? (
-            isTree ? (
+            rendererType === 'search' ? (
+              <SearchArrayCanvas
+                algorithmName={algoritmo?.nombre}
+                step={currentStepData}
+                isCompleted={isCompleted}
+                height={220}
+              />
+            ) : isTree ? (
               <TreeStructureCanvas
                 step={currentStepData}
                 isCompleted={isCompleted}
@@ -484,6 +638,14 @@ export function SimulationContent({
           ))}
         </View>
 
+        {/* Panel didáctico de complejidad para búsqueda */}
+        {isSearch && (
+          <SearchComplexityPanel
+            algorithmName={algoritmo?.nombre}
+            arrayLength={parsedNumbers.length || 10}
+          />
+        )}
+
         {/* Pseudocódigo */}
         {pseudoLines.length > 0 && (
           <PseudocodePanel
@@ -493,9 +655,24 @@ export function SimulationContent({
           />
         )}
 
-        {/* Input de datos personalizados */}
+        {/* Input de datos personalizados y objetivo */}
         <View style={styles.dataInputSection}>
-          <Text style={styles.dataInputLabel}>Datos personalizados</Text>
+          {isSearch && (
+            <SearchTargetInput
+              targetInput={targetInput}
+              onTargetChange={(val) => {
+                setTargetInput(val);
+                setInputError(null);
+              }}
+              onRandomTarget={handleRandomTarget}
+              isBinarySearch={isBinary}
+              isSorted={isSorted}
+              onAutoSort={handleAutoSort}
+              disabled={isExecuting}
+            />
+          )}
+
+          <Text style={styles.dataInputLabel}>Colección de datos</Text>
           <View style={styles.dataInputRow}>
             <View
               style={[
