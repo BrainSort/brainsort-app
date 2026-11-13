@@ -55,6 +55,11 @@ import { SearchTargetInput } from '../../components/search/SearchTargetInput';
 import { SearchResultBanner } from '../../components/search/SearchResultBanner';
 import { SearchComplexityPanel } from '../../components/search/SearchComplexityPanel';
 import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
+import {
+  BadgeUnlockModal,
+  UnlockedBadgeNotice,
+} from '../../components/gamification/BadgeUnlockModal';
+import { simulationService } from '../../services/simulation.service';
 import { Spinner } from '../../components/common/Spinner';
 import { AnimationEngine } from '../../visualization/AnimationEngine';
 import { SearchVisualEngine } from '../../visualization/search/SearchVisualEngine';
@@ -322,6 +327,7 @@ export function SimulationContent({
     setSpeed,
     resetSimulation,
     pseudocode,
+    sesionId,
   } = useSimulation();
   const { executeAlgorithm, isExecuting } = useSimulationEngine();
   const { generateDefault, validateDataset } = useDataset();
@@ -333,6 +339,20 @@ export function SimulationContent({
   const [inputError, setInputError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
   const [showInlineValues, setShowInlineValues] = useState(true);
+  const [unlockedBadges, setUnlockedBadges] = useState<UnlockedBadgeNotice[]>([]);
+
+  useEffect(() => {
+    if (isCompleted && sesionId && steps.length > 0) {
+      simulationService
+        .updateSessionProgress(sesionId, steps.length)
+        .then((res) => {
+          if (res?.nuevasInsignias && res.nuevasInsignias.length > 0) {
+            setUnlockedBadges(res.nuevasInsignias);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [isCompleted, sesionId, steps.length]);
 
   const isSearch = AnimationEngine.isSearchAlgorithm(
     (algoritmo as any)?.categoria,
@@ -750,6 +770,11 @@ export function SimulationContent({
         onSpeedChange={setSpeed}
         showInlineValues={showInlineValues}
         onToggleInlineValues={() => setShowInlineValues((prev) => !prev)}
+      />
+      <BadgeUnlockModal
+        visible={unlockedBadges.length > 0}
+        badges={unlockedBadges}
+        onClose={() => setUnlockedBadges([])}
       />
     </KeyboardAvoidingView>
   );

@@ -15,6 +15,7 @@
  */
 
 import { apiClient } from './api';
+import type { InsigniaDesbloqueada } from './badges.service';
 
 // ─── DTOs (Response) ──────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ export interface ExerciseResultCorrect {
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
+  nuevasInsignias?: InsigniaDesbloqueada[];
 }
 
 /** Response si respuesta es incorrecta — 200 /api/ejercicios/:id/responder */
@@ -86,6 +88,7 @@ export interface ExerciseResultIncorrect {
   rachaDias: number;
   posicionRanking: number;
   nivelActual: number;
+  nuevasInsignias?: InsigniaDesbloqueada[];
 }
 
 /** Response unificada */
