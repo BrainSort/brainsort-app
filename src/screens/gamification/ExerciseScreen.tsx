@@ -19,8 +19,8 @@ import { useExercise } from '../../hooks/useExercise';
 import { useLibrary } from '../../hooks/useLibrary';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { learningPathService } from '../../services/learning-path.service';
+import { useThemeContext } from '../../context/ThemeContext';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
-import { Accent, DarkText, DarkSurfaces, Primary } from '../../styles/colors';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
 import { TextVariants, FontFamilies } from '../../styles/typography';
 
@@ -31,6 +31,8 @@ interface ExerciseScreenParams {
 type Props = NativeStackScreenProps<LibraryStackParamList, 'Exercise'>;
 
 export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
   const params = route.params as ExerciseScreenParams;
   const algoritmoId = params?.algoritmoId;
 
@@ -100,7 +102,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>
-          <ActivityIndicator color={Accent[500]} size="large" />
+          <ActivityIndicator color={colors.brandAccent} size="large" />
         </View>
       </SafeAreaWrapper>
     );
@@ -110,7 +112,9 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No hay ejercicios disponibles para este algoritmo</Text>
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+            No hay ejercicios disponibles para este algoritmo
+          </Text>
         </View>
       </SafeAreaWrapper>
     );
@@ -120,24 +124,50 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <SafeAreaWrapper>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.completedCard}>
+          <View
+            style={[
+              styles.completedCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
             <Text style={styles.completedIcon}>🎉</Text>
-            <Text style={styles.completedTitle}>¡Práctica Completada!</Text>
-            <Text style={styles.completedSubtitle}>
+            <Text style={[styles.completedTitle, { color: colors.brandAccent }]}>
+              ¡Práctica Completada!
+            </Text>
+            <Text style={[styles.completedSubtitle, { color: colors.textSecondary }]}>
               Has terminado con éxito todos los ejercicios de{' '}
-              <Text style={styles.highlightText}>{algoritmo?.nombre ?? 'este algoritmo'}</Text>.
+              <Text style={[styles.highlightText, { color: colors.textPrimary }]}>
+                {algoritmo?.nombre ?? 'este algoritmo'}
+              </Text>
+              .
             </Text>
 
             {/* Stats section */}
-            <View style={styles.statsContainer}>
+            <View
+              style={[
+                styles.statsContainer,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.borderSubtle,
+                },
+              ]}
+            >
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{ejercicios.length}</Text>
-                <Text style={styles.statLabel}>Ejercicios</Text>
+                <Text style={[styles.statNumber, { color: colors.brandPrimary }]}>
+                  {ejercicios.length}
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>
+                  Ejercicios
+                </Text>
               </View>
-              <View style={styles.statDivider} />
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>100%</Text>
-                <Text style={styles.statLabel}>Progreso</Text>
+                <Text style={[styles.statNumber, { color: colors.brandPrimary }]}>
+                  100%
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.textMuted }]}>
+                  Progreso
+                </Text>
               </View>
             </View>
 
@@ -190,7 +220,9 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     <SafeAreaWrapper>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.exerciseBlock}>
-          <Text style={styles.exerciseTitle}>Sesión de práctica</Text>
+          <Text style={[styles.exerciseTitle, { color: colors.textPrimary }]}>
+            Sesión de práctica
+          </Text>
           <PredictionExercise
             tipo={currentExercise.tipo}
             pregunta={currentExercise.pregunta}
@@ -235,7 +267,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...TextVariants.bodyMd,
-    color: DarkText.muted,
   },
   exerciseBlock: {
     gap: Spacing[3],
@@ -243,16 +274,13 @@ const styles = StyleSheet.create({
   },
   exerciseTitle: {
     ...TextVariants.h4,
-    color: DarkText.primary,
   },
   // Nuevos estilos para la pantalla de completado
   completedCard: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing[6],
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: DarkSurfaces.border,
     marginTop: Spacing[4],
   },
   completedIcon: {
@@ -261,33 +289,28 @@ const styles = StyleSheet.create({
   },
   completedTitle: {
     ...TextVariants.h3,
-    color: Accent[500],
     textAlign: 'center',
     marginBottom: Spacing[2],
     fontFamily: FontFamilies.bold,
   },
   completedSubtitle: {
     ...TextVariants.bodyMd,
-    color: DarkText.secondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: Spacing[6],
   },
   highlightText: {
-    color: DarkText.primary,
     fontFamily: FontFamilies.semiBold,
   },
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderRadius: BorderRadius.md,
     paddingVertical: Spacing[4],
     paddingHorizontal: Spacing[6],
     marginBottom: Spacing[6],
     width: '100%',
     borderWidth: 1,
-    borderColor: DarkSurfaces.borderSubtle,
   },
   statBox: {
     flex: 1,
@@ -295,18 +318,15 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     ...TextVariants.h3,
-    color: Primary[500],
     fontFamily: FontFamilies.bold,
   },
   statLabel: {
     ...TextVariants.labelSm,
-    color: DarkText.muted,
     marginTop: Spacing[1],
   },
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: DarkSurfaces.border,
   },
   actionSection: {
     width: '100%',

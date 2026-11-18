@@ -1,12 +1,22 @@
 import { SimulationStep } from '../types/step.types';
 import { AlgoritmoMeta, PseudocodeLine } from '../types/algorithm.types';
+import { SimulationInput } from '../types/simulation.types';
 
 /**
- * T-FE-009: Interfaz base para todos los engines de ordenamiento del core.
+ * Interfaz base generalizada para todos los motores de algoritmos del core (búsqueda, ordenamiento, grafos).
+ */
+export interface AlgorithmEngine {
+  name: string;
+  execute(input: SimulationInput | number[]): SimulationStep[];
+  getPseudocode(): PseudocodeLine[];
+}
+
+/**
+ * Interfaz y alias retrocompatible para motores de ordenamiento preexistentes.
  */
 export interface SortEngine {
   name: string;
-  execute(data: number[]): SimulationStep[];
+  execute(input: any): SimulationStep[];
   getPseudocode(): PseudocodeLine[];
 }
 
@@ -16,5 +26,5 @@ export interface SortEngine {
 export interface AlgorithmDefinition {
   meta: AlgoritmoMeta;
   pseudocode: PseudocodeLine[];
-  execute(data: number[]): SimulationStep[];
+  execute(input: SimulationInput | number[] | any): SimulationStep[];
 }

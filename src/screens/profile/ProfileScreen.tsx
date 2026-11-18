@@ -3,76 +3,94 @@
  * BrainSort — Pantalla de perfil del usuario
  *
  * task_breakdown.md T-FE-102
- *
- * Implementa:
- *   - Muestra información del usuario (nombre, correo, rol)
- *   - Permite editar nombre (PATCH /api/users/me)
- *   - Muestra tier, barra de XP y nivel (gamification-xp-progression.spec.md)
- *   - Muestra racha de días y estadísticas (simulaciones, ejercicios, ranking)
- *   - Lista de insignias desbloqueadas
- *   - Enlace a SettingsScreen
- *   - Botón de logout
- *   - Datos mock para DEV cuando no hay backend
- *
- * Referencia: 02-frontend-app.md §1 screens/profile/ProfileScreen.tsx
- *            gamification-xp-progression.spec.md §8
- *            04-contratos-api.md §6
  */
 
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TextInput,
   ActivityIndicator,
-  TouchableOpacity,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useAuthContext } from '../../context/AuthContext';
+import { useThemeContext } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { useProgress } from '../../hooks/useProgress';
 import { apiClient } from '../../services/api';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/common/Button';
-import { PointsBanner } from '../../components/gamification/PointsBanner';
 import { StreakCounter } from '../../components/gamification/StreakCounter';
 import { BadgeCard } from '../../components/gamification/BadgeCard';
 import { XpProgressBar } from '../../components/gamification/XpProgressBar';
 import { TierBadge } from '../../components/gamification/TierBadge';
 import { ProfileStatsCard } from '../../components/gamification/ProfileStatsCard';
-import {
-  DarkSurfaces,
-  DarkText,
-  Accent,
-  Semantic,
-} from '../../styles/colors';
 import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
-import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
-import {
-  calcularProgresoNivel,
-  obtenerTier,
-} from '../../utils/xp.utils';
+import { BorderRadius, Spacing, SpacingAlias } from '../../styles/spacing';
+import { calcularProgresoNivel, obtenerTier } from '../../utils/xp.utils';
 import type { ProfileStackParamList } from '../../navigation/ProfileStackNavigator';
-import type { UsuarioProgreso } from '../../services/progress.service';
-
-// ─── Tipos de Navegación ──────────────────────────────────────────────────────
 
 type ProfileNavProp = NativeStackNavigationProp<ProfileStackParamList, 'Profile'>;
 
-// ─── Componente ───────────────────────────────────────────────────────────────
+function GearIcon({ color, size = 18 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={3.2} stroke={color} strokeWidth={1.75} />
+      <Path
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 .92-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51.92H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+        stroke={color}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
-/**
- * Pantalla de perfil del usuario con datos de progreso y gamificación.
- *
- * @example
- * <ProfileScreen />
- */
+function PencilIcon({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"
+        stroke={color}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function ChevronRightIcon({ color, size = 18 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="m9 6 6 6-6 6"
+        stroke={color}
+        strokeWidth={1.85}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<ProfileNavProp>();
+  const { width } = useWindowDimensions();
+  const isDesktopHeader = width >= 980;
+  const isTwoColumn = width >= 900;
+
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
   const { usuario, isLoading: isLoadingAuth } = useAuthContext();
   const { logout } = useAuth();
   const { progreso, isLoadingProgreso, catalogoInsignias } = useProgress();
@@ -82,11 +100,13 @@ export const ProfileScreen: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [localName, setLocalName] = useState<string | null>(null);
 
-  // Usar datos reales de la API
   const datosProgreso = progreso;
   const nombreMostrado = localName ?? usuario?.nombre ?? '';
 
-  // ─── Handlers ──────────────────────────────────────────────────────────────
+  const webPointer =
+    Platform.OS === 'web'
+      ? ({ cursor: 'pointer', transitionDuration: '150ms' } as any)
+      : undefined;
 
   const handleSave = async () => {
     if (!editedName.trim()) return;
@@ -112,14 +132,12 @@ export const ProfileScreen: React.FC = () => {
     setIsEditing(true);
   };
 
-  // ─── Carga inicial ─────────────────────────────────────────────────────────
-
   if (isLoadingAuth) {
     return (
       <SafeAreaWrapper>
-        <Header title="Mi Perfil" showBackButton />
-        <View style={styles.center}>
-          <ActivityIndicator color={Accent[500]} size="large" />
+        {!isDesktopHeader && <Header title="Mi Perfil" showBackButton />}
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <ActivityIndicator color={colors.brandAccent} size="large" />
         </View>
       </SafeAreaWrapper>
     );
@@ -128,211 +146,401 @@ export const ProfileScreen: React.FC = () => {
   if (!usuario) {
     return (
       <SafeAreaWrapper>
-        <Header title="Perfil" showBackButton />
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Error cargando perfil</Text>
+        {!isDesktopHeader && <Header title="Perfil" showBackButton />}
+        <View style={[styles.center, { backgroundColor: colors.background }]}>
+          <Text style={[styles.errorText, { color: colors.textMuted }]}>
+            Error cargando perfil
+          </Text>
         </View>
       </SafeAreaWrapper>
     );
   }
-
-  // ─── Calcular datos de progreso ────────────────────────────────────────────
 
   const progresoNivel = datosProgreso
     ? calcularProgresoNivel(datosProgreso.puntosTotales, datosProgreso.nivelActual)
     : null;
   const tier = datosProgreso ? obtenerTier(datosProgreso.nivelActual) : null;
 
-  // ─── Render ────────────────────────────────────────────────────────────────
+  const vitrina =
+    catalogoInsignias && catalogoInsignias.length > 0
+      ? catalogoInsignias
+      : (datosProgreso?.insignias ?? []).map((ins) => ({
+          ...ins,
+          desbloqueada: true,
+        }));
+  const desbloqueadasCount = vitrina.filter(
+    (b) => b.desbloqueada !== false,
+  ).length;
+
+  const identityCard = (
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
+      <View style={styles.heroSection}>
+        <View
+          style={[
+            styles.avatar,
+            {
+              backgroundColor: colors.brandAccent,
+              borderColor: colors.brandPrimary,
+            },
+          ]}
+        >
+          <Text style={[styles.avatarText, { color: colors.textOnAccent }]}>
+            {nombreMostrado ? nombreMostrado.charAt(0).toUpperCase() : '?'}
+          </Text>
+        </View>
+
+        {isEditing ? (
+          <View style={styles.editNameContainer}>
+            <TextInput
+              style={[
+                styles.nameInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorderFocused,
+                  color: colors.inputText,
+                },
+              ]}
+              value={editedName}
+              onChangeText={setEditedName}
+              autoFocus
+              maxLength={50}
+              placeholder="Tu nombre"
+              placeholderTextColor={colors.inputPlaceholder}
+            />
+            <View style={styles.editNameButtons}>
+              <Button
+                title="Cancelar"
+                onPress={handleCancel}
+                variant="ghost"
+                style={styles.editBtnSm}
+              />
+              <Button
+                title="Guardar"
+                onPress={handleSave}
+                disabled={!editedName.trim() || isSaving}
+                loading={isSaving}
+                style={styles.editBtnSm}
+              />
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            onPress={handleEditPress}
+            accessibilityRole="button"
+            accessibilityLabel="Editar nombre de perfil"
+            style={(state: any) => [
+              styles.nameRow,
+              webPointer,
+              state.hovered && { opacity: 0.85 },
+              state.pressed && { opacity: 0.7 },
+            ]}
+          >
+            <Text style={[styles.displayName, { color: colors.textPrimary }]}>
+              {nombreMostrado}
+            </Text>
+            <PencilIcon color={colors.textMuted} size={16} />
+          </Pressable>
+        )}
+
+        <Text style={[styles.correo, { color: colors.textMuted }]}>
+          {usuario.correo}
+        </Text>
+
+        <View style={styles.badgesRow}>
+          <View
+            style={[
+              styles.rolBadge,
+              {
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.rolText, { color: colors.textSecondary }]}>
+              {usuario.rol}
+            </Text>
+          </View>
+          {tier && <TierBadge tier={tier} size="sm" />}
+        </View>
+      </View>
+
+      <View style={[styles.fieldRow, { borderTopColor: colors.border }]}>
+        <Text style={[styles.fieldLabel, { color: colors.textMuted }]}>
+          ID de usuario
+        </Text>
+        <Text
+          style={[styles.fieldValueMono, { color: colors.textSecondary }]}
+          numberOfLines={1}
+          ellipsizeMode="middle"
+        >
+          {usuario.id}
+        </Text>
+      </View>
+
+      <Pressable
+        onPress={() => navigation.navigate('Settings')}
+        accessibilityRole="button"
+        accessibilityLabel="Ir a configuración"
+        style={(state: any) => [
+          styles.settingsRow,
+          webPointer,
+          { borderTopColor: colors.border, borderBottomColor: colors.border },
+          state.hovered && { backgroundColor: colors.surfaceHighlight },
+          state.pressed && { opacity: 0.8 },
+        ]}
+      >
+        <GearIcon color={colors.textSecondary} size={18} />
+        <Text style={[styles.settingsLabel, { color: colors.textPrimary }]}>
+          Configuración
+        </Text>
+        <ChevronRightIcon color={colors.textMuted} size={18} />
+      </Pressable>
+
+      <Button
+        title="Cerrar Sesión"
+        onPress={logout}
+        style={{ backgroundColor: colors.error, borderRadius: BorderRadius.md }}
+      />
+    </View>
+  );
 
   return (
     <SafeAreaWrapper>
-      <Header title="Mi Perfil" showBackButton />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-
-        {/* ── Avatar + Nombre ── */}
-        <View style={styles.heroSection}>
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {nombreMostrado ? nombreMostrado.charAt(0).toUpperCase() : '?'}
-              </Text>
-            </View>
-            {/* Tier badge superpuesto */}
-            {tier && (
-              <View style={styles.tierOverlay}>
-                <Text style={styles.tierIconOverlay}>{tier.icono}</Text>
-              </View>
-            )}
-          </View>
-
-          {isEditing ? (
-            <View style={styles.editNameContainer}>
-              <TextInput
-                style={styles.nameInput}
-                value={editedName}
-                onChangeText={setEditedName}
-                autoFocus
-                maxLength={50}
-                placeholder="Tu nombre"
-                placeholderTextColor={DarkText.disabled}
-              />
-              <View style={styles.editNameButtons}>
-                <Button
-                  title="Cancelar"
-                  onPress={handleCancel}
-                  variant="ghost"
-                  style={styles.editBtnSm}
-                />
-                <Button
-                  title="Guardar"
-                  onPress={handleSave}
-                  disabled={!editedName.trim() || isSaving}
-                  loading={isSaving}
-                  style={styles.editBtnSm}
-                />
-              </View>
-            </View>
-          ) : (
-            <TouchableOpacity onPress={handleEditPress} style={styles.nameRow}>
-              <Text style={styles.displayName}>{nombreMostrado}</Text>
-              <Text style={styles.editIcon}>✏️</Text>
-            </TouchableOpacity>
-          )}
-
-          <Text style={styles.correo}>{usuario.correo}</Text>
-          <View style={styles.rolBadge}>
-            <Text style={styles.rolText}>{usuario.rol}</Text>
-          </View>
-        </View>
-
-        {/* ── Nivel, Tier y XP ── */}
-        {datosProgreso && progresoNivel && tier ? (
-          <View style={styles.card}>
-            {/* Fila: Nivel + Puntos + Tier */}
-            <View style={styles.levelRow}>
-              <View style={styles.levelInfo}>
-                <Text style={styles.levelNumber}>Nivel {datosProgreso.nivelActual}</Text>
-                <Text style={styles.levelXP}>
-                  {datosProgreso.puntosTotales.toLocaleString('es-MX')} XP totales
+      {!isDesktopHeader && <Header title="Mi Perfil" showBackButton />}
+      <ScrollView
+        style={[styles.scroll, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.innerContainer}>
+          {isDesktopHeader && (
+            <View style={styles.pageHero}>
+              <View style={styles.pageHeroText}>
+                <Text
+                  accessibilityRole="header"
+                  style={[styles.pageTitle, { color: colors.textPrimary }]}
+                >
+                  Mi perfil
+                </Text>
+                <Text style={[styles.pageSubtitle, { color: colors.textMuted }]}>
+                  Gestiona tu cuenta, revisa tu rango y personaliza tu experiencia
                 </Text>
               </View>
-              <TierBadge tier={tier} size="sm" />
+              <Pressable
+                onPress={() => navigation.navigate('Settings')}
+                accessibilityRole="button"
+                accessibilityLabel="Abrir configuración"
+                style={(state: any) => [
+                  styles.heroActionBtn,
+                  webPointer,
+                  {
+                    backgroundColor: colors.surfaceElevated,
+                    borderColor: colors.border,
+                  },
+                  state.hovered && { borderColor: colors.brandAccent },
+                  state.pressed && { opacity: 0.82 },
+                ]}
+              >
+                <GearIcon color={colors.textPrimary} size={17} />
+                <Text
+                  style={[
+                    styles.heroActionText,
+                    { color: colors.textPrimary },
+                  ]}
+                >
+                  Configuración
+                </Text>
+              </Pressable>
+            </View>
+          )}
+
+          <View style={isTwoColumn ? styles.twoColGrid : styles.singleCol}>
+            {/* ── Left Column ── */}
+            <View style={isTwoColumn ? styles.leftCol : undefined}>
+              {identityCard}
+              {datosProgreso && (
+                <StreakCounter racha={datosProgreso.rachaDias} />
+              )}
             </View>
 
-            {/* Barra de XP */}
-            <XpProgressBar
-              progresoNivel={progresoNivel}
-              nivelActual={datosProgreso.nivelActual}
-            />
-          </View>
-        ) : isLoadingProgreso ? (
-          <View style={[styles.card, styles.center, { paddingVertical: Spacing[6] }]}>
-            <ActivityIndicator color={Accent[500]} size="small" />
-            <Text style={[styles.errorText, { marginTop: Spacing[2] }]}>
-              Cargando progreso…
-            </Text>
-          </View>
-        ) : null}
+            {/* ── Right Column ── */}
+            <View style={isTwoColumn ? styles.rightCol : undefined}>
+              {datosProgreso && progresoNivel && tier ? (
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <View style={styles.levelRow}>
+                    <View style={styles.levelInfo}>
+                      <Text
+                        style={[styles.levelNumber, { color: colors.textPrimary }]}
+                      >
+                        Nivel {datosProgreso.nivelActual}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.levelXP,
+                          styles.tabular,
+                          { color: colors.textMuted },
+                        ]}
+                      >
+                        {datosProgreso.puntosTotales.toLocaleString('es-MX')} XP totales
+                      </Text>
+                    </View>
+                    <TierBadge tier={tier} size="sm" />
+                  </View>
 
-        {/* ── Racha de Días ── */}
-        {datosProgreso && (
-          <StreakCounter racha={datosProgreso.rachaDias} />
-        )}
+                  <XpProgressBar
+                    progresoNivel={progresoNivel}
+                    nivelActual={datosProgreso.nivelActual}
+                  />
+                </View>
+              ) : isLoadingProgreso ? (
+                <View
+                  style={[
+                    styles.card,
+                    styles.center,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      paddingVertical: Spacing[6],
+                    },
+                  ]}
+                >
+                  <ActivityIndicator color={colors.brandAccent} size="small" />
+                  <Text
+                    style={[
+                      styles.errorText,
+                      { color: colors.textMuted, marginTop: Spacing[2] },
+                    ]}
+                  >
+                    Cargando progreso…
+                  </Text>
+                </View>
+              ) : null}
 
-        {/* ── Estadísticas ── */}
-        {datosProgreso && (
-          <ProfileStatsCard
-            simulacionesCompletadas={datosProgreso.simulacionesCompletadas}
-            ejerciciosCorrectos={datosProgreso.ejerciciosCorrectos}
-            ejerciciosTotales={datosProgreso.ejerciciosTotales}
-            posicionRanking={datosProgreso.posicionRanking}
-            puntosTotales={datosProgreso.puntosTotales}
-          />
-        )}
-
-        {/* ── Vitrina de Insignias ── */}
-        {(() => {
-          const vitrina =
-            catalogoInsignias && catalogoInsignias.length > 0
-              ? catalogoInsignias
-              : (datosProgreso?.insignias ?? []).map((ins) => ({
-                  ...ins,
-                  desbloqueada: true,
-                }));
-          const desbloqueadasCount = vitrina.filter(
-            (b) => b.desbloqueada !== false,
-          ).length;
-
-          if (vitrina.length === 0) return null;
-
-          return (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                Vitrina de Insignias ({desbloqueadasCount}/{vitrina.length})
-              </Text>
-              {vitrina.map((insignia, idx) => (
-                <BadgeCard
-                  key={`${insignia.nombre}-${idx}`}
-                  nombre={insignia.nombre}
-                  imagen={insignia.imagen}
-                  descripcion={(insignia as any).descripcion}
-                  criterioDesbloqueo={(insignia as any).criterioDesbloqueo}
-                  categoria={(insignia as any).categoria}
-                  desbloqueada={insignia.desbloqueada ?? true}
-                  fechaObtencion={insignia.fechaObtencion}
+              {datosProgreso && (
+                <ProfileStatsCard
+                  simulacionesCompletadas={datosProgreso.simulacionesCompletadas}
+                  ejerciciosCorrectos={datosProgreso.ejerciciosCorrectos}
+                  ejerciciosTotales={datosProgreso.ejerciciosTotales}
+                  posicionRanking={datosProgreso.posicionRanking}
+                  puntosTotales={datosProgreso.puntosTotales}
                 />
-              ))}
-            </View>
-          );
-        })()}
+              )}
 
-        {/* ── Cuenta ── */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Cuenta</Text>
-          <View style={styles.fieldRow}>
-            <Text style={styles.fieldLabel}>ID de usuario</Text>
-            <Text style={styles.fieldValue} numberOfLines={1} ellipsizeMode="middle">
-              {usuario.id}
-            </Text>
+              {vitrina.length > 0 && (
+                <View
+                  style={[
+                    styles.card,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+                    Vitrina de Insignias ({desbloqueadasCount}/{vitrina.length})
+                  </Text>
+                  <View
+                    style={
+                      isTwoColumn ? styles.badgesGrid : styles.badgesList
+                    }
+                  >
+                    {vitrina.map((insignia, idx) => (
+                      <View
+                        key={`${insignia.nombre}-${idx}`}
+                        style={isTwoColumn ? styles.badgeGridItem : undefined}
+                      >
+                        <BadgeCard
+                          nombre={insignia.nombre}
+                          imagen={insignia.imagen}
+                          descripcion={(insignia as any).descripcion}
+                          criterioDesbloqueo={
+                            (insignia as any).criterioDesbloqueo
+                          }
+                          categoria={(insignia as any).categoria}
+                          desbloqueada={insignia.desbloqueada ?? true}
+                          fechaObtencion={insignia.fechaObtencion}
+                        />
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-
-        {/* ── Acciones ── */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Opciones</Text>
-
-          <TouchableOpacity
-            style={styles.settingsRow}
-            onPress={() => navigation.navigate('Settings')}
-            accessibilityLabel="Ir a configuración"
-          >
-            <Text style={styles.settingsIcon}>⚙️</Text>
-            <Text style={styles.settingsLabel}>Configuración</Text>
-            <Text style={styles.chevron}>›</Text>
-          </TouchableOpacity>
-
-          <Button
-            title="Cerrar Sesión"
-            onPress={logout}
-            style={styles.logoutButton}
-          />
-        </View>
-
       </ScrollView>
     </SafeAreaWrapper>
   );
 };
-
-// ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    padding: SpacingAlias.screenPaddingX,
+    paddingHorizontal: SpacingAlias.screenPaddingX,
+    paddingTop: Spacing[5],
     paddingBottom: Spacing[10],
+  },
+  innerContainer: {
+    maxWidth: 1180,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  pageHero: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing[4],
+    marginBottom: Spacing[6],
+  },
+  pageHeroText: {
+    flex: 1,
+    gap: Spacing[1],
+  },
+  pageTitle: {
+    fontFamily: FontFamilies.bold,
+    fontWeight: FontWeights.bold,
+    fontSize: 30,
+  },
+  pageSubtitle: {
+    fontFamily: FontFamilies.regular,
+    fontSize: FontSizes.md,
+  },
+  heroActionBtn: {
+    minHeight: 42,
+    paddingHorizontal: Spacing[4],
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+  },
+  heroActionText: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.sm,
+  },
+  twoColGrid: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing[5],
+  },
+  singleCol: {
+    flexDirection: 'column',
+  },
+  leftCol: {
+    width: 340,
+  },
+  rightCol: {
+    flex: 1,
+    minWidth: 0,
   },
   center: {
     flex: 1,
@@ -341,50 +549,24 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...TextVariants.bodyMd,
-    color: DarkText.muted,
   },
-
-  // ── Hero ──
   heroSection: {
     alignItems: 'center',
-    marginBottom: Spacing[6],
-    paddingTop: Spacing[4],
-  },
-  avatarContainer: {
-    position: 'relative',
     marginBottom: Spacing[4],
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Accent[700],
+    width: 88,
+    height: 88,
+    borderRadius: 44,
     borderWidth: 3,
-    borderColor: Accent[500],
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: Spacing[3],
   },
   avatarText: {
-    fontSize: FontSizes['4xl'],
-    color: DarkText.primary,
+    fontSize: FontSizes['3xl'],
     fontWeight: FontWeights.bold,
     fontFamily: FontFamilies.bold,
-  },
-  tierOverlay: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    borderRadius: 20,
-    width: 36,
-    height: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Accent[500],
-  },
-  tierIconOverlay: {
-    fontSize: 20,
   },
   nameRow: {
     flexDirection: 'row',
@@ -393,26 +575,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing[1],
   },
   displayName: {
-    ...TextVariants.h2,
-    color: DarkText.primary,
+    ...TextVariants.h3,
     fontWeight: FontWeights.bold,
-  },
-  editIcon: {
-    fontSize: FontSizes.md,
   },
   editNameContainer: {
     width: '100%',
     marginBottom: Spacing[2],
   },
   nameInput: {
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderWidth: 1,
-    borderColor: Accent[500],
     borderRadius: BorderRadius.md,
     padding: Spacing[3],
-    color: DarkText.primary,
     fontFamily: FontFamilies.regular,
-    fontSize: FontSizes.xl,
+    fontSize: FontSizes.lg,
     textAlign: 'center',
     marginBottom: Spacing[2],
   },
@@ -425,34 +600,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   correo: {
-    ...TextVariants.bodyMd,
-    color: DarkText.muted,
-    marginBottom: Spacing[2],
+    ...TextVariants.bodySm,
+    marginBottom: Spacing[3],
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
   },
   rolBadge: {
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing[4],
+    paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[1],
     borderWidth: 1,
-    borderColor: DarkSurfaces.border,
   },
   rolText: {
     ...TextVariants.labelSm,
-    color: DarkText.secondary,
     fontWeight: FontWeights.medium,
   },
-
-  // ── Nivel / XP ──
   card: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
+    borderWidth: 1,
     padding: Spacing[5],
     marginBottom: Spacing[4],
   },
   cardTitle: {
     ...TextVariants.h4,
-    color: DarkText.secondary,
     marginBottom: Spacing[4],
   },
   levelRow: {
@@ -466,68 +641,55 @@ const styles = StyleSheet.create({
   },
   levelNumber: {
     ...TextVariants.h3,
-    color: DarkText.primary,
     fontWeight: FontWeights.bold,
   },
   levelXP: {
     ...TextVariants.bodySm,
-    color: DarkText.muted,
     marginTop: Spacing[1],
   },
-
-  // ── Campo ──
+  tabular: {
+    ...(Platform.OS === 'web' ? { fontVariant: ['tabular-nums'] } : {}),
+  },
   fieldRow: {
-    marginBottom: Spacing[2],
+    paddingTop: Spacing[3],
+    marginBottom: Spacing[3],
+    borderTopWidth: 1,
   },
   fieldLabel: {
-    ...TextVariants.bodySm,
-    color: DarkText.muted,
-    marginBottom: Spacing[1],
+    ...TextVariants.labelSm,
+    marginBottom: 2,
   },
-  fieldValue: {
-    ...TextVariants.bodyMd,
-    color: DarkText.primary,
+  fieldValueMono: {
+    fontFamily: FontFamilies.mono,
+    fontSize: FontSizes.xs,
   },
-
-  // ── Acciones ──
   settingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing[3],
+    paddingHorizontal: Spacing[2],
+    borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
+    borderRadius: BorderRadius.sm,
     marginBottom: Spacing[4],
-  },
-  settingsIcon: {
-    fontSize: FontSizes.lg,
-    marginRight: Spacing[3],
+    gap: Spacing[3],
   },
   settingsLabel: {
     ...TextVariants.bodyMd,
-    color: DarkText.primary,
     flex: 1,
   },
-  chevron: {
-    ...TextVariants.h3,
-    color: DarkText.muted,
+  badgesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[3],
   },
-  logoutButton: {
-    backgroundColor: Semantic.error,
+  badgesList: {
+    flexDirection: 'column',
   },
-
-  // ── DEV Banner ──
-  devBanner: {
-    backgroundColor: 'rgba(245,166,35,0.1)',
-    borderWidth: 1,
-    borderColor: '#F5A623',
-    borderRadius: BorderRadius.md,
-    padding: Spacing[3],
-    alignItems: 'center',
-    marginBottom: Spacing[4],
-  },
-  devText: {
-    fontSize: FontSizes.xs,
-    color: '#F5A623',
-    fontFamily: FontFamilies.medium,
+  badgeGridItem: {
+    width: '48.5%',
+    minWidth: 260,
   },
 });
+
+export default ProfileScreen;

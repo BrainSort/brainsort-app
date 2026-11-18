@@ -85,4 +85,83 @@ describe('dataset.validator', () => {
     expect(result.valid).toBe(false);
     expect(result.errors.some(e => e.includes('tipoOrigen inválido'))).toBe(true);
   });
+
+  describe('validaciones de búsqueda y grafos (Sprint 1)', () => {
+    it('rechaza algoritmo de búsqueda sin objetivo entero', () => {
+      const dataset: ConjuntoDeDatos = {
+        tipoOrigen: 'Personalizado',
+        valores: [1, 2, 3],
+        tamano: 3,
+      };
+
+      const result = validateDataset(dataset, 'Linear Search');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('requiere un objetivo'))).toBe(true);
+    });
+
+    it('rechaza Búsqueda Binaria con arreglo desordenado', () => {
+      const dataset: ConjuntoDeDatos = {
+        tipoOrigen: 'Personalizado',
+        valores: [10, 5, 20],
+        tamano: 3,
+        objetivo: 5,
+      };
+
+      const result = validateDataset(dataset, 'Binary Search');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('ordenado ascendentemente'))).toBe(true);
+    });
+
+    it('sugerirOrdenamiento ordena un arreglo numérico', () => {
+      const { sugerirOrdenamiento } = require('../dataset.validator');
+      expect(sugerirOrdenamiento([30, 10, 20])).toEqual([10, 20, 30]);
+    });
+
+    it('rechaza grafo con menos de 2 nodos', () => {
+      const dataset: any = {
+        tipoOrigen: 'Personalizado',
+        grafo: {
+          nodos: ['A'],
+          aristas: [],
+          dirigido: false,
+        },
+      };
+
+      const result = validateDataset(dataset, 'BFS');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('al menos 2 nodos'))).toBe(true);
+    });
+
+    it('rechaza grafo con arista a nodo inexistente', () => {
+      const dataset: any = {
+        tipoOrigen: 'Personalizado',
+        grafo: {
+          nodos: ['A', 'B'],
+          aristas: [['A', 'Z']],
+          dirigido: false,
+        },
+      };
+
+      const result = validateDataset(dataset, 'DFS');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('inexistente'))).toBe(true);
+    });
+
+    it('rechaza nodo de inicio no existente en el grafo', () => {
+      const dataset: any = {
+        tipoOrigen: 'Personalizado',
+        grafo: {
+          nodos: ['A', 'B'],
+          aristas: [['A', 'B']],
+          dirigido: false,
+        },
+        nodoInicio: 'X',
+      };
+
+      const result = validateDataset(dataset, 'BFS');
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('nodo de inicio'))).toBe(true);
+    });
+  });
 });
+

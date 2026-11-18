@@ -170,13 +170,10 @@ export default function RegisterScreen({ navigation }: Props) {
           style={({ pressed, hovered }: any) => [
             styles.themeToggleButton,
             {
-              backgroundColor: hovered
-                ? colors.surfaceElevated
-                : colors.surface,
-              borderColor: colors.border,
-              opacity: pressed ? 0.82 : 1,
+              opacity: pressed ? 0.65 : hovered ? 0.8 : 1,
             },
             webInteractiveStyle,
+            Platform.OS === 'web' && ({ outlineStyle: 'none', outlineWidth: 0 } as any),
           ]}
           accessibilityRole="button"
           accessibilityLabel={
@@ -839,10 +836,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   themeToggleButton: {
-    minWidth: 40,
-    minHeight: 40,
-    borderRadius: BorderRadius.full,
-    borderWidth: BorderWidths.thin,
+    minWidth: 44,
+    minHeight: 44,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },

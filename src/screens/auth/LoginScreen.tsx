@@ -187,16 +187,18 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   themeToggleBtn: {
-    minWidth: 40,
-    minHeight: 40,
-    borderRadius: BorderRadius.full,
-    borderWidth: BorderWidths.thin,
+    minWidth: 44,
+    minHeight: 44,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
       web: {
         cursor: 'pointer',
-        transitionProperty: 'border-color, background-color',
+        outlineStyle: 'none',
+        outlineWidth: 0,
+        transitionProperty: 'opacity',
         transitionDuration: '160ms',
       } as any,
     }),
@@ -688,11 +690,10 @@ export default function LoginScreen({ navigation }: Props) {
       <View style={styles.topBar}>
         <Pressable
           onPress={toggleTheme}
-          style={({ hovered }: any) => [
+          style={({ pressed, hovered }: any) => [
             styles.themeToggleBtn,
             {
-              backgroundColor: colors.surface,
-              borderColor: hovered ? colors.brandAccent : colors.border,
+              opacity: pressed ? 0.65 : hovered ? 0.8 : 1,
             },
           ]}
           accessibilityRole="button"

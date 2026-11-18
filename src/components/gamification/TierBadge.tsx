@@ -12,7 +12,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { DarkSurfaces, DarkText, Accent } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, FontSizes, TextVariants } from '../../styles/typography';
 import { Spacing, BorderRadius } from '../../styles/spacing';
 import type { TierInfo } from '../../utils/xp.utils';
@@ -35,19 +35,36 @@ export interface TierBadgeProps {
  * <TierBadge tier={tier} />
  */
 export const TierBadge: React.FC<TierBadgeProps> = ({ tier, size = 'md' }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
   const isSmall = size === 'sm';
 
   return (
-    <View style={[styles.container, isSmall && styles.containerSm]}>
+    <View
+      style={[
+        styles.container,
+        isSmall && styles.containerSm,
+        {
+          backgroundColor: colors.surfaceElevated,
+          borderColor: colors.brandAccent,
+        },
+      ]}
+    >
       <Text style={[styles.icon, isSmall && styles.iconSm]}>
         {tier.icono}
       </Text>
       <View style={styles.info}>
-        <Text style={[styles.tierName, isSmall && styles.tierNameSm]}>
+        <Text
+          style={[
+            styles.tierName,
+            isSmall && styles.tierNameSm,
+            { color: colors.brandAccent },
+          ]}
+        >
           {tier.nombre}
         </Text>
         {!isSmall && (
-          <Text style={styles.tierRange}>
+          <Text style={[styles.tierRange, { color: colors.textMuted }]}>
             Niveles {tier.rango[0]}–{tier.rango[1]}
           </Text>
         )}
@@ -62,10 +79,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Accent[700],
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
     alignSelf: 'flex-start',
@@ -87,7 +102,6 @@ const styles = StyleSheet.create({
   },
   tierName: {
     ...TextVariants.labelMd,
-    color: Accent[500],
     fontWeight: FontWeights.bold,
   },
   tierNameSm: {
@@ -95,7 +109,6 @@ const styles = StyleSheet.create({
   },
   tierRange: {
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
     marginTop: 2,
   },
 });

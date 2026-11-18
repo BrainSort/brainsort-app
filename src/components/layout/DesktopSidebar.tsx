@@ -392,40 +392,15 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
             mode === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'
           }
           style={(state: any) => [
-            styles.themePanel,
+            styles.themeIconBtn,
             webInteractiveStyle,
-            {
-              backgroundColor: colors.surfaceElevated,
-              borderColor: colors.borderSubtle,
-            },
-            state.hovered && {
-              borderColor: colors.brandAccent,
-            },
-            state.pressed && { opacity: 0.85 },
-            state.focused &&
-              Platform.OS === 'web' && {
-                outlineWidth: 2,
-                outlineStyle: 'solid',
-                outlineColor: colors.brandAccent,
-              },
+            Platform.OS === 'web' &&
+              ({ outlineStyle: 'none', outlineWidth: 0 } as any),
+            state.hovered && { opacity: 0.78 },
+            state.pressed && { opacity: 0.6 },
           ]}
         >
           <ThemeIcon mode={mode} color={colors.textSecondary} />
-          <Text style={[styles.themeText, { color: colors.textPrimary }]}>
-            {mode === 'dark' ? 'Tema oscuro' : 'Tema claro'}
-          </Text>
-          <View
-            style={[
-              styles.toggle,
-              {
-                backgroundColor:
-                  mode === 'dark' ? colors.brandAccent : colors.border,
-                alignItems: mode === 'dark' ? 'flex-end' : 'flex-start',
-              },
-            ]}
-          >
-            <View style={styles.toggleKnob} />
-          </View>
         </Pressable>
       </View>
     </View>
@@ -553,32 +528,15 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     ...(Platform.OS === 'web' ? { fontVariant: ['tabular-nums'] } : {}),
   },
-  themePanel: {
-    minHeight: 52,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
+  themeIconBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
-    gap: Spacing[3],
-    paddingHorizontal: Spacing[4],
-  },
-  themeText: {
-    flex: 1,
-    fontFamily: FontFamilies.medium,
-    fontSize: FontSizes.sm,
-  },
-  toggle: {
-    width: 38,
-    height: 22,
-    borderRadius: BorderRadius.full,
-    padding: 3,
     justifyContent: 'center',
-  },
-  toggleKnob: {
-    width: 16,
-    height: 16,
-    borderRadius: 999,
-    backgroundColor: '#FFFFFF',
+    alignSelf: 'center',
   },
 });
 

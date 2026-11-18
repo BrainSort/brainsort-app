@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { DarkSurfaces, DarkText, Accent } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, TextVariants } from '../../styles/typography';
 import { Spacing } from '../../styles/spacing';
 
@@ -17,18 +17,36 @@ export const LeaderboardRow: React.FC<LeaderboardRowProps> = ({
   puntos,
   nivel,
 }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
+
   return (
-    <View style={styles.leaderboardRow}>
-      <View style={styles.rankBadge}>
-        <Text style={styles.rankNumber}>{posicion}</Text>
+    <View
+      style={[
+        styles.leaderboardRow,
+        { borderBottomColor: colors.border },
+      ]}
+    >
+      <View style={[styles.rankBadge, { backgroundColor: colors.brandAccent }]}>
+        <Text style={[styles.rankNumber, { color: colors.textOnAccent }]}>
+          {posicion}
+        </Text>
       </View>
       <View style={styles.rowInfo}>
-        <Text style={styles.rowName}>{nombre}</Text>
-        <Text style={styles.rowLevel}>Nivel {nivel}</Text>
+        <Text style={[styles.rowName, { color: colors.textPrimary }]}>
+          {nombre}
+        </Text>
+        <Text style={[styles.rowLevel, { color: colors.textMuted }]}>
+          Nivel {nivel}
+        </Text>
       </View>
       <View style={styles.rowPoints}>
-        <Text style={styles.pointsValue}>{puntos}</Text>
-        <Text style={styles.pointsLabel}>XP</Text>
+        <Text style={[styles.pointsValue, { color: colors.brandAccent }]}>
+          {puntos}
+        </Text>
+        <Text style={[styles.pointsLabel, { color: colors.textMuted }]}>
+          XP
+        </Text>
       </View>
     </View>
   );
@@ -40,20 +58,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: Spacing[3],
     borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
   },
   rankBadge: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Accent[500],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing[3],
   },
   rankNumber: {
     ...TextVariants.labelMd,
-    color: DarkText.primary,
     fontWeight: FontWeights.bold,
   },
   rowInfo: {
@@ -61,23 +76,19 @@ const styles = StyleSheet.create({
   },
   rowName: {
     ...TextVariants.bodyMd,
-    color: DarkText.primary,
     fontWeight: FontWeights.medium,
   },
   rowLevel: {
     ...TextVariants.bodySm,
-    color: DarkText.muted,
   },
   rowPoints: {
     alignItems: 'flex-end',
   },
   pointsValue: {
     ...TextVariants.labelMd,
-    color: Accent[500],
     fontWeight: FontWeights.bold,
   },
   pointsLabel: {
     ...TextVariants.caption,
-    color: DarkText.muted,
   },
 });

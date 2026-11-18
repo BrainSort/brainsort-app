@@ -28,13 +28,7 @@ import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { Button } from '../../components/common/Button';
 import { LeaderboardRow } from '../../components/gamification/LeaderboardRow';
-import {
-  DarkSurfaces,
-  DarkText,
-  Accent,
-  Semantic,
-  Primary,
-} from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, TextVariants } from '../../styles/typography';
 import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
 
@@ -47,6 +41,8 @@ import { Spacing, SpacingAlias, BorderRadius } from '../../styles/spacing';
  * <LeaderboardScreen />
  */
 export const LeaderboardScreen: React.FC = () => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
   const [limit] = useState(20);
   const [offset, setOffset] = useState(0);
 
@@ -65,7 +61,7 @@ export const LeaderboardScreen: React.FC = () => {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>
-          <ActivityIndicator color={Accent[500]} size="large" />
+          <ActivityIndicator color={colors.brandAccent} size="large" />
         </View>
       </SafeAreaWrapper>
     );
@@ -76,7 +72,9 @@ export const LeaderboardScreen: React.FC = () => {
       <SafeAreaWrapper>
         <Header title="Ranking" showBackButton />
         <View style={styles.center}>
-          <Text style={styles.errorText}>Error cargando ranking</Text>
+          <Text style={[styles.errorText, { color: colors.textMuted }]}>
+            Error cargando ranking
+          </Text>
         </View>
       </SafeAreaWrapper>
     );
@@ -85,54 +83,96 @@ export const LeaderboardScreen: React.FC = () => {
   return (
     <SafeAreaWrapper>
       <Header title="Ranking Global" showBackButton />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={[styles.scroll, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Top 3 Podium */}
         {leaderboard.ranking && leaderboard.ranking.length >= 3 && (
           <View style={styles.podiumContainer}>
             {/* 2nd Place */}
-            <View style={[styles.podiumItem, styles.podiumSecond]}>
-              <View style={styles.podiumRank}>
-                <Text style={styles.podiumRankNumber}>2</Text>
+            <View
+              style={[
+                styles.podiumItem,
+                styles.podiumSecond,
+                { backgroundColor: colors.brandAccent },
+              ]}
+            >
+              <View
+                style={[
+                  styles.podiumRank,
+                  { backgroundColor: colors.surfaceElevated },
+                ]}
+              >
+                <Text style={[styles.podiumRankNumber, { color: colors.textPrimary }]}>
+                  2
+                </Text>
               </View>
-              <Text style={styles.podiumName}>
+              <Text style={[styles.podiumName, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[1]?.nombre}
               </Text>
-              <Text style={styles.podiumPoints}>
+              <Text style={[styles.podiumPoints, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[1]?.puntosTotales} XP
               </Text>
-              <Text style={styles.podiumLevel}>
+              <Text style={[styles.podiumLevel, { color: colors.textOnAccent }]}>
                 Nivel {leaderboard.ranking[1]?.nivelActual}
               </Text>
             </View>
 
             {/* 1st Place */}
-            <View style={[styles.podiumItem, styles.podiumFirst]}>
-              <View style={[styles.podiumRank, styles.podiumRankFirst]}>
-                <Text style={styles.podiumRankNumber}>1</Text>
+            <View
+              style={[
+                styles.podiumItem,
+                styles.podiumFirst,
+                { backgroundColor: colors.success },
+              ]}
+            >
+              <View
+                style={[
+                  styles.podiumRank,
+                  { backgroundColor: colors.successLight },
+                ]}
+              >
+                <Text style={[styles.podiumRankNumber, { color: colors.textPrimary }]}>
+                  1
+                </Text>
               </View>
-              <Text style={styles.podiumName}>
+              <Text style={[styles.podiumName, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[0]?.nombre}
               </Text>
-              <Text style={styles.podiumPoints}>
+              <Text style={[styles.podiumPoints, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[0]?.puntosTotales} XP
               </Text>
-              <Text style={styles.podiumLevel}>
+              <Text style={[styles.podiumLevel, { color: colors.textOnAccent }]}>
                 Nivel {leaderboard.ranking[0]?.nivelActual}
               </Text>
             </View>
 
             {/* 3rd Place */}
-            <View style={[styles.podiumItem, styles.podiumThird]}>
-              <View style={styles.podiumRank}>
-                <Text style={styles.podiumRankNumber}>3</Text>
+            <View
+              style={[
+                styles.podiumItem,
+                styles.podiumThird,
+                { backgroundColor: colors.brandPrimary },
+              ]}
+            >
+              <View
+                style={[
+                  styles.podiumRank,
+                  { backgroundColor: colors.surfaceElevated },
+                ]}
+              >
+                <Text style={[styles.podiumRankNumber, { color: colors.textPrimary }]}>
+                  3
+                </Text>
               </View>
-              <Text style={styles.podiumName}>
+              <Text style={[styles.podiumName, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[2]?.nombre}
               </Text>
-              <Text style={styles.podiumPoints}>
+              <Text style={[styles.podiumPoints, { color: colors.textOnAccent }]}>
                 {leaderboard.ranking[2]?.puntosTotales} XP
               </Text>
-              <Text style={styles.podiumLevel}>
+              <Text style={[styles.podiumLevel, { color: colors.textOnAccent }]}>
                 Nivel {leaderboard.ranking[2]?.nivelActual}
               </Text>
             </View>
@@ -140,8 +180,13 @@ export const LeaderboardScreen: React.FC = () => {
         )}
 
         {/* Full List */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
             Top {leaderboard.ranking?.length || 0} (Total: {leaderboard.total})
           </Text>
           <FlatList
@@ -187,7 +232,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...TextVariants.bodyMd,
-    color: DarkText.muted,
   },
   podiumContainer: {
     flexDirection: 'row',
@@ -199,63 +243,50 @@ const styles = StyleSheet.create({
   podiumItem: {
     alignItems: 'center',
     width: '30%',
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing[3],
   },
   podiumFirst: {
-    backgroundColor: Semantic.success,
     paddingBottom: Spacing[5],
   },
   podiumSecond: {
-    backgroundColor: Accent[500],
     paddingBottom: Spacing[3],
   },
   podiumThird: {
-    backgroundColor: Primary[500],
     paddingBottom: Spacing[2],
   },
   podiumRank: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: DarkSurfaces.surfaceElevated,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing[2],
   },
-  podiumRankFirst: {
-    backgroundColor: Semantic.successLight,
-  },
   podiumRankNumber: {
     ...TextVariants.labelMd,
-    color: DarkText.primary,
     fontWeight: FontWeights.bold,
   },
   podiumName: {
     ...TextVariants.bodySm,
-    color: DarkText.primary,
     textAlign: 'center',
     marginBottom: Spacing[1],
   },
   podiumPoints: {
     ...TextVariants.labelMd,
-    color: DarkText.primary,
     fontWeight: FontWeights.semiBold,
   },
   podiumLevel: {
     ...TextVariants.caption,
-    color: DarkText.muted,
   },
   card: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
+    borderWidth: 1,
     padding: Spacing[4],
     marginBottom: Spacing[4],
   },
   cardTitle: {
     ...TextVariants.h4,
-    color: DarkText.secondary,
     marginBottom: Spacing[3],
   },
 });

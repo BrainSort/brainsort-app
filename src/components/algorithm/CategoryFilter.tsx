@@ -36,7 +36,8 @@ export type Categoria =
   | 'Ordenamiento'
   | 'Busqueda'
   | 'EstructurasLineales'
-  | 'EstructurasArboles';
+  | 'EstructurasArboles'
+  | 'Grafos';
 
 export interface CategoryFilterProps {
   /** Categorías disponibles provenientes de la API */
@@ -55,6 +56,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   Busqueda: 'Búsqueda',
   EstructurasLineales: 'Estructuras Lineales',
   EstructurasArboles: 'Estructuras de árboles',
+  Grafos: 'Grafos',
 };
 
 // ─── Iconos SVG ───────────────────────────────────────────────────────────────
@@ -128,6 +130,17 @@ function CategoryIcon({
         <Circle cx="6" cy="19" r="2.5" {...strokeProps} />
         <Circle cx="18" cy="19" r="2.5" {...strokeProps} />
         <Path d="M12 7.5V12M12 12H6v4.5M12 12h6v4.5" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  if (category === 'Grafos') {
+    return (
+      <Svg {...commonProps}>
+        <Circle cx="6" cy="6" r="2.5" {...strokeProps} />
+        <Circle cx="18" cy="6" r="2.5" {...strokeProps} />
+        <Circle cx="12" cy="18" r="2.5" {...strokeProps} />
+        <Path d="M8.5 6h7M7.2 8.2l3.6 7.6M16.8 8.2l-3.6 7.6" {...strokeProps} />
       </Svg>
     );
   }

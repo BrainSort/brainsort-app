@@ -23,7 +23,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DarkSurfaces } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -55,12 +55,19 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   style,
   disableSafeArea = false,
 }) => {
+  const { theme } = useThemeContext();
+  const containerStyle = [
+    styles.container,
+    { backgroundColor: theme.colors.background },
+    style,
+  ];
+
   if (disableSafeArea) {
-    return <View style={[styles.container, style]}>{children}</View>;
+    return <View style={containerStyle}>{children}</View>;
   }
 
   return (
-    <SafeAreaView edges={edges} style={[styles.container, style]}>
+    <SafeAreaView edges={edges} style={containerStyle}>
       {children}
     </SafeAreaView>
   );
@@ -71,6 +78,5 @@ export const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DarkSurfaces.background,
   },
 });
