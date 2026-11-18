@@ -313,6 +313,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
             <PredictionExercise
             tipo={currentExercise.tipo}
+            dificultad={currentExercise.dificultad}
             pregunta={currentExercise.pregunta}
             opciones={currentExercise.opciones}
             contenido={currentExercise.contenido}

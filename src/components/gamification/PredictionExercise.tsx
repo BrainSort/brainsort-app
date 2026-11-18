@@ -16,6 +16,7 @@ import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import type {
   BarsExerciseContent,
+  DificultadEjercicio,
   GraphExerciseContent,
   PseudocodeExerciseContent,
   TipoEjercicio,
@@ -23,6 +24,7 @@ import type {
 
 export interface PredictionExerciseProps {
   tipo: TipoEjercicio;
+  dificultad?: DificultadEjercicio;
   pregunta: string;
   opciones?: string[];
   contenido?:
@@ -106,6 +108,7 @@ function AlertCircleIcon({ color, size = 24 }: { color: string; size?: number })
 
 export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   tipo,
+  dificultad,
   pregunta,
   opciones,
   contenido,
@@ -301,19 +304,42 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
         </View>
       </View>
 
-      {/* Badge pill de tipo de ejercicio */}
-      <View
-        style={[
-          styles.typeBadge,
-          {
-            backgroundColor: colors.chipActiveBg,
-            borderColor: colors.chipActiveBorder,
-          },
-        ]}
-      >
-        <Text style={[styles.typeLabel, { color: colors.brandAccent }]}>
-          {getTypeLabel(tipo, isModoSeleccion)}
-        </Text>
+      {/* Badge pills de tipo y dificultad del ejercicio */}
+      <View style={styles.badgesRow}>
+        <View
+          style={[
+            styles.typeBadge,
+            {
+              backgroundColor: colors.chipActiveBg,
+              borderColor: colors.chipActiveBorder,
+            },
+          ]}
+        >
+          <Text style={[styles.typeLabel, { color: colors.brandAccent }]}>
+            {getTypeLabel(tipo, isModoSeleccion)}
+          </Text>
+        </View>
+        {dificultad ? (
+          <View
+            testID="exercise-difficulty-badge"
+            style={[
+              styles.typeBadge,
+              {
+                backgroundColor: getDifficultyMeta(dificultad, isDark).bg,
+                borderColor: getDifficultyMeta(dificultad, isDark).border,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.typeLabel,
+                { color: getDifficultyMeta(dificultad, isDark).text },
+              ]}
+            >
+              {getDifficultyMeta(dificultad, isDark).label}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <Text style={[styles.question, { color: colors.textPrimary }]}>
@@ -747,6 +773,35 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   );
 };
 
+function getDifficultyMeta(
+  dificultad: DificultadEjercicio,
+  isDark: boolean,
+): { label: string; bg: string; border: string; text: string } {
+  switch (dificultad) {
+    case 'Facil':
+      return {
+        label: 'Fácil · +10 XP',
+        bg: isDark ? 'rgba(126, 211, 33, 0.14)' : 'rgba(126, 211, 33, 0.16)',
+        border: 'rgba(126, 211, 33, 0.45)',
+        text: isDark ? '#8FE830' : '#1E6B12',
+      };
+    case 'Medio':
+      return {
+        label: 'Medio · +20 XP',
+        bg: isDark ? 'rgba(245, 158, 11, 0.14)' : 'rgba(245, 158, 11, 0.16)',
+        border: 'rgba(245, 158, 11, 0.48)',
+        text: isDark ? '#FBBF24' : '#92400E',
+      };
+    case 'Dificil':
+      return {
+        label: 'Difícil · +30 XP',
+        bg: isDark ? 'rgba(244, 63, 94, 0.14)' : 'rgba(208, 2, 27, 0.10)',
+        border: 'rgba(244, 63, 94, 0.45)',
+        text: isDark ? '#FF6B7A' : '#A80016',
+      };
+  }
+}
+
 function getTypeLabel(tipo: TipoEjercicio, isModoSeleccion?: boolean): string {
   switch (tipo) {
     case 'CompletarPseudocodigo':
@@ -797,13 +852,19 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: BorderRadius.full,
   },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing[2],
+    marginBottom: Spacing[3],
+  },
   typeBadge: {
     alignSelf: 'flex-start',
     borderWidth: 1,
     borderRadius: BorderRadius.full,
     paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[1],
-    marginBottom: Spacing[3],
   },
   typeLabel: {
     fontFamily: FontFamilies.semiBold,
