@@ -91,14 +91,14 @@ export const Semantic = {
 
 // ─── Surface & Background ─────────────────────────────────────────────────────
 
-/** Dark mode surfaces */
+/** Dark mode surfaces — refined deep-dark ocean palette */
 export const DarkSurfaces = {
-  background: Neutral[950],    // Page background
-  surface: Neutral[900],       // Card / panel base
-  surfaceElevated: Neutral[850], // Modals, dropdowns
-  surfaceHighlight: Neutral[800], // Active states, hover
-  border: Neutral[700],
-  borderSubtle: Neutral[800],
+  background: '#040911',                   // Page background
+  surface: '#0C1826',                      // Card / panel base
+  surfaceElevated: '#112031',              // Modals, dropdowns, elevated surfaces
+  surfaceHighlight: '#172B42',             // Active states, hover
+  border: 'rgba(126, 157, 183, 0.24)',
+  borderSubtle: 'rgba(126, 157, 183, 0.14)',
 } as const;
 
 /** Light mode surfaces */
@@ -113,22 +113,22 @@ export const LightSurfaces = {
 
 // ─── Text ─────────────────────────────────────────────────────────────────────
 
-/** Dark mode text */
+/** Dark mode text — >= 4.5:1 contrast on #040911 / #0C1826 / #112031 */
 export const DarkText = {
-  primary: Neutral[0],
-  secondary: Neutral[300],
-  muted: Neutral[500],
-  disabled: Neutral[600],
-  inverse: Neutral[950],
-  onAccent: Neutral[950],
+  primary: '#F6FBFF',
+  secondary: '#C4CDD5',
+  muted: '#9AA9B6',
+  disabled: Neutral[500],
+  inverse: '#040911',
+  onAccent: '#040911',
 } as const;
 
-/** Light mode text */
+/** Light mode text — >= 4.5:1 contrast on #FFFFFF / #F7F8FA / #EEF0F3 */
 export const LightText = {
   primary: Neutral[900],
   secondary: Neutral[600],
-  muted: Neutral[400],
-  disabled: Neutral[300],
+  muted: '#5A6472',
+  disabled: Neutral[400],
   inverse: Neutral[0],
   onAccent: Neutral[0],
 } as const;

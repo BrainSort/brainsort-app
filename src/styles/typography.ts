@@ -56,13 +56,13 @@ export const FontFamilies = {
     default: 'Inter, "Segoe UI", Arial, sans-serif',
   }) as string,
   /**
-   * Monospace — pseudocode panel, code snippets.
-   * Falls back to system monospace if not loaded.
+   * Monospace — pseudocode panel, code snippets, complexity metrics.
+   * Uses JetBrains Mono on web (loaded via Google Fonts in App.tsx).
    */
   mono: Platform.select({
     ios: 'Courier New',
     android: 'monospace',
-    default: '"Courier New", monospace',
+    default: '"JetBrains Mono", "Courier New", monospace',
   }) as string,
 } as const;
 
@@ -72,8 +72,8 @@ export const FontFamilies = {
  * T-shirt size scale. All values are in React Native dp / CSS px-equivalent.
  */
 export const FontSizes = {
-  /** 10 — tiny labels, captions */
-  xs: 10,
+  /** 11 — tiny labels, captions (minimum legible floor >= 11px) */
+  xs: 11,
   /** 12 — secondary captions, badges */
   sm: 12,
   /** 14 — body text default */

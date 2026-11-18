@@ -111,9 +111,32 @@ export interface ThemeColors {
   tabBarActive: string;
   tabBarInactive: string;
 
+  // Sidebar (Desktop)
+  sidebarBackground: string;
+  sidebarBorder: string;
+  sidebarActiveBg: string;
+  sidebarActiveBorder: string;
+  sidebarText: string;
+  sidebarTextActive: string;
+
+  // Filter chips
+  chipBackground: string;
+  chipBorder: string;
+  chipActiveBg: string;
+  chipActiveBorder: string;
+
   // Card
   cardBackground: string;
   cardBorder: string;
+
+  // Progress & metrics
+  progressTrack: string;
+  progressFill: string;
+  complexityText: string;
+
+  // Primary CTA
+  ctaPrimary: string;
+  ctaPrimaryBorder: string;
 
   // Overlay
   overlayBackground: string;
@@ -194,28 +217,51 @@ const DarkThemeColors: ThemeColors = {
   secondaryButtonText: Primary[400],
 
   // Input
-  inputBackground: Neutral[850],
-  inputBorder: Neutral[700],
-  inputBorderFocused: Primary[400],
-  inputText: Neutral[0],
-  inputPlaceholder: Neutral[500],
+  inputBackground: DarkSurfaces.surfaceElevated,
+  inputBorder: DarkSurfaces.border,
+  inputBorderFocused: Accent[500],
+  inputText: DarkText.primary,
+  inputPlaceholder: DarkText.muted,
 
   // Tab bar
-  tabBarBackground: Neutral[900],
-  tabBarBorder: Neutral[800],
+  tabBarBackground: '#071320',
+  tabBarBorder: 'rgba(126, 157, 183, 0.18)',
   tabBarActive: Accent[500],
-  tabBarInactive: Neutral[500],
+  tabBarInactive: DarkText.muted,
+
+  // Sidebar (Desktop)
+  sidebarBackground: '#071320',
+  sidebarBorder: 'rgba(126, 157, 183, 0.18)',
+  sidebarActiveBg: 'rgba(0, 212, 255, 0.12)',
+  sidebarActiveBorder: 'rgba(0, 212, 255, 0.42)',
+  sidebarText: DarkText.muted,
+  sidebarTextActive: DarkText.primary,
+
+  // Filter chips
+  chipBackground: '#0C1826',
+  chipBorder: 'rgba(126, 157, 183, 0.24)',
+  chipActiveBg: 'rgba(0, 212, 255, 0.14)',
+  chipActiveBorder: Accent[500],
 
   // Card
-  cardBackground: Neutral[900],
-  cardBorder: Neutral[800],
+  cardBackground: '#0C1826',
+  cardBorder: 'rgba(126, 157, 183, 0.22)',
+
+  // Progress & metrics
+  progressTrack: 'rgba(126, 157, 183, 0.20)',
+  progressFill: '#8FE830',
+  complexityText: '#A6FF2E',
+
+  // Primary CTA
+  ctaPrimary: '#237FFF',
+  ctaPrimaryBorder: 'rgba(114, 178, 251, 0.45)',
 
   // Overlay
-  overlayBackground: 'rgba(8, 11, 15, 0.75)',
+  overlayBackground: 'rgba(4, 9, 17, 0.78)',
 
   // Control bar
-  controlBarBackground: Neutral[850],
-  controlBarBorder: Neutral[700],
+  controlBarBackground: DarkSurfaces.surface,
+  controlBarBorder: DarkSurfaces.border,
   playButtonActive: Accent[500],
   playButtonDisabled: Neutral[600],
 };
@@ -272,17 +318,40 @@ const LightThemeColors: ThemeColors = {
   inputBorder: Neutral[300],
   inputBorderFocused: Primary[600],
   inputText: Neutral[900],
-  inputPlaceholder: Neutral[400],
+  inputPlaceholder: LightText.muted,
 
   // Tab bar
   tabBarBackground: Neutral[0],
   tabBarBorder: Neutral[200],
   tabBarActive: Primary[600],
-  tabBarInactive: Neutral[400],
+  tabBarInactive: LightText.muted,
+
+  // Sidebar (Desktop)
+  sidebarBackground: Neutral[0],
+  sidebarBorder: Neutral[200],
+  sidebarActiveBg: Primary[50],
+  sidebarActiveBorder: Primary[600],
+  sidebarText: LightText.secondary,
+  sidebarTextActive: Primary[700],
+
+  // Filter chips
+  chipBackground: Neutral[0],
+  chipBorder: Neutral[200],
+  chipActiveBg: Primary[50],
+  chipActiveBorder: Primary[500],
 
   // Card
   cardBackground: Neutral[0],
   cardBorder: Neutral[200],
+
+  // Progress & metrics
+  progressTrack: Neutral[200],
+  progressFill: '#3F8E16',
+  complexityText: '#2D6A0E',
+
+  // Primary CTA
+  ctaPrimary: Primary[600],
+  ctaPrimaryBorder: Primary[700],
 
   // Overlay
   overlayBackground: 'rgba(0, 0, 0, 0.5)',

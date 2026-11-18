@@ -5,17 +5,18 @@
  * task_breakdown.md T-FE-063
  *
  * Muestra un chip de color con el nivel de dificultad:
- *   - Facil   → Verde lima (dashboard HU-01)
- *   - Medio   → Cian (#19BFD2)
- *   - Dificil → Rojo (#D0021B)
+ *   - Facil   → Verde semántico
+ *   - Medio   → Cian semántico
+ *   - Dificil → Rojo semántico
  *
- * Intencionalmente no usa ThemeContext para poder ser un
- * componente "dumb" puro, sin dependencias de contexto.
+ * Adapta los colores al modo activo (dark / light) para garantizar
+ * contraste WCAG AA (>= 4.5:1) sobre el fondo de la píldora.
  */
 
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Semantic } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
+import type { ThemeMode } from '../../styles/theme';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
@@ -27,31 +28,64 @@ export interface DifficultyBadgeProps {
   dificultad: Dificultad;
 }
 
+export interface DifficultyStyleConfig {
+  label: string;
+  color: string;
+  background: string;
+  border: string;
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-export const DIFFICULTY_CONFIG: Record<
-  Dificultad,
-  { label: string; color: string; background: string; border: string }
+export const DIFFICULTY_THEME_CONFIG: Record<
+  ThemeMode,
+  Record<Dificultad, DifficultyStyleConfig>
 > = {
-  Facil: {
-    label: 'Fácil',
-    color: '#B7FF55',
-    background: 'rgba(166, 255, 46, 0.17)',
-    border: 'rgba(166, 255, 46, 0.38)',
+  dark: {
+    Facil: {
+      label: 'Fácil',
+      color: '#B7FF55',
+      background: 'rgba(166, 255, 46, 0.16)',
+      border: 'rgba(166, 255, 46, 0.38)',
+    },
+    Medio: {
+      label: 'Medio',
+      color: '#3CE2F5',
+      background: 'rgba(25, 191, 210, 0.16)',
+      border: 'rgba(25, 191, 210, 0.38)',
+    },
+    Dificil: {
+      label: 'Difícil',
+      color: '#FF6B7A',
+      background: 'rgba(255, 107, 122, 0.16)',
+      border: 'rgba(255, 107, 122, 0.40)',
+    },
   },
-  Medio: {
-    label: 'Medio',
-    color: '#19BFD2',
-    background: 'rgba(25, 191, 210, 0.16)',
-    border: 'rgba(25, 191, 210, 0.38)',
-  },
-  Dificil: {
-    label: 'Difícil',
-    color: Semantic.error,
-    background: 'rgba(208, 2, 27, 0.16)',
-    border: 'rgba(208, 2, 27, 0.38)',
+  light: {
+    Facil: {
+      label: 'Fácil',
+      color: '#1E6B12',
+      background: 'rgba(91, 190, 55, 0.14)',
+      border: 'rgba(30, 107, 18, 0.28)',
+    },
+    Medio: {
+      label: 'Medio',
+      color: '#096875',
+      background: 'rgba(25, 191, 210, 0.14)',
+      border: 'rgba(9, 104, 117, 0.28)',
+    },
+    Dificil: {
+      label: 'Difícil',
+      color: '#A80016',
+      background: 'rgba(208, 2, 27, 0.10)',
+      border: 'rgba(168, 0, 22, 0.28)',
+    },
   },
 };
+
+/** Alias de compatibilidad hacia atrás (modo oscuro por defecto) */
+export const DIFFICULTY_CONFIG: Record<Dificultad, DifficultyStyleConfig> =
+  DIFFICULTY_THEME_CONFIG.dark;
 
 /** Normaliza valores de API o legacy al enum de dificultad. */
 export function normalizeDificultad(value?: string): Dificultad {
@@ -88,7 +122,7 @@ const styles = StyleSheet.create({
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 /**
- * Chip de nivel de dificultad con color semántico.
+ * Chip de nivel de dificultad con color semántico y contraste >= 4.5:1.
  *
  * @example
  * <DifficultyBadge dificultad="Facil" />
@@ -97,7 +131,8 @@ const styles = StyleSheet.create({
 export const DifficultyBadge: React.FC<DifficultyBadgeProps> = ({
   dificultad,
 }) => {
-  const config = DIFFICULTY_CONFIG[dificultad];
+  const { mode } = useThemeContext();
+  const config = DIFFICULTY_THEME_CONFIG[mode][dificultad];
 
   return (
     <View

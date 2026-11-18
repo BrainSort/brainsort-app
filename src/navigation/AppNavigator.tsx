@@ -15,18 +15,19 @@
  *             02-frontend-app.md §6 Navegación
  */
 
-import React, { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useMemo } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import DiagnosticTestScreen from '../screens/onboarding/DiagnosticTestScreen';
+import { BrainSortLogo } from '../components/layout/BrainSortLogo';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthContext } from '../context/AuthContext';
+import { useThemeContext } from '../context/ThemeContext';
 import { useApiTokenSync } from '../services/api';
-import { DarkSurfaces, DarkText, Accent } from '../styles/colors';
 import { FontFamilies, FontSizes } from '../styles/typography';
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
@@ -34,27 +35,27 @@ import { FontFamilies, FontSizes } from '../styles/typography';
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    backgroundColor: DarkSurfaces.background,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 20,
   },
-  splashLogo: { fontSize: 56 },
   splashText: {
     fontFamily: FontFamilies.semiBold,
     fontSize: FontSizes.lg,
-    color: DarkText.muted,
   },
 });
 
 // ─── Splash loader ────────────────────────────────────────────────────────────
 
 function SplashLoader() {
+  const { theme } = useThemeContext();
   return (
-    <View style={styles.splash}>
-      <Text style={styles.splashLogo}>⇅</Text>
-      <ActivityIndicator color={Accent[500]} size="large" />
-      <Text style={styles.splashText}>Cargando BrainSort…</Text>
+    <View style={[styles.splash, { backgroundColor: theme.colors.background }]}>
+      <BrainSortLogo size={64} />
+      <ActivityIndicator color={theme.colors.brandAccent} size="large" />
+      <Text style={[styles.splashText, { color: theme.colors.textMuted }]}>
+        Cargando BrainSort…
+      </Text>
     </View>
   );
 }
@@ -76,7 +77,7 @@ function AuthenticatedNavigator() {
 
 function RootNavigator() {
   const { restoreSession } = useAuth();
-  const { isAuthenticated, isLoading, setAuth } = useAuthContext();
+  const { isAuthenticated, isLoading } = useAuthContext();
 
   // Sincroniza token del contexto con el cliente HTTP
   useApiTokenSync();
@@ -107,8 +108,29 @@ function RootNavigator() {
  * por encima de este componente.
  */
 export default function AppNavigator() {
+  const { mode, theme } = useThemeContext();
+  const baseNavTheme = mode === 'dark' ? DarkTheme : DefaultTheme;
+
+  const navigationTheme = useMemo(
+    () => ({
+      ...baseNavTheme,
+      dark: mode === 'dark',
+      colors: {
+        ...baseNavTheme.colors,
+        primary: theme.colors.brandAccent,
+        background: theme.colors.background,
+        card: theme.colors.surface,
+        text: theme.colors.textPrimary,
+        border: theme.colors.border,
+        notification: theme.colors.brandAccent,
+      },
+    }),
+    [baseNavTheme, mode, theme],
+  );
+
   return (
     <NavigationContainer
+      theme={navigationTheme}
       documentTitle={{
         formatter: (options, route) => {
           const title = options?.title ?? route?.name;

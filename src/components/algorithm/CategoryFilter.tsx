@@ -15,15 +15,17 @@
  *             task_breakdown.md T-FE-062
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
+  Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { DarkSurfaces, DarkText, Neutral, Primary, Accent } from '../../styles/colors';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { useThemeContext } from '../../context/ThemeContext';
 import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
@@ -33,7 +35,8 @@ import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 export type Categoria =
   | 'Ordenamiento'
   | 'Busqueda'
-  | 'EstructurasLineales';
+  | 'EstructurasLineales'
+  | 'EstructurasArboles';
 
 export interface CategoryFilterProps {
   /** Categorías disponibles provenientes de la API */
@@ -51,13 +54,90 @@ const CATEGORY_LABELS: Record<string, string> = {
   Ordenamiento: 'Ordenamiento',
   Busqueda: 'Búsqueda',
   EstructurasLineales: 'Estructuras Lineales',
+  EstructurasArboles: 'Estructuras de árboles',
 };
 
-const CATEGORY_ICONS: Record<string, string> = {
-  Ordenamiento: '⇅',
-  Busqueda: '⌕',
-  EstructurasLineales: '≡',
-};
+// ─── Iconos SVG ───────────────────────────────────────────────────────────────
+
+function CategoryIcon({
+  category,
+  color,
+}: {
+  category: string;
+  color: string;
+}) {
+  const commonProps = {
+    width: 16,
+    height: 16,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+  };
+
+  const strokeProps = {
+    stroke: color,
+    strokeWidth: 1.75,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
+
+  if (category === 'all') {
+    return (
+      <Svg {...commonProps}>
+        <Rect x="3" y="3" width="7" height="7" rx="1.5" {...strokeProps} />
+        <Rect x="14" y="3" width="7" height="7" rx="1.5" {...strokeProps} />
+        <Rect x="3" y="14" width="7" height="7" rx="1.5" {...strokeProps} />
+        <Rect x="14" y="14" width="7" height="7" rx="1.5" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  if (category === 'Ordenamiento') {
+    return (
+      <Svg {...commonProps}>
+        <Path d="M7 18V6" {...strokeProps} />
+        <Path d="M3.5 9.5L7 6l3.5 3.5" {...strokeProps} />
+        <Path d="M17 6v12" {...strokeProps} />
+        <Path d="M13.5 14.5L17 18l3.5-3.5" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  if (category === 'Busqueda') {
+    return (
+      <Svg {...commonProps}>
+        <Circle cx="11" cy="11" r="7" {...strokeProps} />
+        <Path d="M20 20l-3.5-3.5" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  if (category === 'EstructurasLineales') {
+    return (
+      <Svg {...commonProps}>
+        <Path d="M4 7h16" {...strokeProps} />
+        <Path d="M4 12h16" {...strokeProps} />
+        <Path d="M4 17h16" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  if (category === 'EstructurasArboles') {
+    return (
+      <Svg {...commonProps}>
+        <Circle cx="12" cy="5" r="2.5" {...strokeProps} />
+        <Circle cx="6" cy="19" r="2.5" {...strokeProps} />
+        <Circle cx="18" cy="19" r="2.5" {...strokeProps} />
+        <Path d="M12 7.5V12M12 12H6v4.5M12 12h6v4.5" {...strokeProps} />
+      </Svg>
+    );
+  }
+
+  return (
+    <Svg {...commonProps}>
+      <Path d="M12 3l8 9-8 9-8-9 8-9z" {...strokeProps} />
+    </Svg>
+  );
+}
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
@@ -74,53 +154,34 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing[1],
+    gap: Spacing[1.5],
     paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[2],
     borderRadius: BorderRadius.full,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    backgroundColor: DarkSurfaces.surface,
-  },
-  chipActive: {
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: Accent[500],
-  },
-  chipIcon: {
-    fontSize: FontSizes.md,
-    color: DarkText.muted,
-  },
-  chipIconActive: {
-    color: Accent[500],
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        transitionProperty: 'background-color, border-color, transform',
+        transitionDuration: '160ms',
+      } as any,
+    }),
   },
   chipLabel: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.sm,
-    color: DarkText.secondary,
   },
   chipLabelActive: {
-    color: Accent[500],
     fontFamily: FontFamilies.semiBold,
     fontWeight: FontWeights.semiBold,
-  },
-
-  // Indicador de selección debajo del chip activo (barra de subrayado)
-  activeIndicator: {
-    position: 'absolute',
-    bottom: -2,
-    left: 8,
-    right: 8,
-    height: 2,
-    backgroundColor: Accent[500],
-    borderRadius: BorderRadius.full,
   },
 });
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 /**
- * Filtro horizontal de categorías. Poner "todos" primero siempre.
+ * Filtro horizontal de categorías. Poner "Todos" primero siempre.
  *
  * @example
  * <CategoryFilter
@@ -134,6 +195,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   selected,
   onSelect,
 }) => {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
+  const [focusedKey, setFocusedKey] = useState<string | null>(null);
+
   const handleAll = useCallback(() => onSelect(undefined), [onSelect]);
 
   const handleSelect = useCallback(
@@ -155,67 +220,112 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         accessibilityLabel="Filtros de categoría"
       >
         {/* Chip "Todos" */}
-        <TouchableOpacity
-          style={[styles.chip, isAllActive && styles.chipActive]}
+        <Pressable
+          style={({ pressed, hovered }: any) => [
+            styles.chip,
+            {
+              backgroundColor: isAllActive
+                ? colors.chipActiveBg
+                : colors.chipBackground,
+              borderColor: isAllActive
+                ? colors.chipActiveBorder
+                : hovered
+                  ? colors.brandAccent
+                  : colors.chipBorder,
+              opacity: pressed ? 0.8 : 1,
+            },
+            Platform.OS === 'web' &&
+              focusedKey === 'all' &&
+              ({
+                outlineWidth: 2,
+                outlineStyle: 'solid',
+                outlineColor: colors.brandAccent,
+                outlineOffset: 2,
+              } as any),
+          ]}
           onPress={handleAll}
-          activeOpacity={0.75}
+          onFocus={() => setFocusedKey('all')}
+          onBlur={() => setFocusedKey(null)}
           accessibilityRole="tab"
           accessibilityState={{ selected: isAllActive }}
           accessibilityLabel="Todos los algoritmos"
           testID="category-filter-all"
         >
-          <Text
-            style={[
-              styles.chipIcon,
-              isAllActive && styles.chipIconActive,
-            ]}
-          >
-            ❖
-          </Text>
+          <CategoryIcon
+            category="all"
+            color={isAllActive ? colors.brandAccent : colors.textMuted}
+          />
           <Text
             style={[
               styles.chipLabel,
+              {
+                color: isAllActive
+                  ? colors.brandAccent
+                  : colors.textSecondary,
+              },
               isAllActive && styles.chipLabelActive,
             ]}
           >
             Todos
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Chips de categoría */}
         {categorias.map((cat) => {
           const isActive = selected === cat;
           const label = CATEGORY_LABELS[cat] ?? cat;
-          const icon = CATEGORY_ICONS[cat] ?? '◈';
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={cat}
-              style={[styles.chip, isActive && styles.chipActive]}
+              style={({ pressed, hovered }: any) => [
+                styles.chip,
+                {
+                  backgroundColor: isActive
+                    ? colors.chipActiveBg
+                    : colors.chipBackground,
+                  borderColor: isActive
+                    ? colors.chipActiveBorder
+                    : hovered
+                      ? colors.brandAccent
+                      : colors.chipBorder,
+                  opacity: pressed ? 0.8 : 1,
+                },
+                Platform.OS === 'web' &&
+                  focusedKey === cat &&
+                  ({
+                    outlineWidth: 2,
+                    outlineStyle: 'solid',
+                    outlineColor: colors.brandAccent,
+                    outlineOffset: 2,
+                  } as any),
+              ]}
               onPress={() => handleSelect(cat)}
-              activeOpacity={0.75}
+              onFocus={() => setFocusedKey(cat)}
+              onBlur={() => setFocusedKey(null)}
               accessibilityRole="tab"
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={`Filtrar por ${label}`}
               testID={`category-filter-${cat}`}
             >
-              <Text
-                style={[
-                  styles.chipIcon,
-                  isActive && styles.chipIconActive,
-                ]}
-              >
-                {icon}
-              </Text>
+              <CategoryIcon
+                category={cat}
+                color={isActive ? colors.brandAccent : colors.textMuted}
+              />
               <Text
                 style={[
                   styles.chipLabel,
+                  {
+                    color: isActive
+                      ? colors.brandAccent
+                      : colors.textSecondary,
+                  },
                   isActive && styles.chipLabelActive,
                 ]}
               >
                 {label}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </ScrollView>

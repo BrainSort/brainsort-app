@@ -3,74 +3,70 @@
  * BrainSort — Barra de tabs inferior
  *
  * task_breakdown.md T-FE-082
- *
- * Props:
- *   • state: Estado actual de navegación
- *   • descriptors: Descriptores de navegación de React Navigation
- *   • navigation: Objeto de navegación
- *
- * Tabs: Biblioteca | Progreso | Offline | Perfil
- *
- * Referencia: 02-frontend-app.md §1 components/layout/BottomTabBar.tsx
- *            styles/colors.ts, styles/typography.ts
  */
 
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Colors, DarkText, DarkSurfaces, Accent } from '../../styles/colors';
+import { NavTabIcon, type NavTabName } from './DesktopSidebar';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
-interface TabItem {
-  key: string;
+interface TabMeta {
+  tab: NavTabName;
   label: string;
-  icon: string;
 }
 
-const TABS: TabItem[] = [
-  { key: 'Library', label: 'Biblioteca', icon: '📚' },
-  { key: 'Progress', label: 'Progreso', icon: '📊' },
-  { key: 'Offline', label: 'Offline', icon: '📴' },
-  { key: 'Profile', label: 'Perfil', icon: '👤' },
-];
+const ROUTE_TO_TAB: Record<string, TabMeta> = {
+  Biblioteca: { tab: 'Biblioteca', label: 'Biblioteca' },
+  Library: { tab: 'Biblioteca', label: 'Biblioteca' },
+  Ruta: { tab: 'Ruta', label: 'Ruta' },
+  Progreso: { tab: 'Progreso', label: 'Progreso' },
+  Progress: { tab: 'Progreso', label: 'Progreso' },
+  Offline: { tab: 'Offline', label: 'Offline' },
+  Perfil: { tab: 'Perfil', label: 'Perfil' },
+  Profile: { tab: 'Perfil', label: 'Perfil' },
+};
 
-// ─── Componente ───────────────────────────────────────────────────────────────
-
-/**
- * Componente de barra de tabs inferior con iconos y labels.
- *
- * @example
- * <BottomTabBar
- *   state={state}
- *   descriptors={descriptors}
- *   navigation={navigation}
- * />
- */
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.tabBarBackground,
+          borderTopColor: colors.tabBarBorder,
+        },
+      ]}
+    >
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
+        const meta = ROUTE_TO_TAB[route.name] ?? {
+          tab: 'Biblioteca' as NavTabName,
+          label: route.name,
+        };
         const label =
-          options.tabBarLabel !== undefined
-            ? options.tabBarLabel as string
+          typeof options.tabBarLabel === 'string'
+            ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name;
+              ? options.title
+              : meta.label;
 
         const isFocused = state.index === index;
+        const iconColor = isFocused ? colors.tabBarActive : colors.tabBarInactive;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -84,80 +80,83 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
           }
         };
 
-        const tabInfo = TABS.find((tab) => tab.key === route.name) || TABS[0];
-
         return (
-          <TouchableOpacity
+          <Pressable
             key={route.key}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={tabInfo.label}
+            accessibilityLabel={options.tabBarAccessibilityLabel ?? label}
             testID={options.tabBarTestID}
             onPress={onPress}
-            style={styles.tab}
-            activeOpacity={0.7}
+            style={(pressState: any) => [
+              styles.tab,
+              Platform.OS === 'web' && ({ cursor: 'pointer' } as any),
+              pressState.hovered &&
+                !isFocused && { backgroundColor: colors.surfaceHighlight },
+              pressState.pressed && { opacity: 0.75 },
+              pressState.focused &&
+                Platform.OS === 'web' && {
+                  outlineWidth: 2,
+                  outlineStyle: 'solid',
+                  outlineColor: colors.brandAccent,
+                },
+            ]}
           >
-            <View style={[styles.tabContent, isFocused && styles.tabFocused]}>
-              <Text style={[styles.icon, isFocused && styles.iconFocused]}>
-                {tabInfo.icon}
-              </Text>
-              <Text style={[styles.label, isFocused && styles.labelFocused]}>
-                {tabInfo.label}
+            <View style={styles.tabContent}>
+              <NavTabIcon
+                tab={meta.tab}
+                color={iconColor}
+                size={22}
+                strokeWidth={1.75}
+              />
+              <Text
+                style={[
+                  styles.label,
+                  { color: iconColor },
+                  isFocused && styles.labelFocused,
+                ]}
+                numberOfLines={1}
+              >
+                {label}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>
   );
 };
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: DarkSurfaces.surface,
     borderTopWidth: 1,
-    borderTopColor: DarkSurfaces.border,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
-    paddingTop: 8,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 4,
+    paddingTop: 4,
     paddingHorizontal: 8,
   },
   tab: {
     flex: 1,
+    minHeight: 48,
+    minWidth: 48,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   tabContent: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabFocused: {
-    // Focus visual indicator
-    ...(Platform.OS === 'web' && {
-      borderRadius: 8,
-    }),
-  },
-  icon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  iconFocused: {
-    // Web focused icon
-    ...(Platform.OS === 'web' && {
-      opacity: 1,
-    }),
+    gap: 4,
   },
   label: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
   },
   labelFocused: {
-    color: Accent[500],
     fontWeight: FontWeights.semiBold,
   },
 });
+
+export default BottomTabBar;
