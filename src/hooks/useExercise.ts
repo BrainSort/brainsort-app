@@ -35,6 +35,7 @@ export interface UseExerciseReturn {
   ejercicios: Ejercicio[] | undefined;
   isLoadingExercises: boolean;
   exercisesError: Error | null;
+  refetchExercises: () => Promise<unknown>;
 
   // Acciones
   responderEjercicio: (
@@ -107,6 +108,7 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
     data: ejercicios,
     isLoading: isLoadingExercises,
     error: exercisesError,
+    refetch: refetchExercises,
   } = useQuery<Ejercicio[]>({
     queryKey: ['ejercicios', algoritmoId],
     queryFn: () => exerciseService.getExercises(algoritmoId!),
@@ -154,6 +156,7 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
     ejercicios,
     isLoadingExercises,
     exercisesError: exercisesError instanceof Error ? exercisesError : null,
+    refetchExercises,
 
     // Acciones
     responderEjercicio: handleResponderEjercicio,
