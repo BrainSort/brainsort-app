@@ -131,6 +131,7 @@ export function useExercise(algoritmoId: string | null | undefined): UseExercise
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['progreso', 'me'] });
       queryClient.invalidateQueries({ queryKey: ['ranking'] });
+      queryClient.invalidateQueries({ queryKey: ['badges', 'me'] });
     },
     onError: (error) => {
       console.error('Error responder ejercicio:', error);
