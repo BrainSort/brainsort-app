@@ -24,6 +24,10 @@ import {
   UsuarioProgreso,
   LeaderboardResponse,
 } from '../services/progress.service';
+import {
+  badgesService,
+  InsigniaDesbloqueada,
+} from '../services/badges.service';
 import { useAuthContext } from '../context/AuthContext';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -36,6 +40,9 @@ export interface UseProgressReturn {
   progreso: UsuarioProgreso | undefined;
   isLoadingProgreso: boolean;
   progresoError: Error | null;
+
+  // Catálogo de insignias del usuario (desbloqueadas + bloqueadas)
+  catalogoInsignias: InsigniaDesbloqueada[] | undefined;
 
   // Estado del leaderboard
   leaderboard: LeaderboardResponse | undefined;
@@ -119,11 +126,23 @@ export function useProgress(): UseProgressReturn {
     enabled: hasBackendToken,
   });
 
+  const {
+    data: catalogoInsignias,
+    refetch: refetchBadgesQuery,
+  } = useQuery<InsigniaDesbloqueada[]>({
+    queryKey: ['badges', 'me'],
+    queryFn: () => badgesService.getUserBadges('me'),
+    staleTime: 1000 * 60 * 3,
+    gcTime: 1000 * 60 * 10,
+    retry: 1,
+    enabled: hasBackendToken,
+  });
+
   // ─── Helpers para refetch ──────────────────────────────────────────────────
 
   const refetchProgreso = useCallback(async () => {
-    await refetchProgresoQuery();
-  }, [refetchProgresoQuery]);
+    await Promise.all([refetchProgresoQuery(), refetchBadgesQuery()]);
+  }, [refetchProgresoQuery, refetchBadgesQuery]);
 
   const refetchLeaderboard = useCallback(async () => {
     await refetchLeaderboardQuery();
@@ -136,6 +155,7 @@ export function useProgress(): UseProgressReturn {
     progreso,
     isLoadingProgreso,
     progresoError: progresoError instanceof Error ? progresoError : null,
+    catalogoInsignias,
 
     // Estado del leaderboard
     leaderboard,

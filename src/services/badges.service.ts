@@ -18,22 +18,28 @@ import { apiClient } from './api';
 
 // ─── DTOs (Response) ──────────────────────────────────────────────────────────
 
-/** Insignia disponible en el sistema (GET /api/insignias) */
+/** Insignia disponible en el sistema (GET /api/badges o /api/insignias) */
 export interface Insignia {
   id: string;
   nombre: string;
   descripcion: string;
   imagen: string;
-  criterioDesbloqueo: string; // Descripción del criterio (ej: "Completar 1 simulación")
+  criterioDesbloqueo: string; // Descripción/pista del criterio (ej: "Completar 1 simulación")
+  categoria?: string;
+  desbloqueada?: boolean;
+  fechaObtencion?: string;
 }
 
-/** Insignia desbloqueada por el usuario (GET /api/insignias/me) */
+/** Insignia en el perfil del usuario (desbloqueada o bloqueada) */
 export interface InsigniaDesbloqueada {
   id: string;
   nombre: string;
   descripcion: string;
   imagen: string;
-  fechaObtencion: string; // ISO 8601 timestamp
+  criterioDesbloqueo?: string;
+  categoria?: string;
+  desbloqueada?: boolean;
+  fechaObtencion?: string; // ISO 8601 timestamp
 }
 
 // ─── Servicio ─────────────────────────────────────────────────────────────────
@@ -44,25 +50,24 @@ export interface InsigniaDesbloqueada {
 export const badgesService = {
   /**
    * Obtiene todas las insignias disponibles en el sistema.
-   * Incluye insignias desbloqueadas y no desbloqueadas.
    *
    * @returns Lista completa de insignias con criterios de desbloqueo
    */
   async getAllBadges(): Promise<Insignia[]> {
     return apiClient.get<Insignia[]>('/insignias', {
-      public: false, // Autenticado (aunque podría ser público)
+      public: false,
     });
   },
 
   /**
-   * Obtiene las insignias desbloqueadas por el usuario actual.
-   * Incluye fecha de obtención.
+   * Obtiene las insignias del usuario (desbloqueadas con fecha y bloqueadas con pista).
    *
-   * @returns Insignias ya ganadas por el usuario con fechas
+   * @param userId ID del usuario o 'me' para el usuario autenticado
    */
-  async getUserBadges(): Promise<InsigniaDesbloqueada[]> {
-    return apiClient.get<InsigniaDesbloqueada[]>('/insignias/me', {
-      public: false, // Autenticado
+  async getUserBadges(userId?: string): Promise<InsigniaDesbloqueada[]> {
+    const endpoint = userId ? `/users/${userId}/badges` : '/insignias/me';
+    return apiClient.get<InsigniaDesbloqueada[]>(endpoint, {
+      public: false,
     });
   },
 };

@@ -204,6 +204,9 @@ export function useSimulationEngine(): UseSimulationEngineReturn {
           data: [...data], // Copiar para inmutabilidad
           algoritmoId,
           pseudocode: result.pseudocode,
+          sesionSimulacion: result.simulacion?.sesionId
+            ? ({ id: result.simulacion.sesionId } as any)
+            : undefined,
         });
       } catch (err) {
         // Parsear error en EngineError tipado

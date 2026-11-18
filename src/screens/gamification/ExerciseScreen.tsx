@@ -9,6 +9,10 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PredictionExercise } from '../../components/gamification/PredictionExercise';
+import {
+  BadgeUnlockModal,
+  UnlockedBadgeNotice,
+} from '../../components/gamification/BadgeUnlockModal';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Button } from '../../components/common/Button';
 import { useExercise } from '../../hooks/useExercise';
@@ -49,6 +53,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
 
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isSessionCompleted, setIsSessionCompleted] = useState(false);
+  const [unlockedBadges, setUnlockedBadges] = useState<UnlockedBadgeNotice[]>([]);
 
   useEffect(() => {
     setCurrentExerciseIndex(0);
@@ -196,13 +201,21 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
             isSubmittingAnswer={isSubmittingAnswer}
             lastResult={lastResult}
             onSubmit={async (respuesta) => {
-              await responderEjercicio(currentExercise.id, respuesta);
+              const res = await responderEjercicio(currentExercise.id, respuesta);
+              if (res?.nuevasInsignias && res.nuevasInsignias.length > 0) {
+                setUnlockedBadges(res.nuevasInsignias);
+              }
             }}
             onNext={handleNext}
             isLastExercise={currentExerciseIndex >= ejercicios.length - 1}
           />
         </View>
       </ScrollView>
+      <BadgeUnlockModal
+        visible={unlockedBadges.length > 0}
+        badges={unlockedBadges}
+        onClose={() => setUnlockedBadges([])}
+      />
     </SafeAreaWrapper>
   );
 };

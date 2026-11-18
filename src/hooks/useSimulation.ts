@@ -54,6 +54,7 @@ export interface UseSimulationReturn {
   speed: number;
   isCompleted: boolean;
   pseudocode: PseudocodeLine[];
+  sesionId?: string;
 
   // Acciones de reproducción
   play: () => void;
@@ -143,6 +144,7 @@ export function useSimulation(): UseSimulationReturn {
     speed: ctx.playback.speed,
     isCompleted: ctx.isCompleted,
     pseudocode: ctx.pseudocode,
+    sesionId: (ctx.sesionSimulacion as any)?.id,
 
     // Acciones de reproducción
     play: ctx.play,
