@@ -19,14 +19,15 @@
 import React, { useEffect, useState } from 'react';
 import {
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from 'react-native';
+import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAlgorithm } from '../../hooks/useAlgorithm';
 import { AlgorithmTheory } from '../../components/algorithm/AlgorithmTheory';
@@ -51,6 +52,21 @@ import { SimulationContent } from '../simulation/SimulationScreen';
 
 type Props = NativeStackScreenProps<LibraryStackParamList, 'AlgorithmDetail'>;
 
+const CATEGORY_LABELS: Record<string, string> = {
+  Ordenamiento: 'Ordenamiento',
+  Busqueda: 'Búsqueda',
+  EstructurasLineales: 'Estructuras Lineales',
+  EstructurasArboles: 'Estructuras de Árboles',
+  EstructurasDeDatos: 'Estructuras de Datos',
+  Grafos: 'Grafos',
+};
+
+function formatCategoryLabel(categoria: string): string {
+  if (!categoria) return '';
+  if (CATEGORY_LABELS[categoria]) return CATEGORY_LABELS[categoria];
+  return categoria.replace(/([a-z])([A-Z])/g, '$1 $2');
+}
+
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -66,6 +82,12 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing[16],
   },
 
+  heroCard: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    padding: Spacing[5],
+    marginBottom: Spacing[5],
+  },
   breadcrumbText: {
     ...TextVariants.bodyMd,
     marginBottom: Spacing[2],
@@ -82,12 +104,12 @@ const styles = StyleSheet.create({
   },
   descriptionTopText: {
     ...TextVariants.bodyMd,
-    marginBottom: Spacing[5],
     lineHeight: 24,
   },
   complexityRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'stretch',
     gap: Spacing[2],
     marginBottom: Spacing[6],
   },
@@ -131,27 +153,44 @@ const styles = StyleSheet.create({
 
   // Botón principal
   startButton: {
+    flex: 1.35,
     borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing[4],
-    paddingHorizontal: Spacing[6],
+    paddingVertical: Spacing[3.5],
+    paddingHorizontal: Spacing[5],
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing[2],
-    marginTop: Spacing[6],
   },
   startButtonText: {
     fontFamily: FontFamilies.bold,
     fontWeight: FontWeights.bold,
-    fontSize: FontSizes.lg,
-    color: '#FFFFFF',
-  },
-  startButtonIcon: {
-    fontSize: FontSizes.lg,
+    fontSize: FontSizes.md,
     color: '#FFFFFF',
   },
   startButtonDisabled: {
     opacity: 0.6,
+  },
+  footerButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: Spacing[3],
+  },
+  practiceDetailButton: {
+    flex: 1,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingVertical: Spacing[3.5],
+    paddingHorizontal: Spacing[4],
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+  },
+  practiceDetailButtonText: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.md,
   },
   simulationSection: {
     marginTop: Spacing[6],
@@ -389,7 +428,6 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
   const { algoritmo, isLoading, isError } = useAlgorithm(algoritmoId);
   const [showProximamente, setShowProximamente] = useState(false);
   const [showSimulation, setShowSimulation] = useState(false);
-  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (algoritmo?.nombre) {
@@ -464,21 +502,24 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
     }
 
     const startButtonElement = (
-      <TouchableOpacity
-        style={[
+      <Pressable
+        style={({ pressed, hovered }: any) => [
           styles.startButton,
-          { backgroundColor: colors.ctaPrimary },
-          !esActivo ? styles.startButtonDisabled : null,
+          {
+            backgroundColor: colors.ctaPrimary,
+            opacity: !esActivo ? 0.6 : pressed ? 0.86 : hovered ? 0.94 : 1,
+          },
+          Platform.OS === 'web' &&
+            ({ cursor: 'pointer', outlineStyle: 'none', outlineWidth: 0 } as any),
         ]}
         onPress={handleStartSimulation}
-        activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={
           esActivo ? `Iniciar simulación de ${algoritmo.nombre}` : `${algoritmo.nombre} no disponible aún`
         }
         testID="btn-start-simulation"
       >
-        <Text style={styles.startButtonIcon}>▶</Text>
+        <PlayIcon size={17} color="#FFFFFF" />
         <Text style={styles.startButtonText}>
           {esActivo
             ? showSimulation
@@ -486,8 +527,10 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
               : 'Iniciar Simulación'
             : 'Próximamente'}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
+
+    const categoryLabel = formatCategoryLabel(algoritmo.categoria);
 
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -497,20 +540,30 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={true}
           >
-            <Text style={[styles.breadcrumbText, { color: colors.textMuted }]}>
-              Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
-            </Text>
-
-            <View style={styles.titleRow}>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>
-                {algoritmo.nombre}
+            <View
+              style={[
+                styles.heroCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.borderSubtle,
+                },
+              ]}
+            >
+              <Text style={[styles.breadcrumbText, { color: colors.textMuted }]}>
+                Biblioteca / {categoryLabel} / {algoritmo.nombre}
               </Text>
-              <DifficultyBadge dificultad={dificultad} />
-            </View>
 
-            <Text style={[styles.descriptionTopText, { color: colors.textSecondary }]}>
-              {algoritmo.descripcion}
-            </Text>
+              <View style={styles.titleRow}>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>
+                  {algoritmo.nombre}
+                </Text>
+                <DifficultyBadge dificultad={dificultad} />
+              </View>
+
+              <Text style={[styles.descriptionTopText, { color: colors.textSecondary }]}>
+                {algoritmo.descripcion}
+              </Text>
+            </View>
 
             <View style={styles.complexityRow}>
               <View
@@ -528,14 +581,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
                     { backgroundColor: colors.chipActiveBg },
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.complexityIconText,
-                      { color: colors.brandAccent },
-                    ]}
-                  >
-                    🕒
-                  </Text>
+                  <ClockIcon size={17} color={colors.brandAccent} />
                 </View>
                 <View style={styles.complexityContent}>
                   <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
@@ -544,7 +590,13 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
                   <Text
                     style={[
                       styles.complexityValue,
-                      { color: colors.textPrimary, fontSize: FontSizes.lg },
+                      {
+                        color: colors.textPrimary,
+                        fontSize:
+                          algoritmo.complejidadTiempo.length > 18
+                            ? FontSizes.sm
+                            : FontSizes.lg,
+                      },
                     ]}
                   >
                     {algoritmo.complejidadTiempo}
@@ -567,14 +619,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
                     { backgroundColor: colors.chipActiveBg },
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.complexityIconText,
-                      { color: colors.brandAccent },
-                    ]}
-                  >
-                    📦
-                  </Text>
+                  <BoxIcon size={17} color={colors.brandAccent} />
                 </View>
                 <View style={styles.complexityContent}>
                   <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
@@ -606,14 +651,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
                     { backgroundColor: colors.chipActiveBg },
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.complexityIconText,
-                      { color: colors.brandAccent },
-                    ]}
-                  >
-                    📁
-                  </Text>
+                  <LayersIcon size={17} color={colors.brandAccent} />
                 </View>
                 <View style={styles.complexityContent}>
                   <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
@@ -626,7 +664,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
                     ]}
                     numberOfLines={1}
                   >
-                    {algoritmo.categoria}
+                    {categoryLabel}
                   </Text>
                 </View>
               </View>
@@ -645,7 +683,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           </ScrollView>
         </View>
 
-        {/* Botón de Iniciar Simulación anclado abajo y centrado */}
+        {/* Barra inferior de acciones */}
         <View
           style={[
             styles.fixedFooter,
@@ -656,7 +694,37 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           ]}
         >
           <View style={styles.footerInner}>
-            {startButtonElement}
+            <View style={styles.footerButtonsRow}>
+              {esActivo && (
+                <Pressable
+                  style={({ pressed, hovered }: any) => [
+                    styles.practiceDetailButton,
+                    {
+                      backgroundColor: colors.chipActiveBg,
+                      borderColor: colors.chipActiveBorder,
+                      opacity: pressed ? 0.85 : hovered ? 0.92 : 1,
+                    },
+                    Platform.OS === 'web' &&
+                      ({ cursor: 'pointer', outlineStyle: 'none', outlineWidth: 0 } as any),
+                  ]}
+                  onPress={() => navigation.navigate('Exercise', { algoritmoId })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Practicar ejercicios de ${algoritmo.nombre}`}
+                  testID="btn-detail-practice"
+                >
+                  <GraduationCapIcon size={18} color={colors.brandAccent} />
+                  <Text
+                    style={[
+                      styles.practiceDetailButtonText,
+                      { color: colors.brandAccent },
+                    ]}
+                  >
+                    Practicar
+                  </Text>
+                </Pressable>
+              )}
+              {startButtonElement}
+            </View>
           </View>
         </View>
 
@@ -725,4 +793,98 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
       </View>
     );
   }
+}
+
+// ─── Iconos SVG estilo Lucide ─────────────────────────────────────────────────
+
+function ClockIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={2} />
+      <Path
+        d="M12 7v5l3 2"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function BoxIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="m3.3 7 8.7 5 8.7-5M12 22V12"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function LayersIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Polygon
+        points="12 2 2 7 12 12 22 7 12 2"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="m2 17 10 5 10-5M2 12l10 5 10-5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function PlayIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Polygon
+        points="6 3 20 12 6 21 6 3"
+        fill={color}
+        stroke={color}
+        strokeWidth={1.75}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function GraduationCapIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M22 10v6M2 10l10-5 10 5-10 5-10-5Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M6 12v5c3 3 9 3 12 0v-5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
 }

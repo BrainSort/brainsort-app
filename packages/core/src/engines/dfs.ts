@@ -4,13 +4,14 @@ import { PseudocodeLine } from '../types/algorithm.types';
 import { GrafoData, SimulationInput } from '../types/simulation.types';
 
 const DEFAULT_GRAFO: GrafoData = {
-  nodos: ['A', 'B', 'C', 'D', 'E', 'F'],
+  nodos: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
   aristas: [
     ['A', 'B'],
     ['A', 'C'],
     ['B', 'D'],
     ['B', 'E'],
     ['C', 'F'],
+    ['C', 'G'],
   ],
   dirigido: false,
 };

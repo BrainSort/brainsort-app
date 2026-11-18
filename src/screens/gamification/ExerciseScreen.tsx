@@ -112,9 +112,29 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <SafeAreaWrapper>
         <View style={styles.center}>
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            No hay ejercicios disponibles para este algoritmo
-          </Text>
+          <View
+            style={[
+              styles.emptyCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.borderSubtle,
+              },
+            ]}
+          >
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+              Sin ejercicios disponibles
+            </Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              No hay ejercicios disponibles para{' '}
+              {algoritmo?.nombre ?? 'este algoritmo'} por el momento.
+            </Text>
+            <Button
+              title="Volver"
+              onPress={() => navigation.goBack()}
+              variant="secondary"
+              style={styles.emptyBackButton}
+            />
+          </View>
         </View>
       </SafeAreaWrapper>
     );
@@ -124,12 +144,16 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
     return (
       <SafeAreaWrapper>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <View
-            style={[
-              styles.completedCard,
-              { backgroundColor: colors.surface, borderColor: colors.border },
-            ]}
-          >
+          <View style={styles.centeredContainer}>
+            <View
+              style={[
+                styles.completedCard,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.borderSubtle,
+                },
+              ]}
+            >
             <Text style={styles.completedIcon}>🎉</Text>
             <Text style={[styles.completedTitle, { color: colors.brandAccent }]}>
               ¡Práctica Completada!
@@ -208,6 +232,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
                 style={styles.menuButton}
               />
             </View>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaWrapper>
@@ -219,11 +244,32 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <SafeAreaWrapper>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.exerciseBlock}>
-          <Text style={[styles.exerciseTitle, { color: colors.textPrimary }]}>
-            Sesión de práctica
-          </Text>
-          <PredictionExercise
+        <View style={styles.centeredContainer}>
+          <View style={styles.exerciseBlock}>
+            <View style={styles.exerciseHeaderRow}>
+              <Text style={[styles.exerciseTitle, { color: colors.textPrimary }]}>
+                Sesión de práctica
+              </Text>
+              {algoritmo?.nombre ? (
+                <View
+                  style={[
+                    styles.algoBadge,
+                    {
+                      backgroundColor: colors.chipActiveBg,
+                      borderColor: colors.chipActiveBorder,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.algoBadgeText, { color: colors.brandAccent }]}
+                    numberOfLines={1}
+                  >
+                    {algoritmo.nombre}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <PredictionExercise
             tipo={currentExercise.tipo}
             pregunta={currentExercise.pregunta}
             opciones={currentExercise.opciones}
@@ -241,6 +287,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
             onNext={handleNext}
             isLastExercise={currentExerciseIndex >= ejercicios.length - 1}
           />
+          </View>
         </View>
       </ScrollView>
       <BadgeUnlockModal
@@ -260,20 +307,63 @@ const styles = StyleSheet.create({
     padding: SpacingAlias.screenPaddingX,
     gap: Spacing[5],
   },
+  centeredContainer: {
+    width: '100%',
+    maxWidth: 780,
+    alignSelf: 'center',
+  },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: SpacingAlias.screenPaddingX,
+  },
+  emptyCard: {
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing[6],
+    alignItems: 'center',
+    gap: Spacing[3],
+  },
+  emptyTitle: {
+    ...TextVariants.h4,
+    textAlign: 'center',
   },
   emptyText: {
     ...TextVariants.bodyMd,
+    textAlign: 'center',
+  },
+  emptyBackButton: {
+    marginTop: Spacing[2],
+    minWidth: 140,
   },
   exerciseBlock: {
     gap: Spacing[3],
     marginBottom: Spacing[3],
   },
+  exerciseHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: Spacing[2],
+  },
   exerciseTitle: {
     ...TextVariants.h4,
+  },
+  algoBadge: {
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: 4,
+    maxWidth: 260,
+  },
+  algoBadgeText: {
+    ...TextVariants.labelSm,
+    fontFamily: FontFamilies.semiBold,
   },
   // Nuevos estilos para la pantalla de completado
   completedCard: {

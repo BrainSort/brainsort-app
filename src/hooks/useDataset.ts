@@ -66,13 +66,14 @@ const DEFAULT_SIZE_MIN = 8;
 const DEFAULT_SIZE_MAX = 15;
 
 const DEFAULT_GRAFO: GrafoData = {
-  nodos: ['A', 'B', 'C', 'D', 'E', 'F'],
+  nodos: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
   aristas: [
     ['A', 'B'],
     ['A', 'C'],
     ['B', 'D'],
     ['B', 'E'],
     ['C', 'F'],
+    ['C', 'G'],
   ],
   dirigido: false,
 };

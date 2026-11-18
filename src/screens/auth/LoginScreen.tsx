@@ -33,6 +33,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { AuthBackdrop } from '../../components/auth/AuthBackdrop';
 import { AuthSimulationPreview } from '../../components/auth/AuthSimulationPreview';
 import { BrainSortLogo } from '../../components/layout/BrainSortLogo';
 import { useThemeContext } from '../../context/ThemeContext';
@@ -686,6 +687,7 @@ export default function LoginScreen({ navigation }: Props) {
       style={[styles.outer, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <AuthBackdrop />
       {/* Top-right Dark/Light theme toggle */}
       <View style={styles.topBar}>
         <Pressable

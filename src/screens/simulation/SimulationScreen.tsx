@@ -32,13 +32,16 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import { useSimulation } from '../../hooks/useSimulation';
@@ -55,7 +58,6 @@ import { FrontierPanel } from '../../components/simulation/FrontierPanel';
 import { SearchArrayCanvas } from '../../components/search/SearchArrayCanvas';
 import { SearchTargetInput } from '../../components/search/SearchTargetInput';
 import { SearchResultBanner } from '../../components/search/SearchResultBanner';
-import { SearchComplexityPanel } from '../../components/search/SearchComplexityPanel';
 import { PseudocodePanel } from '../../components/simulation/PseudocodePanel';
 import {
   BadgeUnlockModal,
@@ -144,9 +146,42 @@ function createStyles(colors: ThemeColors) {
     scroll: { flex: 1 },
     scrollContent: {
       paddingHorizontal: SpacingAlias.screenPaddingX,
-      paddingTop: Spacing[6],
+      paddingTop: Spacing[5],
       paddingBottom: Spacing[8],
+      gap: Spacing[4],
+      width: '100%',
+      maxWidth: 1320,
+      alignSelf: 'center',
+    },
+    workspaceRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
       gap: Spacing[5],
+    },
+    leftColumn: {
+      flex: 1.45,
+      minWidth: 0,
+      gap: Spacing[4],
+    },
+    rightColumn: {
+      flex: 1,
+      minWidth: 340,
+      maxWidth: 480,
+      gap: Spacing[4],
+    },
+    progressSection: {
+      gap: Spacing[2],
+    },
+    progressMetaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    progressPercentText: {
+      fontFamily: FontFamilies.mono,
+      fontSize: FontSizes.xs,
+      color: colors.brandAccent,
+      fontVariant: ['tabular-nums'],
     },
 
     // Header del algoritmo
@@ -188,6 +223,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.borderSubtle,
       padding: Spacing[5],
       overflow: 'hidden',
+      alignItems: 'center',
+      gap: Spacing[3],
     },
 
     // Leyenda de colores
@@ -196,6 +233,12 @@ function createStyles(colors: ThemeColors) {
       flexWrap: 'wrap',
       gap: Spacing[3],
       justifyContent: 'center',
+    },
+    legendIntegrated: {
+      width: '100%',
+      borderTopWidth: 1,
+      borderTopColor: colors.borderSubtle,
+      paddingTop: Spacing[3],
     },
     legendItem: {
       flexDirection: 'row',
@@ -212,6 +255,13 @@ function createStyles(colors: ThemeColors) {
     // Input de datos personalizados
     dataInputSection: {
       gap: Spacing[3],
+    },
+    configCard: {
+      backgroundColor: colors.surface,
+      borderColor: colors.borderSubtle,
+      borderWidth: 1,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing[4],
     },
     dataInputLabel: {
       fontFamily: FontFamilies.medium,
@@ -269,19 +319,58 @@ function createStyles(colors: ThemeColors) {
     practiceButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: Spacing[2],
+      justifyContent: 'space-between',
       paddingVertical: Spacing[3],
-      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing[4],
+      borderRadius: BorderRadius.xl,
       borderWidth: 1,
       borderColor: colors.chipActiveBorder,
       backgroundColor: colors.chipActiveBg,
+    },
+    practiceLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing[2],
     },
     practiceButtonText: {
       fontFamily: FontFamilies.semiBold,
       fontWeight: FontWeights.semiBold,
       fontSize: FontSizes.sm,
       color: colors.brandAccent,
+    },
+    ctaGroup: {
+      gap: Spacing[3],
+    },
+    compareButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: Spacing[3.5],
+      paddingHorizontal: Spacing[4],
+      borderRadius: BorderRadius.xl,
+      borderWidth: 1,
+      borderColor: colors.borderSubtle,
+      backgroundColor: colors.surface,
+    },
+    compareButtonText: {
+      fontFamily: FontFamilies.semiBold,
+      fontWeight: FontWeights.semiBold,
+      fontSize: FontSizes.sm,
+      color: colors.textPrimary,
+    },
+    comingSoonBadge: {
+      backgroundColor: colors.surfaceElevated,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing[2.5],
+      paddingVertical: 2,
+    },
+    comingSoonText: {
+      fontFamily: FontFamilies.medium,
+      fontWeight: FontWeights.medium,
+      fontSize: 11,
+      color: colors.textMuted,
     },
     inputErrorText: {
       fontFamily: FontFamilies.regular,
@@ -351,6 +440,88 @@ function formatUnweightedGraph(g: GrafoData): string {
   return g.aristas.map((e) => `[${e[0]}, ${e[1]}]`).join(', ');
 }
 
+const UNWEIGHTED_GRAPH_PRESETS: GrafoData[] = [
+  {
+    nodos: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+    aristas: [
+      ['A', 'B'],
+      ['A', 'C'],
+      ['B', 'D'],
+      ['B', 'E'],
+      ['C', 'F'],
+      ['C', 'G'],
+    ],
+    dirigido: false,
+  },
+  {
+    nodos: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+    aristas: [
+      ['A', 'B'],
+      ['A', 'C'],
+      ['B', 'D'],
+      ['D', 'E'],
+      ['D', 'F'],
+      ['C', 'G'],
+    ],
+    dirigido: false,
+  },
+  {
+    nodos: ['A', 'B', 'C', 'D', 'E', 'F'],
+    aristas: [
+      ['A', 'B'],
+      ['A', 'C'],
+      ['B', 'D'],
+      ['C', 'D'],
+      ['B', 'E'],
+      ['D', 'F'],
+      ['E', 'F'],
+    ],
+    dirigido: false,
+  },
+];
+
+const WEIGHTED_GRAPH_PRESETS: GrafoData[] = [
+  DEFAULT_WEIGHTED_GRAFO,
+  {
+    nodos: ['A', 'B', 'C', 'D', 'E'],
+    aristas: [
+      ['A', 'B'],
+      ['A', 'C'],
+      ['B', 'C'],
+      ['B', 'D'],
+      ['C', 'D'],
+      ['C', 'E'],
+      ['D', 'E'],
+    ],
+    dirigido: false,
+    pesos: {
+      'A-B': 2,
+      'B-A': 2,
+      'A-C': 5,
+      'C-A': 5,
+      'B-C': 1,
+      'C-B': 1,
+      'B-D': 4,
+      'D-B': 4,
+      'C-D': 2,
+      'D-C': 2,
+      'C-E': 6,
+      'E-C': 6,
+      'D-E': 1,
+      'E-D': 1,
+    },
+    aristasPonderadas: [
+      ['A', 'B', 2],
+      ['A', 'C', 5],
+      ['B', 'C', 1],
+      ['B', 'D', 4],
+      ['C', 'D', 2],
+      ['C', 'E', 6],
+      ['D', 'E', 1],
+    ],
+  },
+];
+
 // ─── Componente ───────────────────────────────────────────────────────────────
 
 export function SimulationContent({
@@ -363,6 +534,8 @@ export function SimulationContent({
   const { theme } = useThemeContext();
   const { colors } = theme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
   const navigation = useNavigation<NavigationProp<LibraryStackParamList>>();
   const { algoritmo, isLoading: algoLoading } = useAlgorithm(algoritmoId);
   const {
@@ -398,6 +571,7 @@ export function SimulationContent({
   const [targetInput, setTargetInput] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const [graphPresetIndex, setGraphPresetIndex] = useState(0);
   const [showInlineValues, setShowInlineValues] = useState(true);
   const [unlockedBadges, setUnlockedBadges] = useState<UnlockedBadgeNotice[]>([]);
 
@@ -524,12 +698,17 @@ export function SimulationContent({
   const handleGenerateNew = useCallback(() => {
     if (!algoritmo) return;
     if (isDijkstraAlgo) {
-      const g = DEFAULT_WEIGHTED_GRAFO;
+      const nextIdx = (graphPresetIndex + 1) % WEIGHTED_GRAPH_PRESETS.length;
+      const g = WEIGHTED_GRAPH_PRESETS[nextIdx];
+      const start =
+        nodoInicio && g.nodos.includes(nodoInicio) ? nodoInicio : g.nodos[0];
+      setGraphPresetIndex(nextIdx);
       setGrafo(g);
+      setNodoInicio(start);
       setCustomInput(formatWeightedGraph(g));
       executeAlgorithm(
         algoritmoId,
-        { grafo: g, nodoInicio: nodoInicio ?? 'A' },
+        { grafo: g, nodoInicio: start },
         algoritmo.nombre,
       ).catch(() => {});
       setInputError(null);
@@ -537,12 +716,17 @@ export function SimulationContent({
     }
 
     if (isGraphAlgo) {
-      const g = generateDefaultGraph(algoritmo.nombre);
+      const nextIdx = (graphPresetIndex + 1) % UNWEIGHTED_GRAPH_PRESETS.length;
+      const g = UNWEIGHTED_GRAPH_PRESETS[nextIdx];
+      const start =
+        nodoInicio && g.nodos.includes(nodoInicio) ? nodoInicio : g.nodos[0];
+      setGraphPresetIndex(nextIdx);
       setGrafo(g);
+      setNodoInicio(start);
       setCustomInput(formatUnweightedGraph(g));
       executeAlgorithm(
         algoritmoId,
-        { grafo: g, nodoInicio: nodoInicio ?? 'A' },
+        { grafo: g, nodoInicio: start },
         algoritmo.nombre,
       ).catch(() => {});
       setInputError(null);
@@ -576,14 +760,15 @@ export function SimulationContent({
     algoritmo,
     algoritmoId,
     generateDefault,
-    generateDefaultGraph,
     executeAlgorithm,
     isSearch,
     isBinary,
     isGraphAlgo,
     isDijkstraAlgo,
+    graphPresetIndex,
     nodoInicio,
     setGrafo,
+    setNodoInicio,
   ]);
 
   const handleApplyCustom = useCallback(() => {
@@ -764,6 +949,56 @@ export function SimulationContent({
     resetSimulation();
   }, [resetSimulation]);
 
+  // Atajos de teclado en Web (Space, ArrowLeft, ArrowRight, KeyR)
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      const tag = activeEl?.tagName?.toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || activeEl?.isContentEditable) {
+        return;
+      }
+
+      if (event.code === 'Space') {
+        if (steps.length > 0 && !isCompleted) {
+          event.preventDefault();
+          if (isPlaying) {
+            pause();
+          } else {
+            play();
+          }
+        }
+      } else if (event.code === 'ArrowLeft') {
+        if (steps.length > 0) {
+          event.preventDefault();
+          previousStep();
+        }
+      } else if (event.code === 'ArrowRight') {
+        if (steps.length > 0) {
+          event.preventDefault();
+          nextStep();
+        }
+      } else if (event.code === 'KeyR') {
+        if (steps.length > 0) {
+          event.preventDefault();
+          handleReset();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    steps.length,
+    isCompleted,
+    isPlaying,
+    play,
+    pause,
+    previousStep,
+    nextStep,
+    handleReset,
+  ]);
+
 
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -809,6 +1044,256 @@ export function SimulationContent({
     .filter((n) => !isNaN(n));
   const isSorted = isSortedAscending(parsedNumbers);
 
+  const canvasSection = (
+    <View style={styles.canvasContainer}>
+      {isExecuting ? (
+        <View style={{ height: 240, alignItems: 'center', justifyContent: 'center' }}>
+          <Spinner size="large" />
+        </View>
+      ) : hasSteps ? (
+        isGraphAlgo ? (
+          <GraphRenderer
+            algorithmName={algoritmo?.nombre}
+            step={currentStepData}
+            isCompleted={isCompleted}
+            grafo={activeGrafo}
+            nodoInicio={nodoInicio}
+            height={300}
+          />
+        ) : rendererType === 'search' ? (
+          <SearchArrayCanvas
+            algorithmName={algoritmo?.nombre}
+            step={currentStepData}
+            isCompleted={isCompleted}
+            height={220}
+          />
+        ) : isTree ? (
+          <TreeStructureCanvas
+            step={currentStepData}
+            isCompleted={isCompleted}
+            algorithmName={algoritmo?.nombre ?? ''}
+            height={220}
+          />
+        ) : isLinear ? (
+          <LinearStructureCanvas
+            step={currentStepData as any}
+            isCompleted={isCompleted}
+            algorithmName={algoritmo?.nombre ?? ''}
+            height={220}
+          />
+        ) : (
+          <BarChart
+            algorithmName={algoritmo?.nombre}
+            step={currentStepData}
+            isCompleted={isCompleted}
+            height={220}
+          />
+        )
+      ) : (
+        <View style={styles.emptyState}>
+          <BarChartIcon size={36} color={colors.textMuted} />
+          <Text style={styles.emptyText}>
+            Genera datos para iniciar la simulación
+          </Text>
+        </View>
+      )}
+
+      {/* Leyenda integrada en pie del canvas en escritorio */}
+      {isDesktop && (
+        <View style={[styles.legend, styles.legendIntegrated]}>
+          {legend.map(({ color, label }) => (
+            <View key={label} style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: color }]} />
+              <Text style={styles.legendText}>{label}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+
+  const dataConfigSection = (
+    <View style={[styles.dataInputSection, isDesktop && styles.configCard]}>
+      {isSearch && (
+        <SearchTargetInput
+          targetInput={targetInput}
+          onTargetChange={(val) => {
+            setTargetInput(val);
+            setInputError(null);
+          }}
+          onRandomTarget={handleRandomTarget}
+          isBinarySearch={isBinary}
+          isSorted={isSorted}
+          onAutoSort={handleAutoSort}
+          disabled={isExecuting}
+        />
+      )}
+
+      <Text style={styles.dataInputLabel}>
+        {isGraphAlgo
+          ? isDijkstraAlgo
+            ? 'Grafo ponderado (Formato: [origen, destino] peso)'
+            : 'Grafo personalizado (Formato: [origen, destino])'
+          : 'Colección de datos'}
+      </Text>
+      <View style={styles.dataInputRow}>
+        <View
+          style={[
+            styles.dataInputShell,
+            inputError ? styles.dataInputError : null,
+          ]}
+        >
+          <TextInput
+            style={styles.dataInput}
+            value={customInput}
+            onChangeText={(text) => {
+              setCustomInput(text);
+              setInputError(null);
+            }}
+            placeholder={
+              isGraphAlgo
+                ? isDijkstraAlgo
+                  ? '[A, B] 4, [A, C] 2, [B, D] 5'
+                  : '[A, B], [A, C], [B, D], [B, E], [C, F]'
+                : '5, 3, 8, 1, 9, 2'
+            }
+            placeholderTextColor={colors.inputPlaceholder}
+            keyboardType="default"
+            returnKeyType="done"
+            onSubmitEditing={handleApplyCustom}
+            accessibilityLabel={
+              isGraphAlgo
+                ? isDijkstraAlgo
+                  ? 'Aristas ponderadas del grafo'
+                  : 'Aristas del grafo'
+                : 'Datos personalizados en formato CSV'
+            }
+            testID="input-custom-data"
+          />
+          <TouchableOpacity
+            style={styles.diceButton}
+            onPress={handleGenerateNew}
+            disabled={isExecuting}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isGraphAlgo
+                ? 'Restablecer grafo predeterminado'
+                : 'Generar nuevos datos aleatorios'
+            }
+            testID="btn-generate-new"
+          >
+            <DicesIcon size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          style={styles.applyButton}
+          onPress={handleApplyCustom}
+          disabled={!customInput.trim()}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isGraphAlgo ? 'Aplicar grafo' : 'Aplicar datos personalizados'
+          }
+          testID="btn-apply-data"
+        >
+          <Text style={styles.applyButtonText}>Aplicar</Text>
+        </TouchableOpacity>
+      </View>
+      {inputError && (
+        <Text style={styles.inputErrorText}>{inputError}</Text>
+      )}
+
+      {isGraphAlgo && activeGrafo && activeGrafo.nodos.length > 0 && (
+        <View style={styles.startNodeSection}>
+          <Text style={styles.dataInputLabel}>
+            Nodo de inicio {isDijkstraAlgo ? 'del camino mínimo' : 'del recorrido'}
+          </Text>
+          <View style={styles.startNodeRow}>
+            {activeGrafo.nodos.map((nodo) => {
+              const isSelected = (nodoInicio ?? activeGrafo.nodos[0]) === nodo;
+              return (
+                <TouchableOpacity
+                  key={nodo}
+                  style={[
+                    styles.startNodeChip,
+                    isSelected && styles.startNodeChipActive,
+                  ]}
+                  onPress={() => handleSelectStartNode(nodo)}
+                  disabled={isExecuting}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`Seleccionar nodo de inicio ${nodo}`}
+                >
+                  <Text
+                    style={[
+                      styles.startNodeText,
+                      isSelected && styles.startNodeTextActive,
+                    ]}
+                  >
+                    {nodo}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
+  const practiceCtaButton = (
+    <View style={styles.ctaGroup}>
+      <Pressable
+        style={({ pressed, hovered }: any) => [
+          styles.practiceButton,
+          { opacity: pressed ? 0.85 : hovered ? 0.92 : 1 },
+          Platform.OS === 'web' && ({ cursor: 'pointer' } as any),
+        ]}
+        onPress={() => navigation.navigate('Exercise', { algoritmoId })}
+        accessibilityRole="button"
+        accessibilityLabel="Ir a ejercicios de práctica"
+        testID="btn-practice"
+      >
+        <View style={styles.practiceLeft}>
+          <GraduationCapIcon size={18} color={colors.brandAccent} />
+          <Text style={styles.practiceButtonText}>Practicar ejercicios</Text>
+        </View>
+        <ChevronRightIcon size={18} color={colors.brandAccent} />
+      </Pressable>
+
+      <Pressable
+        style={({ pressed, hovered }: any) => [
+          styles.compareButton,
+          { opacity: pressed ? 0.85 : hovered ? 0.92 : 1 },
+          Platform.OS === 'web' &&
+            ({ cursor: 'pointer', outlineStyle: 'none', outlineWidth: 0 } as any),
+        ]}
+        onPress={() => {}}
+        accessibilityRole="button"
+        accessibilityLabel="Comparar algoritmos (Próximamente)"
+        testID="btn-compare"
+      >
+        <View style={styles.practiceLeft}>
+          <CompareIcon size={18} color={colors.textSecondary} />
+          <Text style={styles.compareButtonText}>Comparar</Text>
+        </View>
+        <View style={styles.comingSoonBadge}>
+          <Text style={styles.comingSoonText}>Próximamente</Text>
+        </View>
+      </Pressable>
+    </View>
+  );
+
+  const inspectorPanels = (
+    <>
+      {isGraphAlgo && currentStepData && isPasoGrafo(currentStepData) && (
+        <FrontierPanel
+          algorithmName={algoritmo?.nombre}
+          step={currentStepData}
+        />
+      )}
+    </>
+  );
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -820,31 +1305,36 @@ export function SimulationContent({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header: nombre + contador de paso */}
+        {/* Header: nombre */}
         {showAlgorithmHeader && (
-          <View style={[styles.headerRow, { marginBottom: Spacing[2] }]}>
+          <View style={[styles.headerRow, { marginBottom: Spacing[1] }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing[3] }}>
               <TouchableOpacity onPress={onRequestBack} accessibilityLabel="Volver">
-                <Text style={{ color: colors.textPrimary, fontSize: 20 }}>←</Text>
+                <ArrowLeftIcon size={20} color={colors.textPrimary} />
               </TouchableOpacity>
               <Text style={[styles.algoName, { fontSize: 20 }]} numberOfLines={1}>
                 {algoritmo?.nombre ?? 'Simulación'}
               </Text>
             </View>
-            {hasSteps && (
-              <Text style={styles.stepCounter}>
-                {currentStep.displayNumber} / {currentStep.totalSteps}
-              </Text>
-            )}
           </View>
         )}
 
-        {/* Barra de progreso */}
+        {/* Barra de progreso con contador siempre visible */}
         {hasSteps && (
-          <View style={styles.progressBar}>
-            <View
-              style={[styles.progressFill, { width: `${progressPercent}%` }]}
-            />
+          <View style={styles.progressSection}>
+            <View style={styles.progressMetaRow}>
+              <Text style={styles.stepCounter}>
+                Paso {currentStep.displayNumber} de {currentStep.totalSteps}
+              </Text>
+              <Text style={styles.progressPercentText}>
+                {Math.round(progressPercent)}%
+              </Text>
+            </View>
+            <View style={styles.progressBar}>
+              <View
+                style={[styles.progressFill, { width: `${progressPercent}%` }]}
+              />
+            </View>
           </View>
         )}
 
@@ -859,251 +1349,89 @@ export function SimulationContent({
           />
         )}
 
-        {/* Canvas de visualización */}
-        <View style={styles.canvasContainer}>
-          {isExecuting ? (
-            <View style={{ height: 220, alignItems: 'center', justifyContent: 'center' }}>
-              <Spinner size="large" />
+        {isDesktop ? (
+          <View style={styles.workspaceRow}>
+            {/* Columna izquierda: Canvas + ControlBar inline + Config */}
+            <View style={styles.leftColumn}>
+              {canvasSection}
+              <ControlBar
+                variant="inline"
+                isPlaying={!!isPlaying}
+                isCompleted={isCompleted}
+                speed={speed}
+                hasSteps={hasSteps}
+                onPlay={play}
+                onPause={pause}
+                onReset={handleReset}
+                onPreviousStep={previousStep}
+                onNextStep={nextStep}
+                onSpeedChange={setSpeed}
+              />
+              {dataConfigSection}
             </View>
-          ) : hasSteps ? (
-            isGraphAlgo ? (
-              <GraphRenderer
-                algorithmName={algoritmo?.nombre}
-                step={currentStepData}
-                isCompleted={isCompleted}
-                grafo={activeGrafo}
-                height={240}
-              />
-            ) : rendererType === 'search' ? (
-              <SearchArrayCanvas
-                algorithmName={algoritmo?.nombre}
-                step={currentStepData}
-                isCompleted={isCompleted}
-                height={220}
-              />
-            ) : isTree ? (
-              <TreeStructureCanvas
-                step={currentStepData}
-                isCompleted={isCompleted}
-                algorithmName={algoritmo?.nombre ?? ''}
-                height={220}
-              />
-            ) : isLinear ? (
-              <LinearStructureCanvas
-                step={currentStepData as any}
-                isCompleted={isCompleted}
-                algorithmName={algoritmo?.nombre ?? ''}
-                height={220}
-              />
-            ) : (
-              <BarChart
-                algorithmName={algoritmo?.nombre}
-                step={currentStepData}
-                isCompleted={isCompleted}
-                height={220}
-              />
-            )
-          ) : (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📊</Text>
-              <Text style={styles.emptyText}>
-                Genera datos para iniciar la simulación
-              </Text>
+
+            {/* Columna derecha: Inspector + Pseudocódigo + Practicar */}
+            <View style={styles.rightColumn}>
+              {inspectorPanels}
+              {pseudoLines.length > 0 && (
+                <PseudocodePanel
+                  lines={pseudoLines}
+                  currentStep={currentStepData}
+                  showInlineValues={showInlineValues}
+                  onToggleInlineValues={() => setShowInlineValues((prev) => !prev)}
+                  maxHeight={360}
+                />
+              )}
+              {practiceCtaButton}
             </View>
-          )}
-        </View>
-
-        {/* Leyenda de colores */}
-        <View style={styles.legend}>
-          {legend.map(({ color, label }) => (
-            <View key={label} style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: color }]} />
-              <Text style={styles.legendText}>{label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Panel de frontera y nodos visitados para Grafos (BFS / DFS / Dijkstra) */}
-        {isGraphAlgo && currentStepData && isPasoGrafo(currentStepData) && (
-          <FrontierPanel
-            algorithmName={algoritmo?.nombre}
-            step={currentStepData}
-          />
-        )}
-
-        {/* Panel didáctico de complejidad para búsqueda */}
-        {isSearch && (
-          <SearchComplexityPanel
-            algorithmName={algoritmo?.nombre}
-            arrayLength={parsedNumbers.length || 10}
-          />
-        )}
-
-        {/* Pseudocódigo */}
-        {pseudoLines.length > 0 && (
-          <PseudocodePanel
-            lines={pseudoLines}
-            currentStep={currentStepData}
-            showInlineValues={showInlineValues}
-          />
-        )}
-
-        {/* Input de datos personalizados y objetivo */}
-        <View style={styles.dataInputSection}>
-          {isSearch && (
-            <SearchTargetInput
-              targetInput={targetInput}
-              onTargetChange={(val) => {
-                setTargetInput(val);
-                setInputError(null);
-              }}
-              onRandomTarget={handleRandomTarget}
-              isBinarySearch={isBinary}
-              isSorted={isSorted}
-              onAutoSort={handleAutoSort}
-              disabled={isExecuting}
-            />
-          )}
-
-          <Text style={styles.dataInputLabel}>
-            {isGraphAlgo
-              ? isDijkstraAlgo
-                ? 'Grafo ponderado (Formato: [origen, destino] peso)'
-                : 'Grafo personalizado (Formato: [origen, destino])'
-              : 'Colección de datos'}
-          </Text>
-          <View style={styles.dataInputRow}>
-            <View
-              style={[
-                styles.dataInputShell,
-                inputError ? styles.dataInputError : null,
-              ]}
-            >
-              <TextInput
-                style={styles.dataInput}
-                value={customInput}
-                onChangeText={(text) => {
-                  setCustomInput(text);
-                  setInputError(null);
-                }}
-                placeholder={
-                  isGraphAlgo
-                    ? isDijkstraAlgo
-                      ? '[A, B] 4, [A, C] 2, [B, D] 5'
-                      : '[A, B], [A, C], [B, D], [B, E], [C, F]'
-                    : '5, 3, 8, 1, 9, 2'
-                }
-                placeholderTextColor={colors.inputPlaceholder}
-                keyboardType="default"
-                returnKeyType="done"
-                onSubmitEditing={handleApplyCustom}
-                accessibilityLabel={
-                  isGraphAlgo
-                    ? isDijkstraAlgo
-                      ? 'Aristas ponderadas del grafo'
-                      : 'Aristas del grafo'
-                    : 'Datos personalizados en formato CSV'
-                }
-                testID="input-custom-data"
-              />
-              <TouchableOpacity
-                style={styles.diceButton}
-                onPress={handleGenerateNew}
-                disabled={isExecuting}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isGraphAlgo
-                    ? 'Restablecer grafo predeterminado'
-                    : 'Generar nuevos datos aleatorios'
-                }
-                testID="btn-generate-new"
-              >
-                <Text style={styles.diceButtonText}>🎲</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={styles.applyButton}
-              onPress={handleApplyCustom}
-              disabled={!customInput.trim()}
-              accessibilityRole="button"
-              accessibilityLabel={
-                isGraphAlgo ? 'Aplicar grafo' : 'Aplicar datos personalizados'
-              }
-              testID="btn-apply-data"
-            >
-              <Text style={styles.applyButtonText}>Aplicar</Text>
-            </TouchableOpacity>
           </View>
-          {inputError && (
-            <Text style={styles.inputErrorText}>{inputError}</Text>
-          )}
+        ) : (
+          <>
+            {canvasSection}
 
-          {isGraphAlgo && activeGrafo && activeGrafo.nodos.length > 0 && (
-            <View style={styles.startNodeSection}>
-              <Text style={styles.dataInputLabel}>
-                Nodo de inicio {isDijkstraAlgo ? 'del camino mínimo' : 'del recorrido'}
-              </Text>
-              <View style={styles.startNodeRow}>
-                {activeGrafo.nodos.map((nodo) => {
-                  const isSelected = (nodoInicio ?? activeGrafo.nodos[0]) === nodo;
-                  return (
-                    <TouchableOpacity
-                      key={nodo}
-                      style={[
-                        styles.startNodeChip,
-                        isSelected && styles.startNodeChipActive,
-                      ]}
-                      onPress={() => handleSelectStartNode(nodo)}
-                      disabled={isExecuting}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: isSelected }}
-                      accessibilityLabel={`Seleccionar nodo de inicio ${nodo}`}
-                    >
-                      <Text
-                        style={[
-                          styles.startNodeText,
-                          isSelected && styles.startNodeTextActive,
-                        ]}
-                      >
-                        {nodo}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            {/* Leyenda de colores en móvil */}
+            <View style={styles.legend}>
+              {legend.map(({ color, label }) => (
+                <View key={label} style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: color }]} />
+                  <Text style={styles.legendText}>{label}</Text>
+                </View>
+              ))}
             </View>
-          )}
 
-          {/* Botón Practicar */}
-          <TouchableOpacity
-            style={styles.practiceButton}
-            onPress={() => navigation.navigate('Exercise', { algoritmoId })}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Ir a ejercicios de práctica"
-            testID="btn-practice"
-          >
-            <Text style={{ fontSize: 16 }}>📝</Text>
-            <Text style={styles.practiceButtonText}>Practicar</Text>
-          </TouchableOpacity>
-        </View>
+            {inspectorPanels}
+
+            {pseudoLines.length > 0 && (
+              <PseudocodePanel
+                lines={pseudoLines}
+                currentStep={currentStepData}
+                showInlineValues={showInlineValues}
+                onToggleInlineValues={() => setShowInlineValues((prev) => !prev)}
+              />
+            )}
+
+            {dataConfigSection}
+            {practiceCtaButton}
+          </>
+        )}
       </ScrollView>
 
-      {/* Barra de control — pegada al fondo */}
-      <ControlBar
-        isPlaying={!!isPlaying}
-        isCompleted={isCompleted}
-        speed={speed}
-        hasSteps={hasSteps}
-        onPlay={play}
-        onPause={pause}
-        onReset={handleReset}
-        onPreviousStep={previousStep}
-        onNextStep={nextStep}
-        onSpeedChange={setSpeed}
-        showInlineValues={showInlineValues}
-        onToggleInlineValues={() => setShowInlineValues((prev) => !prev)}
-      />
+      {/* Barra de control — pegada al fondo solo en móvil/tablet */}
+      {!isDesktop && (
+        <ControlBar
+          variant="docked"
+          isPlaying={!!isPlaying}
+          isCompleted={isCompleted}
+          speed={speed}
+          hasSteps={hasSteps}
+          onPlay={play}
+          onPause={pause}
+          onReset={handleReset}
+          onPreviousStep={previousStep}
+          onNextStep={nextStep}
+          onSpeedChange={setSpeed}
+        />
+      )}
       <BadgeUnlockModal
         visible={unlockedBadges.length > 0}
         badges={unlockedBadges}
@@ -1125,5 +1453,109 @@ export default function SimulationScreen({ navigation, route }: LegacyScreenProp
       onRequestBack={navigation.goBack}
       showAlgorithmHeader
     />
+  );
+}
+
+// ─── Iconos SVG estilo Lucide ─────────────────────────────────────────────────
+
+function ArrowLeftIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M19 12H5M12 19l-7-7 7-7"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function ChevronRightIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18l6-6-6-6"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function BarChartIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function DicesIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect
+        x={3}
+        y={3}
+        width={18}
+        height={18}
+        rx={3}
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx={8.5} cy={8.5} r={1.2} fill={color} />
+      <Circle cx={15.5} cy={8.5} r={1.2} fill={color} />
+      <Circle cx={12} cy={12} r={1.2} fill={color} />
+      <Circle cx={8.5} cy={15.5} r={1.2} fill={color} />
+      <Circle cx={15.5} cy={15.5} r={1.2} fill={color} />
+    </Svg>
+  );
+}
+
+function GraduationCapIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M22 10v6M2 10l10-5 10 5-10 5-10-5Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M6 12v5c3 3 9 3 12 0v-5"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function CompareIcon({ size, color }: { size: number; color: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx={5} cy={6} r={2.5} stroke={color} strokeWidth={2} />
+      <Circle cx={19} cy={18} r={2.5} stroke={color} strokeWidth={2} />
+      <Path
+        d="M13 6h3a2 2 0 0 1 2 2v5M16 3l-3 3 3 3M11 18H8a2 2 0 0 1-2-2v-5M8 21l3-3-3-3"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 }
