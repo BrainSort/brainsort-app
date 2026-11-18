@@ -14,13 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  DarkSurfaces,
-  DarkText,
-  Primary,
-  Accent,
-  Semantic,
-} from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
+import { Semantic } from '../../styles/colors';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
@@ -43,26 +38,45 @@ export const SearchTargetInput: React.FC<SearchTargetInputProps> = ({
   onAutoSort,
   disabled = false,
 }) => {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
+
   return (
     <View style={styles.container} testID="search-target-section">
       <View style={styles.row}>
         {/* Input Target */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Valor objetivo (Target)</Text>
-          <View style={styles.inputShell}>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Valor objetivo (Target)
+          </Text>
+          <View
+            style={[
+              styles.inputShell,
+              {
+                backgroundColor: colors.inputBackground,
+                borderColor: colors.inputBorder,
+              },
+            ]}
+          >
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { color: colors.inputText }]}
               value={targetInput}
               onChangeText={onTargetChange}
               placeholder="Ej. 42"
-              placeholderTextColor={DarkText.muted}
+              placeholderTextColor={colors.inputPlaceholder}
               keyboardType="numeric"
               editable={!disabled}
               testID="input-target-value"
               accessibilityLabel="Valor objetivo a buscar"
             />
             <TouchableOpacity
-              style={styles.diceButton}
+              style={[
+                styles.diceButton,
+                {
+                  borderLeftColor: colors.border,
+                  backgroundColor: colors.surfaceElevated,
+                },
+              ]}
               onPress={onRandomTarget}
               disabled={disabled}
               accessibilityRole="button"
@@ -77,22 +91,39 @@ export const SearchTargetInput: React.FC<SearchTargetInputProps> = ({
         {/* Acciones adicionales o botón de auto-ordenar */}
         {isBinarySearch && (
           <View style={styles.sortActionGroup}>
-            <Text style={styles.label}>Requisito de orden</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
+              Requisito de orden
+            </Text>
             <TouchableOpacity
               style={[
                 styles.sortButton,
-                isSorted ? styles.sortButtonDisabled : styles.sortButtonActive,
+                isSorted
+                  ? {
+                      backgroundColor: colors.surfaceElevated,
+                      borderColor: colors.border,
+                    }
+                  : {
+                      backgroundColor: colors.chipActiveBg,
+                      borderColor: colors.chipActiveBorder,
+                    },
               ]}
               onPress={onAutoSort}
               disabled={disabled || isSorted}
               accessibilityRole="button"
               testID="btn-auto-sort"
             >
-              <Text style={styles.sortButtonIcon}>{isSorted ? '✓' : '⚡'}</Text>
+              <Text
+                style={[
+                  styles.sortButtonIcon,
+                  { color: isSorted ? colors.textMuted : colors.brandAccent },
+                ]}
+              >
+                {isSorted ? '✓' : '⚡'}
+              </Text>
               <Text
                 style={[
                   styles.sortButtonText,
-                  isSorted && styles.sortButtonTextDisabled,
+                  { color: isSorted ? colors.textMuted : colors.brandAccent },
                 ]}
               >
                 {isSorted ? 'Arreglo ordenado' : 'Ordenar datos'}
@@ -139,14 +170,11 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.xs,
-    color: DarkText.secondary,
   },
   inputShell: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F1318',
     borderWidth: 1,
-    borderColor: DarkSurfaces.border,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
     height: 42,
@@ -156,7 +184,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[3],
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.sm,
-    color: DarkText.primary,
   },
   diceButton: {
     width: 40,
@@ -164,8 +191,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderLeftWidth: 1,
-    borderLeftColor: DarkSurfaces.border,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
   },
   diceIcon: {
     fontSize: 16,
@@ -180,26 +205,13 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
-  sortButtonActive: {
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
-    borderColor: Accent[500],
-  },
-  sortButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderColor: DarkSurfaces.border,
-  },
   sortButtonIcon: {
     fontSize: 14,
-    color: Accent[500],
   },
   sortButtonText: {
     fontFamily: FontFamilies.semiBold,
     fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.xs,
-    color: Accent[500],
-  },
-  sortButtonTextDisabled: {
-    color: DarkText.muted,
   },
   unsortedWarning: {
     flexDirection: 'row',

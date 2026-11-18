@@ -18,7 +18,7 @@ function getNodeColor(index: number, step: SimulationStep | null, isCompleted: b
   if (isCompleted) return SimulationColors.final;
   const marker = step?.marcadores?.find((item) => item.index === index);
   if (marker) return marker.color;
-  if (!step?.indicesActivos.includes(index)) return DarkSurfaces.surface;
+  if (!step?.indicesActivos?.includes(index)) return DarkSurfaces.surface;
   if (step.tipoOperacion === 'intercambio') return Semantic.error;
   if (step.tipoOperacion === 'insercion') return Accent[500];
   return SimulationColors.comparacion;
@@ -88,7 +88,7 @@ export function TreeStructureCanvas({
               {level.map(({ value, index, label }) => {
                 const color = getNodeColor(index, step, isCompleted);
                 const marker = step?.marcadores?.find((item) => item.index === index);
-                const active = !!marker || step?.indicesActivos.includes(index);
+                const active = !!marker || !!step?.indicesActivos?.includes(index);
                 return (
                   <View key={`node-${index}`} style={styles.nodeWrap}>
                     {levelIndex > 0 ? <View style={styles.connector} /> : null}

@@ -1,9 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Accent, DarkSurfaces, DarkText } from '../../styles/colors';
+import Svg, { Path, Rect } from 'react-native-svg';
+import { useThemeContext } from '../../context/ThemeContext';
+import { getTheme } from '../../styles/theme';
 import { FontWeights, TextVariants } from '../../styles/typography';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import { BadgeIcon } from './BadgeIcon';
+
+function useSafeColors() {
+  try {
+    return useThemeContext().theme.colors;
+  } catch {
+    return getTheme('dark').colors;
+  }
+}
 
 export interface BadgeCardProps {
   nombre: string;
@@ -24,13 +34,23 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({
   desbloqueada = true,
   fechaObtencion,
 }) => {
+  const colors = useSafeColors();
   const isUnlocked = desbloqueada !== false;
 
   return (
     <View
       style={[
         styles.badgeItem,
-        isUnlocked ? styles.badgeItemUnlocked : styles.badgeItemLocked,
+        isUnlocked
+          ? {
+              backgroundColor: colors.surfaceElevated,
+              borderColor: colors.brandAccent,
+            }
+          : {
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+              opacity: 0.65,
+            },
       ]}
       testID={isUnlocked ? 'badge-card-unlocked' : 'badge-card-locked'}
       accessibilityLabel={
@@ -42,8 +62,38 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({
       <View style={styles.iconWrapper}>
         <BadgeIcon imagen={imagen} desbloqueada={isUnlocked} size={48} />
         {!isUnlocked && (
-          <View style={styles.lockOverlay}>
-            <Text style={styles.lockText}>🔒</Text>
+          <View
+            style={[
+              styles.lockOverlay,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Svg
+              width={11}
+              height={11}
+              viewBox="0 0 24 24"
+              fill="none"
+              testID="badge-lock-icon"
+            >
+              <Rect
+                x="5"
+                y="11"
+                width="14"
+                height="10"
+                rx="2"
+                stroke={colors.textMuted}
+                strokeWidth={2}
+              />
+              <Path
+                d="M8 11V7a4 4 0 018 0v4"
+                stroke={colors.textMuted}
+                strokeWidth={2}
+                strokeLinecap="round"
+              />
+            </Svg>
           </View>
         )}
       </View>
@@ -53,7 +103,7 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({
           <Text
             style={[
               styles.badgeName,
-              !isUnlocked && styles.badgeNameLocked,
+              { color: isUnlocked ? colors.textPrimary : colors.textMuted },
             ]}
           >
             {nombre}
@@ -62,10 +112,16 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({
             <View
               style={[
                 styles.categoryPill,
-                !isUnlocked && styles.categoryPillLocked,
+                {
+                  backgroundColor: isUnlocked
+                    ? colors.chipActiveBg
+                    : colors.surface,
+                },
               ]}
             >
-              <Text style={styles.categoryText}>{categoria}</Text>
+              <Text style={[styles.categoryText, { color: colors.brandAccent }]}>
+                {categoria}
+              </Text>
             </View>
           ) : null}
         </View>
@@ -73,19 +129,28 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({
         {isUnlocked ? (
           <>
             {descripcion ? (
-              <Text style={styles.badgeDescription}>{descripcion}</Text>
+              <Text
+                style={[styles.badgeDescription, { color: colors.textSecondary }]}
+              >
+                {descripcion}
+              </Text>
             ) : null}
             {fechaObtencion ? (
-              <Text style={styles.badgeDate}>
+              <Text style={[styles.badgeDate, { color: colors.brandAccent }]}>
                 ✓ Desbloqueada el{' '}
                 {new Date(fechaObtencion).toLocaleDateString()}
               </Text>
             ) : (
-              <Text style={styles.badgeDate}>✓ Desbloqueada</Text>
+              <Text style={[styles.badgeDate, { color: colors.brandAccent }]}>
+                ✓ Desbloqueada
+              </Text>
             )}
           </>
         ) : (
-          <Text style={styles.badgeHint} testID="badge-locked-hint">
+          <Text
+            style={[styles.badgeHint, { color: colors.textMuted }]}
+            testID="badge-locked-hint"
+          >
             Pista: {criterioDesbloqueo || descripcion || 'Cumple el hito correspondiente'}
           </Text>
         )}
@@ -103,15 +168,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: Spacing[2],
   },
-  badgeItemUnlocked: {
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    borderColor: Accent[500],
-  },
-  badgeItemLocked: {
-    backgroundColor: DarkSurfaces.background,
-    borderColor: DarkSurfaces.border,
-    opacity: 0.65,
-  },
   iconWrapper: {
     position: 'relative',
     marginRight: Spacing[3],
@@ -120,17 +176,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: 10,
     width: 20,
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: DarkSurfaces.border,
-  },
-  lockText: {
-    fontSize: 10,
   },
   badgeInfo: {
     flex: 1,
@@ -144,38 +195,26 @@ const styles = StyleSheet.create({
   },
   badgeName: {
     ...TextVariants.bodyMd,
-    color: DarkText.primary,
     fontWeight: FontWeights.bold,
     flexShrink: 1,
   },
-  badgeNameLocked: {
-    color: DarkText.muted,
-  },
   categoryPill: {
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
     paddingHorizontal: Spacing[2],
     paddingVertical: 2,
     borderRadius: BorderRadius.full,
   },
-  categoryPillLocked: {
-    backgroundColor: DarkSurfaces.surface,
-  },
   categoryText: {
     ...TextVariants.labelSm,
-    color: Accent[500],
   },
   badgeDescription: {
     ...TextVariants.bodySm,
-    color: DarkText.secondary,
     marginBottom: 2,
   },
   badgeDate: {
     ...TextVariants.bodySm,
-    color: Accent[500],
   },
   badgeHint: {
     ...TextVariants.bodySm,
-    color: DarkText.muted,
     fontStyle: 'italic',
   },
 });

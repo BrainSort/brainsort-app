@@ -20,6 +20,7 @@
 
 import { useSimulationContext } from '../context/SimulationContext';
 import type { PseudocodeLine } from '../services/library.service';
+import type { GrafoData } from '@brainsort/core';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,9 @@ export interface UseSimulationReturn {
   steps: any[]; // SimulationStep[]
   currentStep: CurrentStepInfo;
   data: number[];
+  grafo?: GrafoData | null;
+  objetivo?: number | null;
+  nodoInicio?: string | null;
   algoritmoId: string;
   isPlaying: boolean;
   speed: number;
@@ -139,6 +143,9 @@ export function useSimulation(): UseSimulationReturn {
     steps: ctx.steps,
     currentStep: currentStepInfo,
     data: ctx.data,
+    grafo: ctx.grafo,
+    objetivo: ctx.objetivo,
+    nodoInicio: ctx.nodoInicio,
     algoritmoId: ctx.algoritmoId,
     isPlaying: ctx.playback.isPlaying,
     speed: ctx.playback.speed,

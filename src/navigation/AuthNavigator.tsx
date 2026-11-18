@@ -17,7 +17,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
-import { DarkSurfaces, DarkText } from '../styles/colors';
+import { useThemeContext } from '../context/ThemeContext';
 import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -33,14 +33,18 @@ export type AuthStackParamList = {
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AuthNavigator() {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
+
   return (
     <Stack.Navigator
       initialRouteName="Login"
       screenOptions={{
+        headerShown: false,
         headerStyle: {
-          backgroundColor: DarkSurfaces.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: DarkText.primary,
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontFamily: FontFamilies.semiBold,
           fontWeight: FontWeights.semiBold,
@@ -49,7 +53,7 @@ export default function AuthNavigator() {
         headerShadowVisible: false,
         headerBackTitleVisible: false,
         contentStyle: {
-          backgroundColor: DarkSurfaces.background,
+          backgroundColor: colors.background,
         },
         animation: 'slide_from_right',
       }}
@@ -62,12 +66,12 @@ export default function AuthNavigator() {
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{ title: 'Iniciar Sesión' }}
+        options={{ title: 'Iniciar Sesión', headerShown: false }}
       />
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ title: 'Crear Cuenta' }}
+        options={{ title: 'Crear Cuenta', headerShown: false }}
       />
     </Stack.Navigator>
   );

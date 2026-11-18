@@ -50,6 +50,14 @@ export const AnimationEngine = {
       }
       return SearchLegends.binary;
     }
+    if (categoria === 'Grafos') {
+      return [
+        { color: SimulationColors.idle, label: 'Inactivo' },
+        { color: SimulationColors.comparacion, label: 'Visitando' },
+        { color: Accent[500], label: 'Frontera' },
+        { color: SimulationColors.final, label: 'Finalizado' },
+      ];
+    }
     if (categoria === 'EstructurasArboles') {
       return [
         { color: '#555', label: 'Pendiente' },

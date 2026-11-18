@@ -110,7 +110,7 @@ export function ThemeProvider({
 
 /**
  * Hook para consumir el ThemeContext.
- * Lanza un error si se usa fuera de <ThemeProvider>.
+ * Si se usa fuera de <ThemeProvider> (ej. en unit tests aislados), retorna el tema inicial por defecto.
  *
  * @example
  * const { theme, mode, toggleTheme } = useThemeContext();
@@ -119,9 +119,12 @@ export function ThemeProvider({
 export function useThemeContext(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (ctx === undefined) {
-    throw new Error(
-      'useThemeContext debe usarse dentro de <ThemeProvider>.',
-    );
+    return {
+      mode: INITIAL_MODE,
+      theme: INITIAL_THEME,
+      setThemeMode: () => {},
+      toggleTheme: () => {},
+    };
   }
   return ctx;
 }

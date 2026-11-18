@@ -35,14 +35,8 @@ import {
   DifficultyBadge,
   normalizeDificultad,
 } from '../../components/algorithm/DifficultyBadge';
-import {
-  DarkSurfaces,
-  DarkText,
-  Primary,
-  Accent,
-  Semantic,
-  SimulationColors,
-} from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
+import { Semantic, SimulationColors } from '../../styles/colors';
 import { BorderRadius, BorderWidths, Spacing, SpacingAlias } from '../../styles/spacing';
 import {
   FontFamilies,
@@ -62,7 +56,6 @@ type Props = NativeStackScreenProps<LibraryStackParamList, 'AlgorithmDetail'>;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: DarkSurfaces.background,
   },
   scroll: {
     flex: 1,
@@ -75,7 +68,6 @@ const styles = StyleSheet.create({
 
   breadcrumbText: {
     ...TextVariants.bodyMd,
-    color: DarkText.muted,
     marginBottom: Spacing[2],
   },
   titleRow: {
@@ -86,12 +78,10 @@ const styles = StyleSheet.create({
   },
   title: {
     ...TextVariants.h1,
-    color: DarkText.primary,
     flex: 1,
   },
   descriptionTopText: {
     ...TextVariants.bodyMd,
-    color: DarkText.secondary,
     marginBottom: Spacing[5],
     lineHeight: 24,
   },
@@ -103,10 +93,8 @@ const styles = StyleSheet.create({
   },
   complexityCardIndividual: {
     flex: 1,
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: DarkSurfaces.borderSubtle,
     padding: Spacing[3],
     flexDirection: 'row',
     alignItems: 'center',
@@ -116,13 +104,11 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: BorderRadius.sm,
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   complexityIconText: {
     fontSize: 16,
-    color: Accent[500],
   },
   complexityContent: {
     flex: 1,
@@ -130,25 +116,21 @@ const styles = StyleSheet.create({
   complexityLabel: {
     fontFamily: FontFamilies.regular,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
     marginBottom: 2,
   },
   complexityValue: {
     fontFamily: FontFamilies.bold,
     fontWeight: FontWeights.bold,
-    color: DarkText.primary,
   },
 
   descriptionText: {
     ...TextVariants.bodyLg,
-    color: DarkText.primary,
     lineHeight: 26,
     marginBottom: Spacing[6],
   },
 
   // Botón principal
   startButton: {
-    backgroundColor: Primary[500],
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing[4],
     paddingHorizontal: Spacing[6],
@@ -184,24 +166,19 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.sm,
-    color: DarkText.muted,
   },
   progressBar: {
     height: 3,
-    backgroundColor: DarkSurfaces.border,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Accent[500],
     borderRadius: BorderRadius.full,
   },
   canvasContainer: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
     padding: Spacing[3],
     overflow: 'hidden',
   },
@@ -220,7 +197,6 @@ const styles = StyleSheet.create({
   legendText: {
     fontFamily: FontFamilies.regular,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
   },
   dataInputSection: {
     gap: Spacing[2],
@@ -229,7 +205,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.sm,
-    color: DarkText.secondary,
   },
   dataInputRow: {
     flexDirection: 'row',
@@ -237,22 +212,18 @@ const styles = StyleSheet.create({
   },
   dataInput: {
     flex: 1,
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[2],
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.sm,
-    color: DarkText.primary,
     minHeight: 44,
   },
   dataInputError: {
     borderColor: Semantic.error,
   },
   applyButton: {
-    backgroundColor: Primary[500],
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing[4],
     justifyContent: 'center',
@@ -272,13 +243,11 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing[2],
     borderRadius: BorderRadius.md,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
   },
   generateButtonText: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.sm,
-    color: DarkText.secondary,
   },
   inputErrorText: {
     fontFamily: FontFamilies.regular,
@@ -292,7 +261,7 @@ const styles = StyleSheet.create({
     gap: Spacing[3],
   },
   emptyIcon: { fontSize: 36 },
-  emptyText: { ...TextVariants.bodyMd, color: DarkText.muted, textAlign: 'center' },
+  emptyText: { ...TextVariants.bodyMd, textAlign: 'center' },
   toastContainer: {
     position: 'absolute',
     top: Spacing[4],
@@ -321,19 +290,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[2],
     borderRadius: BorderRadius.md,
-    backgroundColor: DarkSurfaces.surface,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-  },
-  toastBtnPrimary: {
-    backgroundColor: Primary[500],
-    borderColor: Primary[500],
   },
   toastBtnText: {
     fontFamily: FontFamilies.semiBold,
     fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.sm,
-    color: DarkText.secondary,
   },
   toastBtnTextPrimary: { color: '#FFFFFF' },
 
@@ -354,20 +316,17 @@ const styles = StyleSheet.create({
   // Modal "Próximamente"
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(8,11,15,0.85)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing[6],
   },
   modalCard: {
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderRadius: BorderRadius.xl,
     padding: SpacingAlias.modalPadding,
     width: '100%',
     maxWidth: 420,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: DarkSurfaces.border,
     gap: Spacing[4],
   },
   modalIcon: {
@@ -375,16 +334,13 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...TextVariants.h3,
-    color: DarkText.primary,
     textAlign: 'center',
   },
   modalDesc: {
     ...TextVariants.bodyMd,
-    color: DarkText.secondary,
     textAlign: 'center',
   },
   modalClose: {
-    backgroundColor: Primary[500],
     borderRadius: BorderRadius.md,
     paddingHorizontal: SpacingAlias.buttonPaddingX,
     paddingVertical: SpacingAlias.buttonPaddingY,
@@ -399,9 +355,7 @@ const styles = StyleSheet.create({
   fixedFooter: {
     width: '100%',
     padding: Spacing[4],
-    backgroundColor: DarkSurfaces.surface,
     borderTopWidth: 1,
-    borderTopColor: DarkSurfaces.border,
   },
   contentWrapper: {
     flex: 1,
@@ -418,7 +372,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing[6],
     paddingTop: Spacing[6],
     borderTopWidth: 1,
-    borderTopColor: DarkSurfaces.borderSubtle,
   },
 });
 
@@ -430,6 +383,8 @@ const styles = StyleSheet.create({
  * Pantalla de detalle de algoritmo (HU-02).
  */
 export default function AlgorithmDetailScreen({ navigation, route }: Props) {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
   const { algoritmoId } = route.params;
   const { algoritmo, isLoading, isError } = useAlgorithm(algoritmoId);
   const [showProximamente, setShowProximamente] = useState(false);
@@ -444,7 +399,16 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.background,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        ]}
+      >
         <Spinner size="large" />
       </View>
     );
@@ -452,14 +416,20 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
 
   if (isError || !algoritmo) {
     return (
-      <View style={[styles.container, styles.errorContainer]}>
+      <View
+        style={[
+          styles.container,
+          styles.errorContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <Text style={{ fontSize: 48 }}>⚠️</Text>
         <Text style={styles.errorText}>
           No se pudo cargar el algoritmo.{'\n'}Intenta de nuevo más tarde.
         </Text>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.modalClose}
+          style={[styles.modalClose, { backgroundColor: colors.primaryButton }]}
           accessibilityRole="button"
           accessibilityLabel="Volver a la biblioteca"
         >
@@ -483,7 +453,7 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
 
     if (showSimulation && esActivo) {
       return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
           <SimulationContent
             algoritmoId={algoritmoId}
             onRequestBack={() => setShowSimulation(false)}
@@ -495,7 +465,11 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
 
     const startButtonElement = (
       <TouchableOpacity
-        style={[styles.startButton, !esActivo ? styles.startButtonDisabled : null]}
+        style={[
+          styles.startButton,
+          { backgroundColor: colors.ctaPrimary },
+          !esActivo ? styles.startButtonDisabled : null,
+        ]}
         onPress={handleStartSimulation}
         activeOpacity={0.85}
         accessibilityRole="button"
@@ -516,52 +490,142 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
     );
 
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.contentWrapper}>
           <ScrollView
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={true}
           >
-            <Text style={styles.breadcrumbText}>
+            <Text style={[styles.breadcrumbText, { color: colors.textMuted }]}>
               Biblioteca / {algoritmo.categoria} / {algoritmo.nombre}
             </Text>
 
             <View style={styles.titleRow}>
-              <Text style={styles.title}>{algoritmo.nombre}</Text>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {algoritmo.nombre}
+              </Text>
               <DifficultyBadge dificultad={dificultad} />
             </View>
 
-            <Text style={styles.descriptionTopText}>{algoritmo.descripcion}</Text>
+            <Text style={[styles.descriptionTopText, { color: colors.textSecondary }]}>
+              {algoritmo.descripcion}
+            </Text>
 
             <View style={styles.complexityRow}>
-              <View style={styles.complexityCardIndividual}>
-                <View style={styles.complexityIconBox}>
-                  <Text style={styles.complexityIconText}>🕒</Text>
+              <View
+                style={[
+                  styles.complexityCardIndividual,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.borderSubtle,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.complexityIconBox,
+                    { backgroundColor: colors.chipActiveBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.complexityIconText,
+                      { color: colors.brandAccent },
+                    ]}
+                  >
+                    🕒
+                  </Text>
                 </View>
                 <View style={styles.complexityContent}>
-                  <Text style={styles.complexityLabel}>Tiempo</Text>
-                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadTiempo}</Text>
+                  <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
+                    Tiempo
+                  </Text>
+                  <Text
+                    style={[
+                      styles.complexityValue,
+                      { color: colors.textPrimary, fontSize: FontSizes.lg },
+                    ]}
+                  >
+                    {algoritmo.complejidadTiempo}
+                  </Text>
                 </View>
               </View>
 
-              <View style={styles.complexityCardIndividual}>
-                <View style={styles.complexityIconBox}>
-                  <Text style={styles.complexityIconText}>📦</Text>
+              <View
+                style={[
+                  styles.complexityCardIndividual,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.borderSubtle,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.complexityIconBox,
+                    { backgroundColor: colors.chipActiveBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.complexityIconText,
+                      { color: colors.brandAccent },
+                    ]}
+                  >
+                    📦
+                  </Text>
                 </View>
                 <View style={styles.complexityContent}>
-                  <Text style={styles.complexityLabel}>Espacio</Text>
-                  <Text style={[styles.complexityValue, { fontSize: FontSizes.lg }]}>{algoritmo.complejidadEspacio}</Text>
+                  <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
+                    Espacio
+                  </Text>
+                  <Text
+                    style={[
+                      styles.complexityValue,
+                      { color: colors.textPrimary, fontSize: FontSizes.lg },
+                    ]}
+                  >
+                    {algoritmo.complejidadEspacio}
+                  </Text>
                 </View>
               </View>
 
-              <View style={styles.complexityCardIndividual}>
-                <View style={styles.complexityIconBox}>
-                  <Text style={styles.complexityIconText}>📁</Text>
+              <View
+                style={[
+                  styles.complexityCardIndividual,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.borderSubtle,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.complexityIconBox,
+                    { backgroundColor: colors.chipActiveBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.complexityIconText,
+                      { color: colors.brandAccent },
+                    ]}
+                  >
+                    📁
+                  </Text>
                 </View>
                 <View style={styles.complexityContent}>
-                  <Text style={styles.complexityLabel}>Categoría</Text>
-                  <Text style={[styles.complexityValue, { fontSize: FontSizes.md }]} numberOfLines={1}>
+                  <Text style={[styles.complexityLabel, { color: colors.textMuted }]}>
+                    Categoría
+                  </Text>
+                  <Text
+                    style={[
+                      styles.complexityValue,
+                      { color: colors.textPrimary, fontSize: FontSizes.md },
+                    ]}
+                    numberOfLines={1}
+                  >
                     {algoritmo.categoria}
                   </Text>
                 </View>
@@ -569,7 +633,12 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
             </View>
 
             {algoritmo?.nombre && (
-              <View style={styles.theoryWrapper}>
+              <View
+                style={[
+                  styles.theoryWrapper,
+                  { borderTopColor: colors.borderSubtle },
+                ]}
+              >
                 <AlgorithmTheory algoritmoNombre={algoritmo.nombre} />
               </View>
             )}
@@ -577,7 +646,15 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
         </View>
 
         {/* Botón de Iniciar Simulación anclado abajo y centrado */}
-        <View style={styles.fixedFooter}>
+        <View
+          style={[
+            styles.fixedFooter,
+            {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.footerInner}>
             {startButtonElement}
           </View>
@@ -591,19 +668,36 @@ export default function AlgorithmDetailScreen({ navigation, route }: Props) {
           accessibilityViewIsModal
         >
           <Pressable
-            style={styles.modalOverlay}
+            style={[
+              styles.modalOverlay,
+              { backgroundColor: colors.overlayBackground },
+            ]}
             onPress={() => setShowProximamente(false)}
             accessibilityLabel="Cerrar modal"
           >
-            <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Pressable
+              style={[
+                styles.modalCard,
+                {
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={() => {}}
+            >
               <Text style={styles.modalIcon}>🚧</Text>
-              <Text style={styles.modalTitle}>Próximamente</Text>
-              <Text style={styles.modalDesc}>
+              <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+                Próximamente
+              </Text>
+              <Text style={[styles.modalDesc, { color: colors.textSecondary }]}>
                 Este algoritmo estará disponible muy pronto. Mientras tanto,
                 explora los demás algoritmos de la biblioteca.
               </Text>
               <TouchableOpacity
-                style={styles.modalClose}
+                style={[
+                  styles.modalClose,
+                  { backgroundColor: colors.primaryButton },
+                ]}
                 onPress={() => setShowProximamente(false)}
                 accessibilityRole="button"
                 accessibilityLabel="Cerrar"

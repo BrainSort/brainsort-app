@@ -20,8 +20,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { DarkSurfaces, DarkText, Accent, Primary, Semantic } from '../../styles/colors';
-import { BorderRadius, BorderWidths, LayoutSizes, Spacing } from '../../styles/spacing';
+import { useThemeContext } from '../../context/ThemeContext';
+import { Semantic } from '../../styles/colors';
+import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -68,14 +69,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: DarkSurfaces.surface,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconButtonDisabled: { opacity: 0.4 },
-  iconText: { fontSize: 18, color: DarkText.primary },
+  iconText: { fontSize: 18 },
   resetIconText: { fontSize: 18, color: Semantic.error },
 
   // Botón Play/Pause (prominente)
@@ -83,12 +82,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Accent[500],
     alignItems: 'center',
     justifyContent: 'center',
   },
-  playButtonDisabled: { backgroundColor: DarkSurfaces.border, opacity: 0.5 },
-  playIcon: { fontSize: 22, color: '#0F1318' },
+  playButtonDisabled: { opacity: 0.5 },
+  playIcon: { fontSize: 22 },
 
   // Botón Reset
   resetButton: {
@@ -112,7 +110,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
     minWidth: 28,
   },
   speedOptions: {
@@ -126,40 +123,22 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    backgroundColor: DarkSurfaces.surface,
-  },
-  speedChipActive: {
-    borderColor: Accent[500],
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
   },
   speedChipText: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
   },
-  speedChipTextActive: { color: Accent[500] },
   variablesToggleChip: {
     paddingHorizontal: Spacing[2],
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    backgroundColor: DarkSurfaces.surface,
-  },
-  variablesToggleChipActive: {
-    borderColor: Accent[500],
-    backgroundColor: 'rgba(0, 212, 255, 0.15)',
   },
   variablesToggleText: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.medium,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
-  },
-  variablesToggleTextActive: {
-    color: Accent[500],
   },
 
   // Indicador de estado completado
@@ -196,6 +175,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
   showInlineValues = false,
   onToggleInlineValues,
 }) => {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
   const canPlay = hasSteps && !isCompleted;
 
   return (
@@ -212,19 +193,30 @@ export const ControlBar: React.FC<ControlBarProps> = ({
       <View style={styles.controlRow}>
         {/* Anterior */}
         <TouchableOpacity
-          style={[styles.iconButton, !hasSteps && styles.iconButtonDisabled]}
+          style={[
+            styles.iconButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            !hasSteps && styles.iconButtonDisabled,
+          ]}
           onPress={onPreviousStep}
           disabled={!hasSteps}
           accessibilityRole="button"
           accessibilityLabel="Paso anterior"
           testID="btn-prev-step"
         >
-          <Text style={styles.iconText}>⏮</Text>
+          <Text style={[styles.iconText, { color: colors.textPrimary }]}>⏮</Text>
         </TouchableOpacity>
 
         {/* Play / Pause */}
         <TouchableOpacity
-          style={[styles.playButton, !canPlay && styles.playButtonDisabled]}
+          style={[
+            styles.playButton,
+            { backgroundColor: colors.playButtonActive },
+            !canPlay && [
+              styles.playButtonDisabled,
+              { backgroundColor: colors.playButtonDisabled },
+            ],
+          ]}
           onPress={isPlaying ? onPause : onPlay}
           disabled={!canPlay}
           activeOpacity={0.85}
@@ -233,19 +225,25 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           accessibilityState={{ disabled: !canPlay }}
           testID="btn-play-pause"
         >
-          <Text style={styles.playIcon}>{isPlaying ? '⏸' : '▶'}</Text>
+          <Text style={[styles.playIcon, { color: colors.textOnAccent }]}>
+            {isPlaying ? '⏸' : '▶'}
+          </Text>
         </TouchableOpacity>
 
         {/* Siguiente */}
         <TouchableOpacity
-          style={[styles.iconButton, !hasSteps && styles.iconButtonDisabled]}
+          style={[
+            styles.iconButton,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+            !hasSteps && styles.iconButtonDisabled,
+          ]}
           onPress={onNextStep}
           disabled={!hasSteps}
           accessibilityRole="button"
           accessibilityLabel="Paso siguiente"
           testID="btn-next-step"
         >
-          <Text style={styles.iconText}>⏭</Text>
+          <Text style={[styles.iconText, { color: colors.textPrimary }]}>⏭</Text>
         </TouchableOpacity>
 
         {/* Reiniciar */}
@@ -263,14 +261,20 @@ export const ControlBar: React.FC<ControlBarProps> = ({
 
       {/* Velocidad */}
       <View style={styles.speedRow}>
-        <Text style={styles.speedLabel}>Vel.</Text>
+        <Text style={[styles.speedLabel, { color: colors.textMuted }]}>Vel.</Text>
         <View style={styles.speedOptions}>
           {SPEED_OPTIONS.map((s) => {
             const isActive = s === speed;
             return (
               <TouchableOpacity
                 key={s}
-                style={[styles.speedChip, isActive && styles.speedChipActive]}
+                style={[
+                  styles.speedChip,
+                  {
+                    borderColor: isActive ? colors.chipActiveBorder : colors.border,
+                    backgroundColor: isActive ? colors.chipActiveBg : colors.surface,
+                  },
+                ]}
                 onPress={() => onSpeedChange(s)}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: isActive }}
@@ -280,7 +284,7 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 <Text
                   style={[
                     styles.speedChipText,
-                    isActive && styles.speedChipTextActive,
+                    { color: isActive ? colors.brandAccent : colors.textMuted },
                   ]}
                 >
                   {s}×
@@ -296,19 +300,38 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 style={{
                   width: 1,
                   height: 16,
-                  backgroundColor: DarkSurfaces.border,
+                  backgroundColor: colors.border,
                   marginHorizontal: Spacing[1],
                   alignSelf: 'center',
                 }}
               />
               <TouchableOpacity
-                style={[styles.variablesToggleChip, showInlineValues && styles.variablesToggleChipActive]}
+                style={[
+                  styles.variablesToggleChip,
+                  {
+                    borderColor: showInlineValues
+                      ? colors.chipActiveBorder
+                      : colors.border,
+                    backgroundColor: showInlineValues
+                      ? colors.chipActiveBg
+                      : colors.surface,
+                  },
+                ]}
                 onPress={onToggleInlineValues}
                 accessibilityRole="button"
                 accessibilityLabel="Activar/desactivar valores de variables inline"
                 testID="btn-toggle-inline-values"
               >
-                <Text style={[styles.variablesToggleText, showInlineValues && styles.variablesToggleTextActive]}>
+                <Text
+                  style={[
+                    styles.variablesToggleText,
+                    {
+                      color: showInlineValues
+                        ? colors.brandAccent
+                        : colors.textMuted,
+                    },
+                  ]}
+                >
                   {showInlineValues ? 'Var: On' : 'Var: Off'}
                 </Text>
               </TouchableOpacity>

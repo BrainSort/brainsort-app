@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LaTeX } from '../common/LaTeX';
-import { DarkText, DarkSurfaces, Accent } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
+import type { ThemeColors } from '../../styles/theme';
 import { TextVariants } from '../../styles/typography';
 import { Spacing, BorderRadius } from '../../styles/spacing';
 
@@ -9,64 +10,94 @@ interface TheoryProps {
   algoritmoNombre: string;
 }
 
+const TheoryStylesContext = createContext<ReturnType<typeof createStyles> | null>(null);
+
+function useTheoryStyles() {
+  const ctx = useContext(TheoryStylesContext);
+  if (!ctx) {
+    throw new Error('useTheoryStyles must be used inside AlgorithmTheory');
+  }
+  return ctx;
+}
+
 export function AlgorithmTheory({ algoritmoNombre }: TheoryProps) {
+  const { theme } = useThemeContext();
+  const styles = useMemo(() => createStyles(theme.colors), [theme.colors]);
   const normalizedNombre = algoritmoNombre.toLowerCase();
 
-  if (normalizedNombre.includes('bubble')) {
-    return <BubbleSortTheory />;
-  }
-  if (normalizedNombre.includes('selection')) {
-    return <SelectionSortTheory />;
-  }
-  if (normalizedNombre.includes('insertion')) {
-    return <InsertionSortTheory />;
-  }
-  if (normalizedNombre.includes('merge')) {
-    return <MergeSortTheory />;
-  }
-  if (normalizedNombre.includes('quick')) {
-    return <QuickSortTheory />;
-  }
-  if (normalizedNombre.includes('heap')) {
-    return <HeapSortTheory />;
-  }
-  if (normalizedNombre.includes('binary')) {
-    return <BinarySearchTheory />;
-  }
-  if (normalizedNombre.includes('linear')) {
-    return <LinearSearchTheory />;
-  }
-  if (normalizedNombre.includes('stack')) {
-    return <StackTheory />;
-  }
-  if (normalizedNombre.includes('queue') && !normalizedNombre.includes('priority')) {
-    return <QueueTheory />;
-  }
-  if (normalizedNombre.includes('linked')) {
-    return <LinkedListTheory />;
-  }
-  if (normalizedNombre.includes('deque')) {
-    return <DequeTheory />;
-  }
-  if (normalizedNombre.includes('priority')) {
-    return <PriorityQueueTheory />;
-  }
-  if (normalizedNombre.includes('segment')) {
-    return <SegmentTreeTheory />;
-  }
+  const renderContent = () => {
+    if (normalizedNombre.includes('bubble')) {
+      return <BubbleSortTheory />;
+    }
+    if (normalizedNombre.includes('selection')) {
+      return <SelectionSortTheory />;
+    }
+    if (normalizedNombre.includes('insertion')) {
+      return <InsertionSortTheory />;
+    }
+    if (normalizedNombre.includes('merge')) {
+      return <MergeSortTheory />;
+    }
+    if (normalizedNombre.includes('quick')) {
+      return <QuickSortTheory />;
+    }
+    if (normalizedNombre.includes('heap')) {
+      return <HeapSortTheory />;
+    }
+    if (normalizedNombre.includes('binary')) {
+      return <BinarySearchTheory />;
+    }
+    if (normalizedNombre.includes('linear')) {
+      return <LinearSearchTheory />;
+    }
+    if (normalizedNombre.includes('stack')) {
+      return <StackTheory />;
+    }
+    if (normalizedNombre.includes('queue') && !normalizedNombre.includes('priority')) {
+      return <QueueTheory />;
+    }
+    if (normalizedNombre.includes('linked')) {
+      return <LinkedListTheory />;
+    }
+    if (normalizedNombre.includes('deque')) {
+      return <DequeTheory />;
+    }
+    if (normalizedNombre.includes('priority')) {
+      return <PriorityQueueTheory />;
+    }
+    if (normalizedNombre.includes('segment')) {
+      return <SegmentTreeTheory />;
+    }
+    if (normalizedNombre.includes('breadth') || normalizedNombre.includes('bfs') || normalizedNombre.includes('amplitud')) {
+      return <BfsTheory />;
+    }
+    if (normalizedNombre.includes('depth') || normalizedNombre.includes('dfs') || normalizedNombre.includes('profundidad')) {
+      return <DfsTheory />;
+    }
+    if (normalizedNombre.includes('dijkstra')) {
+      return <DijkstraTheory />;
+    }
+
+    return (
+      <View style={styles.container}>
+        <Text style={styles.sectionTitle}>Teoría del Algoritmo</Text>
+        <Text style={styles.paragraph}>
+          La información teórica detallada para este algoritmo se encuentra en proceso de redacción ({algoritmoNombre}).
+        </Text>
+      </View>
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Teoría del Algoritmo</Text>
-      <Text style={styles.paragraph}>
-        La información teórica detallada para este algoritmo se encuentra en proceso de redacción ({algoritmoNombre}).
-      </Text>
-    </View>
+    <TheoryStylesContext.Provider value={styles}>
+      {renderContent()}
+    </TheoryStylesContext.Provider>
   );
 }
 
 // ─── Bubble Sort ───────────────────────────────────────────────────────────
 function BubbleSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento Burbuja?</Text>
@@ -136,6 +167,7 @@ function BubbleSortTheory() {
 
 // ─── Selection Sort ────────────────────────────────────────────────────────
 function SelectionSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento por Selección?</Text>
@@ -206,6 +238,7 @@ function SelectionSortTheory() {
 
 // ─── Insertion Sort ────────────────────────────────────────────────────────
 function InsertionSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento por Inserción?</Text>
@@ -273,6 +306,7 @@ function InsertionSortTheory() {
 
 // ─── Merge Sort ────────────────────────────────────────────────────────
 function MergeSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento por Mezcla?</Text>
@@ -340,6 +374,7 @@ function MergeSortTheory() {
 
 // ─── Quick Sort ────────────────────────────────────────────────────────
 function QuickSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento Rápido?</Text>
@@ -407,6 +442,7 @@ function QuickSortTheory() {
 
 // ─── Heap Sort ────────────────────────────────────────────────────────
 function HeapSortTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Ordenamiento por Montículo?</Text>
@@ -474,6 +510,7 @@ function HeapSortTheory() {
 
 // ─── Binary Search ────────────────────────────────────────────────────────
 function BinarySearchTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona la Búsqueda Binaria?</Text>
@@ -532,6 +569,7 @@ function BinarySearchTheory() {
 
 // ─── Linear Search ────────────────────────────────────────────────────────
 function LinearSearchTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona la Búsqueda Lineal?</Text>
@@ -590,6 +628,7 @@ function LinearSearchTheory() {
 
 // ─── Stack ────────────────────────────────────────────────────────
 function StackTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona una Pila (Stack)?</Text>
@@ -643,6 +682,7 @@ function StackTheory() {
 
 // ─── Queue ────────────────────────────────────────────────────────
 function QueueTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona una Cola (Queue)?</Text>
@@ -696,6 +736,7 @@ function QueueTheory() {
 
 // ─── Linked List ────────────────────────────────────────────────────────
 function LinkedListTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona una Lista Enlazada?</Text>
@@ -749,6 +790,7 @@ function LinkedListTheory() {
 
 // ─── Deque ────────────────────────────────────────────────────────
 function DequeTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona una Cola Doble (Deque)?</Text>
@@ -798,6 +840,7 @@ function DequeTheory() {
 
 // ─── Priority Queue ────────────────────────────────────────────────────────
 function PriorityQueueTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona una Cola de Prioridad?</Text>
@@ -848,6 +891,7 @@ function PriorityQueueTheory() {
 
 // ─── Segment Tree ────────────────────────────────────────────────────────
 function SegmentTreeTheory() {
+  const styles = useTheoryStyles();
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>¿Cómo funciona el Árbol de Segmentos?</Text>
@@ -899,99 +943,258 @@ function SegmentTreeTheory() {
   );
 }
 
+// ─── Breadth-First Search (BFS) ───────────────────────────────────────────
+function BfsTheory() {
+  const styles = useTheoryStyles();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>¿Cómo funciona Breadth-First Search (BFS)?</Text>
+
+      <Text style={styles.paragraph}>
+        El recorrido en amplitud (Breadth-First Search) es un algoritmo de exploración sistemática de grafos y árboles que visita todos los vértices a una distancia <LaTeX math="d" /> del nodo origen antes de explorar los vértices a distancia <LaTeX math="d + 1" />. Emplea fundamentalmente una estructura de datos tipo <Text style={styles.bold}>Cola (FIFO)</Text>.
+      </Text>
+
+      <Text style={styles.subtitle}>La Analogía de las Ondas en el Agua</Text>
+      <Text style={styles.paragraph}>
+        Imagina lanzar una piedra en un estanque de agua quieta: se generan ondas concéntricas que se expanden hacia afuera nivel por nivel. En un grafo, BFS visita primero a todos los vecinos inmediatos (nivel 1), luego a los vecinos de esos vecinos (nivel 2), garantizando encontrar el camino más corto en grafos no ponderados.
+      </Text>
+
+      <Text style={styles.subtitle}>El Mecanismo de Exploración por Niveles</Text>
+      <Text style={styles.bulletPoint}>
+        1. <Text style={styles.bold}>Inicialización:</Text> Encolar el nodo inicial en una cola FIFO y marcarlo como visitado.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        2. <Text style={styles.bold}>Desencolar y expandir:</Text> Mientras la cola no esté vacía, extraer el vértice frontal <Text style={styles.code}>u</Text>.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        3. <Text style={styles.bold}>Explorar vecinos:</Text> Para cada vecino adyacente <Text style={styles.code}>v</Text> de <Text style={styles.code}>u</Text>, si no ha sido visitado, marcarlo como visitado y agregarlo al final de la cola.
+      </Text>
+
+      <View style={styles.formulaCard}>
+        <Text style={styles.formulaLabel}>Propiedad de Distancia Mínima:</Text>
+        <LaTeX math="dist(s, v) = dist(s, u) + 1 \quad \forall v \in Adj[u] \setminus Visitados" block />
+      </View>
+
+      <Text style={styles.subtitle}>Análisis de Complejidad Matemática</Text>
+      <View style={styles.complexityGrid}>
+        <View style={styles.complexityItem}>
+          <Text style={styles.complexityHeader}>Métrica</Text>
+          <Text style={styles.complexityHeader}>Complejidad</Text>
+          <Text style={styles.complexityHeader}>Justificación</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Tiempo</Text>
+          <View style={styles.mathCell}><LaTeX math="O(V + E)" /></View>
+          <Text style={styles.complexityCellDesc}>Cada vértice se encola una vez y cada arista se examina una vez</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Espacio</Text>
+          <View style={styles.mathCell}><LaTeX math="O(V)" /></View>
+          <Text style={styles.complexityCellDesc}>Para el conjunto de visitados y la cola de frontera</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Depth-First Search (DFS) ─────────────────────────────────────────────
+function DfsTheory() {
+  const styles = useTheoryStyles();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>¿Cómo funciona Depth-First Search (DFS)?</Text>
+
+      <Text style={styles.paragraph}>
+        El recorrido en profundidad (Depth-First Search) explora un grafo avanzando lo más lejos posible a lo largo de cada rama antes de retroceder (backtracking). Utiliza intrínsecamente una estructura <Text style={styles.bold}>Pila (LIFO)</Text> o la propia pila de llamadas del sistema (recursión).
+      </Text>
+
+      <Text style={styles.subtitle}>La Analogía del Laberinto y el Hilo de Ariadna</Text>
+      <Text style={styles.paragraph}>
+        Es idéntico a una persona explorando un laberinto con un ovillo de hilo: sigue un pasillo recto adentrándose hasta chocar con una pared sin salida, momento en el cual sigue el hilo hacia atrás hasta la última intersección y prueba el siguiente camino inexplorado.
+      </Text>
+
+      <Text style={styles.subtitle}>El Mecanismo de Profundización y Backtracking</Text>
+      <Text style={styles.bulletPoint}>
+        1. <Text style={styles.bold}>Visita y Marcado:</Text> Inicia en el nodo actual, marcándolo como visitado en el conjunto de estados.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        2. <Text style={styles.bold}>Descenso Recursivo:</Text> Para cada vecino inexplorado, desciende recursivamente hacia él de inmediato.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        3. <Text style={styles.bold}>Retroceso (Backtrack):</Text> Cuando un nodo no tiene más vecinos sin visitar, retorna a su nodo predecesor.
+      </Text>
+
+      <View style={styles.formulaCard}>
+        <Text style={styles.formulaLabel}>Propiedad de Paréntesis y Tiempo de Descubrimiento/Final:</Text>
+        <LaTeX math="[d[u], f[u]] \subset [d[v], f[v]] \iff u \text{ es descendiente de } v" block />
+      </View>
+
+      <Text style={styles.subtitle}>Análisis de Complejidad Matemática</Text>
+      <View style={styles.complexityGrid}>
+        <View style={styles.complexityItem}>
+          <Text style={styles.complexityHeader}>Métrica</Text>
+          <Text style={styles.complexityHeader}>Complejidad</Text>
+          <Text style={styles.complexityHeader}>Justificación</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Tiempo</Text>
+          <View style={styles.mathCell}><LaTeX math="O(V + E)" /></View>
+          <Text style={styles.complexityCellDesc}>Recorre exhaustivamente cada vértice y arista del componente conexo</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Espacio</Text>
+          <View style={styles.mathCell}><LaTeX math="O(V)" /></View>
+          <Text style={styles.complexityCellDesc}>Determinado por la altura máxima de la pila de llamadas o pila iterativa</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ─── Algoritmo de Dijkstra ────────────────────────────────────────────────
+function DijkstraTheory() {
+  const styles = useTheoryStyles();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>¿Cómo funciona el Algoritmo de Dijkstra?</Text>
+
+      <Text style={styles.paragraph}>
+        El algoritmo de Dijkstra encuentra los caminos más cortos desde un vértice origen hacia todos los demás vértices en un grafo ponderado con pesos no negativos. Emplea una estrategia voraz (greedy) apoyada en una <Text style={styles.bold}>Cola de Prioridad (Min-Heap)</Text>.
+      </Text>
+
+      <Text style={styles.subtitle}>Relajación de Aristas</Text>
+      <Text style={styles.bulletPoint}>
+        1. <Text style={styles.bold}>Inicialización:</Text> Asigna distancia <Text style={styles.code}>0</Text> al origen e infinito al resto de los vértices.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        2. <Text style={styles.bold}>Selección Voraz:</Text> Extrae el vértice <Text style={styles.code}>u</Text> no finalizado con menor distancia acumulada.
+      </Text>
+      <Text style={styles.bulletPoint}>
+        3. <Text style={styles.bold}>Relajación:</Text> Si <Text style={styles.code}>dist[u] + w(u, v) &lt; dist[v]</Text>, actualiza <Text style={styles.code}>dist[v]</Text>.
+      </Text>
+
+      <View style={styles.formulaCard}>
+        <Text style={styles.formulaLabel}>Regla de Relajación:</Text>
+        <LaTeX math="dist[v] = \min(dist[v],\, dist[u] + w(u, v))" block />
+      </View>
+
+      <Text style={styles.subtitle}>Análisis de Complejidad Matemática</Text>
+      <View style={styles.complexityGrid}>
+        <View style={styles.complexityItem}>
+          <Text style={styles.complexityHeader}>Métrica</Text>
+          <Text style={styles.complexityHeader}>Complejidad</Text>
+          <Text style={styles.complexityHeader}>Justificación</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Tiempo</Text>
+          <View style={styles.mathCell}><LaTeX math="O((V + E)\log V)" /></View>
+          <Text style={styles.complexityCellDesc}>Con cola de prioridad binaria (Min-Heap)</Text>
+        </View>
+        <View style={styles.complexityRow}>
+          <Text style={styles.complexityCell}>Espacio</Text>
+          <View style={styles.mathCell}><LaTeX math="O(V)" /></View>
+          <Text style={styles.complexityCellDesc}>Para almacenar distancias mínimas y la frontera</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 // ─── Estilos Generales Compartidos ──────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: {
-    gap: Spacing[4],
-  },
-  bold: {
-    fontWeight: 'bold',
-    color: DarkText.primary,
-  },
-  sectionTitle: {
-    ...TextVariants.h3,
-    color: DarkText.primary,
-    marginBottom: Spacing[2],
-  },
-  subtitle: {
-    ...TextVariants.h4,
-    color: Accent[500],
-    marginTop: Spacing[3],
-    marginBottom: Spacing[1],
-  },
-  paragraph: {
-    ...TextVariants.bodyMd,
-    color: DarkText.secondary,
-    lineHeight: 22,
-  },
-  bulletPoint: {
-    ...TextVariants.bodyMd,
-    color: DarkText.secondary,
-    lineHeight: 22,
-    paddingLeft: Spacing[4],
-    marginBottom: Spacing[1],
-  },
-  code: {
-    fontFamily: 'monospace',
-    color: '#00D4FF',
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    paddingHorizontal: 4,
-    borderRadius: 3,
-  },
-  formulaCard: {
-    backgroundColor: DarkSurfaces.surface,
-    borderColor: DarkSurfaces.border,
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    padding: Spacing[3],
-    marginVertical: Spacing[2],
-    alignItems: 'center',
-  },
-  formulaLabel: {
-    ...TextVariants.caption,
-    color: DarkText.muted,
-    marginBottom: 4,
-  },
-  complexityGrid: {
-    backgroundColor: DarkSurfaces.surface,
-    borderColor: DarkSurfaces.border,
-    borderWidth: 1,
-    borderRadius: BorderRadius.md,
-    marginVertical: Spacing[3],
-    overflow: 'hidden',
-  },
-  complexityItem: {
-    flexDirection: 'row',
-    backgroundColor: DarkSurfaces.surfaceElevated,
-    padding: Spacing[2],
-    borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
-  },
-  complexityHeader: {
-    flex: 1,
-    ...TextVariants.labelSm,
-    color: DarkText.primary,
-    fontWeight: 'bold',
-  },
-  complexityRow: {
-    flexDirection: 'row',
-    padding: Spacing[2],
-    borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.borderSubtle,
-    alignItems: 'center',
-  },
-  complexityCell: {
-    flex: 1,
-    ...TextVariants.bodySm,
-    color: DarkText.primary,
-  },
-  mathCell: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  complexityCellDesc: {
-    flex: 1,
-    ...TextVariants.bodySm,
-    color: DarkText.muted,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      gap: Spacing[4],
+    },
+    bold: {
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    sectionTitle: {
+      ...TextVariants.h3,
+      color: colors.textPrimary,
+      marginBottom: Spacing[2],
+    },
+    subtitle: {
+      ...TextVariants.h4,
+      color: colors.brandAccent,
+      marginTop: Spacing[3],
+      marginBottom: Spacing[1],
+    },
+    paragraph: {
+      ...TextVariants.bodyMd,
+      color: colors.textSecondary,
+      lineHeight: 22,
+    },
+    bulletPoint: {
+      ...TextVariants.bodyMd,
+      color: colors.textSecondary,
+      lineHeight: 22,
+      paddingLeft: Spacing[4],
+      marginBottom: Spacing[1],
+    },
+    code: {
+      fontFamily: 'monospace',
+      color: colors.brandAccent,
+      backgroundColor: colors.surfaceElevated,
+      paddingHorizontal: 4,
+      borderRadius: 3,
+    },
+    formulaCard: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: BorderRadius.md,
+      padding: Spacing[3],
+      marginVertical: Spacing[2],
+      alignItems: 'center',
+    },
+    formulaLabel: {
+      ...TextVariants.caption,
+      color: colors.textMuted,
+      marginBottom: 4,
+    },
+    complexityGrid: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: BorderRadius.md,
+      marginVertical: Spacing[3],
+      overflow: 'hidden',
+    },
+    complexityItem: {
+      flexDirection: 'row',
+      backgroundColor: colors.surfaceElevated,
+      padding: Spacing[2],
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    complexityHeader: {
+      flex: 1,
+      ...TextVariants.labelSm,
+      color: colors.textPrimary,
+      fontWeight: 'bold',
+    },
+    complexityRow: {
+      flexDirection: 'row',
+      padding: Spacing[2],
+      borderBottomWidth: 1,
+      borderBottomColor: colors.borderSubtle,
+      alignItems: 'center',
+    },
+    complexityCell: {
+      flex: 1,
+      ...TextVariants.bodySm,
+      color: colors.textPrimary,
+    },
+    mathCell: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    complexityCellDesc: {
+      flex: 1,
+      ...TextVariants.bodySm,
+      color: colors.textMuted,
+    },
+  });
+}

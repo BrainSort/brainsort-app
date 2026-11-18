@@ -24,7 +24,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import type { SesionSimulacion, SimulationStep } from '@brainsort/core';
+import type { GrafoData, SesionSimulacion, SimulationStep } from '@brainsort/core';
 import type { PseudocodeLine } from '../services/library.service';
 
 // ─── Tipos del Contexto ───────────────────────────────────────────────────────
@@ -47,8 +47,14 @@ export interface SimulationState {
   steps: SimulationStep[];
   /** Índice del paso actual (0-based) */
   currentStep: number;
-  /** Array siendo simulado */
+  /** Array siendo simulado (opcional si es grafo) */
   data: number[];
+  /** Grafo siendo simulado (en BFS/DFS/Dijkstra) */
+  grafo?: GrafoData | null;
+  /** Objetivo de búsqueda (en Linear/Binary Search) */
+  objetivo?: number | null;
+  /** Nodo de inicio (en BFS/DFS/Dijkstra) */
+  nodoInicio?: string | null;
   /** ID del algoritmo siendo ejecutado */
   algoritmoId: string;
   /** Sesión de simulación asociada (puede ser null si es una ejecución local) */
@@ -70,7 +76,10 @@ export interface SimulationActions {
    */
   setSimulationData: (params: {
     steps: SimulationStep[];
-    data: number[];
+    data?: number[];
+    grafo?: GrafoData;
+    objetivo?: number;
+    nodoInicio?: string;
     algoritmoId: string;
     pseudocode: PseudocodeLine[];
     sesionSimulacion?: SesionSimulacion;
@@ -166,6 +175,9 @@ export function SimulationProvider({
     INITIAL_STATE.currentStep,
   );
   const [data, setData] = useState<number[]>(INITIAL_STATE.data);
+  const [grafo, setGrafo] = useState<GrafoData | null>(null);
+  const [objetivo, setObjetivo] = useState<number | null>(null);
+  const [nodoInicio, setNodoInicio] = useState<string | null>(null);
   const [algoritmoId, setAlgoritmoId] = useState<string>(
     INITIAL_STATE.algoritmoId,
   );
@@ -184,14 +196,29 @@ export function SimulationProvider({
   const setSimulationData = useCallback(
     (params: {
       steps: SimulationStep[];
-      data: number[];
+      data?: number[];
+      grafo?: GrafoData;
+      objetivo?: number;
+      nodoInicio?: string;
       algoritmoId: string;
       pseudocode: PseudocodeLine[];
       sesionSimulacion?: SesionSimulacion;
     }) => {
-      const { steps: newSteps, data: newData, algoritmoId: newAlgoritmoId, pseudocode: newPseudocode, sesionSimulacion: newSesion } = params;
+      const {
+        steps: newSteps,
+        data: newData,
+        grafo: newGrafo,
+        objetivo: newObjetivo,
+        nodoInicio: newNodoInicio,
+        algoritmoId: newAlgoritmoId,
+        pseudocode: newPseudocode,
+        sesionSimulacion: newSesion,
+      } = params;
       setSteps(newSteps);
-      setData(newData);
+      setData(newData ?? []);
+      setGrafo(newGrafo ?? null);
+      setObjetivo(newObjetivo ?? null);
+      setNodoInicio(newNodoInicio ?? null);
       setAlgoritmoId(newAlgoritmoId);
       setPseudocodeState(newPseudocode);
       if (newSesion) {
@@ -271,6 +298,9 @@ export function SimulationProvider({
     setSteps([]);
     setCurrentStepState(0);
     setData([]);
+    setGrafo(null);
+    setObjetivo(null);
+    setNodoInicio(null);
     setAlgoritmoId('');
     setSesionSimulacion(null);
     setIsPlayingState(false);
@@ -286,6 +316,9 @@ export function SimulationProvider({
       steps,
       currentStep,
       data,
+      grafo,
+      objetivo,
+      nodoInicio,
       algoritmoId,
       sesionSimulacion,
       playback: {
@@ -309,6 +342,9 @@ export function SimulationProvider({
       steps,
       currentStep,
       data,
+      grafo,
+      objetivo,
+      nodoInicio,
       algoritmoId,
       sesionSimulacion,
       isPlaying,

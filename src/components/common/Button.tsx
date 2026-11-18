@@ -25,11 +25,11 @@ import {
   ViewStyle,
   TextStyle,
   ActivityIndicator,
-  View,
 } from 'react-native';
-import { Primary, Neutral, Semantic } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
+import type { ThemeColors } from '../../styles/theme';
 import { Spacing } from '../../styles/spacing';
-import { TextVariants, FontSizes, FontFamilies, FontWeights } from '../../styles/typography';
+import { TextVariants } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -48,6 +48,7 @@ export interface ButtonProps {
 const getVariantStyles = (
   variant: 'primary' | 'secondary' | 'ghost' = 'primary',
   disabled: boolean = false,
+  colors: ThemeColors,
 ): { container: ViewStyle; text: TextStyle } => {
   const baseContainer: ViewStyle = {
     justifyContent: 'center',
@@ -66,11 +67,11 @@ const getVariantStyles = (
       return {
         container: {
           ...baseContainer,
-          backgroundColor: disabled ? Neutral[400] : Primary[500],
+          backgroundColor: disabled ? colors.primaryButtonDisabled : colors.primaryButton,
         },
         text: {
           ...baseText,
-          color: Neutral[0],
+          color: colors.primaryButtonText,
         },
       };
 
@@ -78,13 +79,13 @@ const getVariantStyles = (
       return {
         container: {
           ...baseContainer,
-          backgroundColor: disabled ? Neutral[200] : Neutral[100],
+          backgroundColor: disabled ? colors.surfaceElevated : colors.secondaryButton,
           borderWidth: 1,
-          borderColor: disabled ? Neutral[300] : Neutral[400],
+          borderColor: disabled ? colors.border : colors.secondaryButtonBorder,
         },
         text: {
           ...baseText,
-          color: disabled ? Neutral[400] : Neutral[700],
+          color: disabled ? colors.textDisabled : colors.secondaryButtonText,
         },
       };
 
@@ -96,7 +97,7 @@ const getVariantStyles = (
         },
         text: {
           ...baseText,
-          color: disabled ? Neutral[400] : Primary[500],
+          color: disabled ? colors.textDisabled : colors.brandAccent,
         },
       };
 
@@ -181,7 +182,8 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'medium',
   style,
 }) => {
-  const variantStyles = getVariantStyles(variant, disabled || loading);
+  const { theme } = useThemeContext();
+  const variantStyles = getVariantStyles(variant, disabled || loading, theme.colors);
   const sizeStyles = getSizeStyles(size);
 
   return (
