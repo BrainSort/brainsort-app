@@ -1,15 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from 'react-native';
+import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { Button } from '../common/Button';
+import { GraphRenderer } from '../../visualization/GraphRenderer';
 import { useThemeContext } from '../../context/ThemeContext';
 import { Semantic } from '../../styles/colors';
-import { FontFamilies, FontSizes, TextVariants } from '../../styles/typography';
+import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
 import { BorderRadius, Spacing } from '../../styles/spacing';
 import type {
   BarsExerciseContent,
@@ -43,6 +46,63 @@ export interface PredictionExerciseProps {
   isLastExercise?: boolean;
 }
 
+function CheckCircle2Icon({ color, size = 24 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="m9 12 2 2 4-4"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function AlertCircleIcon({ color, size = 24 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Line
+        x1="12"
+        y1="8"
+        x2="12"
+        y2="12"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+      <Line
+        x1="12"
+        y1="16"
+        x2="12.01"
+        y2="16"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   tipo,
   pregunta,
@@ -56,8 +116,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   onNext,
   isLastExercise,
 }) => {
-  const { theme } = useThemeContext();
+  const { theme, mode } = useThemeContext();
   const { colors } = theme;
+  const isDark = mode === 'dark';
+  const { width } = useWindowDimensions();
+  const isTwoColOptions = width >= 640;
+
   const [respuesta, setRespuesta] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [bars, setBars] = useState<number[]>([]);
@@ -65,9 +129,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   const [selectedSequence, setSelectedSequence] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
 
-  const barsContent = tipo === 'OrdenarBarras' ? (contenido as BarsExerciseContent | null) : null;
+  const barsContent =
+    tipo === 'OrdenarBarras' ? (contenido as BarsExerciseContent | null) : null;
   const pseudoContent =
-    tipo === 'CompletarPseudocodigo' ? (contenido as PseudocodeExerciseContent | null) : null;
+    tipo === 'CompletarPseudocodigo'
+      ? (contenido as PseudocodeExerciseContent | null)
+      : null;
   const graphContent =
     tipo === 'SecuenciaGrafos' ? (contenido as GraphExerciseContent | null) : null;
 
@@ -80,9 +147,11 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     setBars(barsContent?.inicial ?? []);
   }, [barsContent?.inicial, pregunta]);
 
-  const isModoSeleccion = tipo === 'OrdenarBarras' && (contenido as any)?.modoSeleccion;
+  const isModoSeleccion =
+    tipo === 'OrdenarBarras' && (contenido as any)?.modoSeleccion;
 
   const progressPercent = progressTotal > 0 ? progressCurrent / progressTotal : 0;
+  const progressPctRounded = Math.round(progressPercent * 100);
   const maxBarValue = useMemo(() => Math.max(...bars, 1), [bars]);
   const canSubmit =
     tipo === 'CompletarPseudocodigo'
@@ -97,11 +166,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
 
   const handleBarPress = (index: number) => {
     if (isModoSeleccion) {
-      if (selectedBarIndex === index) {
-        setSelectedBarIndex(null);
-      } else {
-        setSelectedBarIndex(index);
-      }
+      setSelectedBarIndex((prev) => (prev === index ? null : index));
       return;
     }
 
@@ -165,12 +230,45 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     onNext();
   };
 
+  const isCorrect = Boolean(lastResult?.correcto);
+  const resultSemanticColor = isCorrect
+    ? isDark
+      ? '#8FE830'
+      : '#1E6B12'
+    : isDark
+      ? '#FF6B7A'
+      : '#A80016';
+  const resultCardBg = isCorrect
+    ? isDark
+      ? 'rgba(126, 211, 33, 0.10)'
+      : 'rgba(126, 211, 33, 0.12)'
+    : isDark
+      ? 'rgba(208, 2, 27, 0.12)'
+      : 'rgba(208, 2, 27, 0.08)';
+  const resultCardBorder = isCorrect
+    ? 'rgba(126, 211, 33, 0.42)'
+    : 'rgba(208, 2, 27, 0.42)';
+
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.borderSubtle,
+        },
+      ]}
+    >
+      {/* Cabecera y barra de progreso al 100% */}
       <View style={styles.progressHeader}>
-        <Text style={[styles.progressText, { color: colors.textMuted }]}>
-          {progressCurrent}/{progressTotal}
-        </Text>
+        <View style={styles.progressTopRow}>
+          <Text style={[styles.progressText, { color: colors.textMuted }]}>
+            Ejercicio {progressCurrent} de {progressTotal}
+          </Text>
+          <Text style={[styles.progressPercentText, { color: colors.brandAccent }]}>
+            {progressPctRounded}%
+          </Text>
+        </View>
         <View
           style={[
             styles.progressTrack,
@@ -182,16 +280,28 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
               styles.progressFill,
               {
                 backgroundColor: colors.brandAccent,
-                width: `${Math.round(progressPercent * 100)}%`,
+                width: `${progressPctRounded}%`,
               },
             ]}
           />
         </View>
       </View>
 
-      <Text style={[styles.typeLabel, { color: colors.brandAccent }]}>
-        {getTypeLabel(tipo, isModoSeleccion)}
-      </Text>
+      {/* Badge pill de tipo de ejercicio */}
+      <View
+        style={[
+          styles.typeBadge,
+          {
+            backgroundColor: colors.chipActiveBg,
+            borderColor: colors.chipActiveBorder,
+          },
+        ]}
+      >
+        <Text style={[styles.typeLabel, { color: colors.brandAccent }]}>
+          {getTypeLabel(tipo, isModoSeleccion)}
+        </Text>
+      </View>
+
       <Text style={[styles.question, { color: colors.textPrimary }]}>
         {pregunta}
       </Text>
@@ -226,6 +336,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                       key={option}
                       style={[
                         styles.optionChip,
+                        isTwoColOptions && styles.optionChipTwoCol,
                         {
                           borderColor: active
                             ? colors.chipActiveBorder
@@ -291,27 +402,58 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                               ? Semantic.warning
                               : colors.brandAccent,
                           },
+                          selected && styles.barSelectedRing,
                         ]}
                       />
                       <Text
-                        style={[styles.barValue, { color: colors.textSecondary }]}
+                        style={[styles.barValue, { color: colors.textPrimary }]}
                       >
                         {value}
+                      </Text>
+                      <Text
+                        style={[styles.barIndex, { color: colors.textMuted }]}
+                      >
+                        [{index}]
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
               <Text style={[styles.barsHint, { color: colors.textMuted }]}>
-                {isModoSeleccion
-                  ? 'Toca la barra que corresponde a la respuesta.'
-                  : 'Toca dos barras para intercambiarlas.'}
+                {selectedBarIndex !== null
+                  ? isModoSeleccion
+                    ? `Barra ${bars[selectedBarIndex]} seleccionada`
+                    : `Barra ${bars[selectedBarIndex]} seleccionada — toca otra para intercambiar`
+                  : isModoSeleccion
+                    ? 'Toca la barra que corresponde a la respuesta.'
+                    : 'Toca dos barras para intercambiarlas.'}
               </Text>
             </View>
           )}
 
           {tipo === 'SecuenciaGrafos' && (
             <View style={styles.sequenceBox}>
+              {graphContent?.grafo && (
+                <View
+                  style={[
+                    styles.graphPreviewBox,
+                    {
+                      backgroundColor: colors.surfaceElevated,
+                      borderColor: colors.borderSubtle,
+                    },
+                  ]}
+                >
+                  <GraphRenderer
+                    grafo={{
+                      ...graphContent.grafo,
+                      dirigido: Boolean(graphContent.grafo.dirigido),
+                    }}
+                    step={null}
+                    height={210}
+                  />
+                </View>
+              )}
+
               <View
                 style={[
                   styles.sequenceResultTrack,
@@ -493,35 +635,65 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
         </>
       ) : (
         <View style={styles.resultContainer}>
-          {lastResult?.correcto ? (
-            <>
-              <Text style={[styles.resultTitle, { color: colors.textPrimary }]}>
-                Correcto
+          <View
+            style={[
+              styles.resultBanner,
+              {
+                backgroundColor: resultCardBg,
+                borderColor: resultCardBorder,
+              },
+            ]}
+          >
+            <View style={styles.resultHeaderRow}>
+              {isCorrect ? (
+                <CheckCircle2Icon color={resultSemanticColor} size={24} />
+              ) : (
+                <AlertCircleIcon color={resultSemanticColor} size={24} />
+              )}
+              <Text style={[styles.resultTitle, { color: resultSemanticColor }]}>
+                {isCorrect ? '¡Correcto!' : 'Intenta ajustar tu idea'}
               </Text>
-              <Text style={[styles.resultText, styles.success]}>
-                {lastResult.feedbackPositivo ?? lastResult.feedback}
-              </Text>
-              <View style={styles.statsRow}>
-                <Text style={[styles.stat, { color: colors.brandAccent }]}>
-                  +{lastResult.puntosGanados} XP
-                </Text>
-                <Text style={[styles.stat, { color: colors.brandAccent }]}>
-                  Racha: {lastResult.rachaDias} días
-                </Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <Text style={[styles.resultTitle, { color: colors.textPrimary }]}>
-                Intenta ajustar tu idea
-              </Text>
-              <Text style={[styles.resultText, styles.error]}>
-                {lastResult?.feedbackNegativo ?? lastResult?.feedback}
-              </Text>
-            </>
-          )}
+            </View>
 
-          {!lastResult?.correcto && (
+            <Text style={[styles.resultText, { color: colors.textPrimary }]}>
+              {isCorrect
+                ? (lastResult?.feedbackPositivo ?? lastResult?.feedback)
+                : (lastResult?.feedbackNegativo ?? lastResult?.feedback)}
+            </Text>
+
+            {isCorrect && lastResult && (
+              <View style={styles.statsRow}>
+                <View
+                  style={[
+                    styles.statPill,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.borderSubtle,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.statPillText, { color: colors.brandAccent }]}>
+                    +{lastResult.puntosGanados} XP
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.statPill,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.borderSubtle,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.statPillText, { color: colors.textPrimary }]}>
+                    🔥 Racha: {lastResult.rachaDias} días
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+
+          {!isCorrect && (
             <View style={{ marginBottom: Spacing[3], width: '100%' }}>
               <Button
                 title="Volver a intentar"
@@ -532,12 +704,14 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             </View>
           )}
 
-          <Button
-            title={isLastExercise ? 'Terminar sesión' : 'Siguiente'}
-            onPress={handleNext}
-            variant="secondary"
-            size="large"
-          />
+          <View style={{ width: '100%' }}>
+            <Button
+              title={isLastExercise ? 'Terminar sesión' : 'Siguiente'}
+              onPress={handleNext}
+              variant="secondary"
+              size="large"
+            />
+          </View>
         </View>
       )}
     </View>
@@ -549,7 +723,9 @@ function getTypeLabel(tipo: TipoEjercicio, isModoSeleccion?: boolean): string {
     case 'CompletarPseudocodigo':
       return 'Completa el pseudocódigo';
     case 'OrdenarBarras':
-      return isModoSeleccion ? 'Selecciona la barra correcta' : 'Predice el estado visual';
+      return isModoSeleccion
+        ? 'Selecciona la barra correcta'
+        : 'Predice el estado visual';
     case 'SecuenciaGrafos':
       return 'Reto de Secuencia de Recorrido';
     default:
@@ -560,17 +736,30 @@ function getTypeLabel(tipo: TipoEjercicio, isModoSeleccion?: boolean): string {
 const styles = StyleSheet.create({
   card: {
     borderRadius: BorderRadius.lg,
+    borderWidth: 1,
     padding: Spacing[6],
   },
   progressHeader: {
-    width: 150,
-    marginBottom: Spacing[5],
-    gap: Spacing[1],
+    width: '100%',
+    marginBottom: Spacing[4],
+    gap: Spacing[1.5],
+  },
+  progressTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   progressText: {
     ...TextVariants.labelSm,
+    fontVariant: ['tabular-nums'],
+  },
+  progressPercentText: {
+    ...TextVariants.labelSm,
+    fontWeight: FontWeights.bold,
+    fontVariant: ['tabular-nums'],
   },
   progressTrack: {
+    width: '100%',
     height: 8,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
@@ -579,9 +768,18 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: BorderRadius.full,
   },
+  typeBadge: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1],
+    marginBottom: Spacing[3],
+  },
   typeLabel: {
-    ...TextVariants.labelMd,
-    marginBottom: Spacing[2],
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.xs,
   },
   question: {
     ...TextVariants.bodyLg,
@@ -605,23 +803,31 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     padding: Spacing[4],
-    fontFamily: FontFamilies.regular,
+    fontFamily: FontFamilies.mono,
     fontSize: FontSizes.md,
   },
   blank: {
-    fontFamily: FontFamilies.bold,
+    fontFamily: FontFamilies.mono,
+    fontWeight: FontWeights.bold,
   },
   optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing[3],
   },
   optionChip: {
+    width: '100%',
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
   },
+  optionChipTwoCol: {
+    width: '48.5%',
+  },
   optionText: {
     ...TextVariants.bodyMd,
+    fontFamily: FontFamilies.mono,
   },
   barsExercise: {
     gap: Spacing[3],
@@ -631,61 +837,94 @@ const styles = StyleSheet.create({
     ...TextVariants.labelMd,
   },
   barsRow: {
-    minHeight: 180,
+    minHeight: 190,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     padding: Spacing[4],
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'center',
-    gap: Spacing[3],
+    flexWrap: 'wrap',
+    gap: Spacing[4],
   },
   barSlot: {
-    width: 42,
+    minWidth: 40,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: Spacing[2],
+    gap: Spacing[1.5],
   },
   bar: {
-    width: 32,
-    borderRadius: BorderRadius.sm,
+    minWidth: 34,
+    borderRadius: BorderRadius.md,
+  },
+  barSelectedRing: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
   barValue: {
     ...TextVariants.labelSm,
+    fontWeight: FontWeights.bold,
+    fontVariant: ['tabular-nums'],
+  },
+  barIndex: {
+    fontFamily: FontFamilies.mono,
+    fontSize: FontSizes.xs,
+    fontVariant: ['tabular-nums'],
   },
   barsHint: {
     ...TextVariants.bodySm,
   },
   resultContainer: {
+    width: '100%',
     alignItems: 'center',
+  },
+  resultBanner: {
+    width: '100%',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing[5],
+    marginBottom: Spacing[5],
+    gap: Spacing[3],
+  },
+  resultHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2.5],
   },
   resultTitle: {
     ...TextVariants.h3,
-    marginBottom: Spacing[4],
   },
   resultText: {
     ...TextVariants.bodyMd,
-    textAlign: 'center',
-    marginBottom: Spacing[6],
-  },
-  success: {
-    color: Semantic.success,
-  },
-  error: {
-    color: Semantic.error,
+    lineHeight: 22,
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    marginBottom: Spacing[6],
+    flexWrap: 'wrap',
+    gap: Spacing[2.5],
+    marginTop: Spacing[1],
   },
-  stat: {
-    ...TextVariants.labelMd,
+  statPill: {
+    borderWidth: 1,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[1],
+  },
+  statPillText: {
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.sm,
+    fontVariant: ['tabular-nums'],
   },
   sequenceBox: {
     gap: Spacing[3],
     marginBottom: Spacing[4],
+  },
+  graphPreviewBox: {
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    padding: Spacing[2],
+    overflow: 'hidden',
   },
   sequenceResultTrack: {
     borderRadius: BorderRadius.md,

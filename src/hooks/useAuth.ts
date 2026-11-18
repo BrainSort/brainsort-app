@@ -24,6 +24,7 @@
 import { useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '../services/api';
 import {
@@ -110,6 +111,13 @@ const TIPO_STORAGE_KEY = 'auth_tipo';
  */
 export function useAuth(): UseAuthReturn {
   const { setAuth, clearAuth, setLoading } = useAuthContext();
+  let queryClient: ReturnType<typeof useQueryClient> | null = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    queryClient = useQueryClient();
+  } catch {
+    queryClient = null;
+  }
   const isLoadingRef = useRef<boolean>(false);
   const errorRef = useRef<AuthError | null>(null);
 
@@ -163,6 +171,15 @@ export function useAuth(): UseAuthReturn {
         localStorage.removeItem(TOKEN_STORAGE_KEY);
         localStorage.removeItem(USER_STORAGE_KEY);
         localStorage.removeItem(TIPO_STORAGE_KEY);
+        // Limpiar cualquier otro dato de sesión/caché de cuenta en localStorage (conservando preferencias de tema)
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('brainsort_') && !key.includes('theme')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
       } else {
         await SecureStore.deleteItemAsync(TOKEN_STORAGE_KEY);
         await SecureStore.deleteItemAsync(USER_STORAGE_KEY);
@@ -312,15 +329,17 @@ export function useAuth(): UseAuthReturn {
           refreshToken: response.refreshToken,
         };
 
+        // Limpiar caché de sesión anterior antes de autenticar la nueva cuenta
+        await deleteStoredTokens();
+        queryClient?.clear();
+
         // Guardar en almacenamiento
         await saveTokens(tokens);
         await saveUser(usuario, response.usuario.tipo);
 
-        // Actualizar contexto
-        setAuth(usuario, tokens, response.usuario.tipo);
-
-        // Actualizar cliente API
+        // Actualizar cliente API y contexto
         apiClient.setAuthToken(tokens.accessToken);
+        setAuth(usuario, tokens, response.usuario.tipo);
       } catch (err) {
         const error = parseError(err);
         errorRef.current = error;
@@ -330,7 +349,7 @@ export function useAuth(): UseAuthReturn {
         setLoading(false);
       }
     },
-    [saveTokens, saveUser, setAuth, setLoading],
+    [deleteStoredTokens, queryClient, saveTokens, saveUser, setAuth, setLoading],
   );
 
   /**
@@ -361,15 +380,17 @@ export function useAuth(): UseAuthReturn {
           refreshToken: response.refreshToken,
         };
 
+        // Limpiar caché de sesión anterior antes de autenticar la nueva cuenta
+        await deleteStoredTokens();
+        queryClient?.clear();
+
         // Guardar en almacenamiento
         await saveTokens(tokens);
         await saveUser(usuario, response.usuario.tipo);
 
-        // Actualizar contexto
-        setAuth(usuario, tokens, response.usuario.tipo);
-
-        // Actualizar cliente API
+        // Actualizar cliente API y contexto
         apiClient.setAuthToken(tokens.accessToken);
+        setAuth(usuario, tokens, response.usuario.tipo);
       } catch (err) {
         const error = parseError(err);
         errorRef.current = error;
@@ -379,7 +400,7 @@ export function useAuth(): UseAuthReturn {
         setLoading(false);
       }
     },
-    [saveTokens, saveUser, setAuth, setLoading],
+    [deleteStoredTokens, queryClient, saveTokens, saveUser, setAuth, setLoading],
   );
 
   /**
@@ -387,18 +408,17 @@ export function useAuth(): UseAuthReturn {
    */
   const logout = useCallback(async () => {
     try {
-      // Eliminar almacenamiento
+      // Eliminar almacenamiento y caché de consultas de la cuenta previa
       await deleteStoredTokens();
+      queryClient?.clear();
 
-      // Limpiar contexto
+      // Limpiar contexto y cliente API
       clearAuth();
-
-      // Limpiar cliente API
       apiClient.setAuthToken(null);
     } catch (err) {
       console.error('Error during logout:', err);
     }
-  }, [deleteStoredTokens, clearAuth]);
+  }, [deleteStoredTokens, queryClient, clearAuth]);
 
   /**
    * Restaura la sesión desde almacenamiento al iniciar la app.

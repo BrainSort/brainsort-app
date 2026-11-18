@@ -97,10 +97,17 @@ export const FrontierPanel: React.FC<FrontierPanelProps> = ({
             </Text>
           ) : (
             frontera.map((nodeId, idx) => {
-              const nodeDist = step.distancias?.[nodeId];
+              const nodeDist = step.distancias?.[nodeId] as
+                | number
+                | null
+                | undefined;
               const distLabel =
                 nodeDist !== undefined
-                  ? ` (d: ${nodeDist === Infinity ? '∞' : nodeDist})`
+                  ? ` (d: ${
+                      nodeDist === null || !Number.isFinite(nodeDist)
+                        ? '∞'
+                        : nodeDist
+                    })`
                   : '';
               return (
                 <View
@@ -140,24 +147,33 @@ export const FrontierPanel: React.FC<FrontierPanelProps> = ({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.pillContainer}
           >
-            {Object.entries(step.distancias).map(([node, d]) => (
-              <View
-                key={`dist-${node}`}
-                style={[
-                  styles.distPill,
-                  {
-                    backgroundColor: colors.chipActiveBg,
-                    borderColor: colors.chipActiveBorder,
-                  },
-                ]}
-              >
-                <Text
-                  style={[styles.distPillText, { color: colors.brandAccent }]}
+            {Object.entries(step.distancias).map(([node, d]) => {
+              const distVal = d as number | null | undefined;
+              const formattedDist =
+                distVal === null ||
+                distVal === undefined ||
+                !Number.isFinite(distVal)
+                  ? '∞'
+                  : distVal;
+              return (
+                <View
+                  key={`dist-${node}`}
+                  style={[
+                    styles.distPill,
+                    {
+                      backgroundColor: colors.chipActiveBg,
+                      borderColor: colors.chipActiveBorder,
+                    },
+                  ]}
                 >
-                  {node}: {d === Infinity ? '∞' : d}
-                </Text>
-              </View>
-            ))}
+                  <Text
+                    style={[styles.distPillText, { color: colors.brandAccent }]}
+                  >
+                    {node}: {formattedDist}
+                  </Text>
+                </View>
+              );
+            })}
           </ScrollView>
         </View>
       )}

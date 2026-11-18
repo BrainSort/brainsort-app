@@ -4,7 +4,7 @@ import { PseudocodeLine } from '../types/algorithm.types';
 import { GrafoData, SimulationInput } from '../types/simulation.types';
 
 export const DEFAULT_WEIGHTED_GRAFO: GrafoData = {
-  nodos: ['A', 'B', 'C', 'D', 'E'],
+  nodos: ['A', 'B', 'C', 'D', 'E', 'F'],
   aristas: [
     ['A', 'B'],
     ['A', 'C'],
@@ -12,7 +12,8 @@ export const DEFAULT_WEIGHTED_GRAFO: GrafoData = {
     ['B', 'D'],
     ['C', 'D'],
     ['C', 'E'],
-    ['D', 'E'],
+    ['D', 'F'],
+    ['E', 'F'],
   ],
   dirigido: false,
   pesos: {
@@ -36,14 +37,18 @@ export const DEFAULT_WEIGHTED_GRAFO: GrafoData = {
     'C,D': 8,
     'D-C': 8,
     'D,C': 8,
-    'C-E': 10,
-    'C,E': 10,
-    'E-C': 10,
-    'E,C': 10,
-    'D-E': 2,
-    'D,E': 2,
-    'E-D': 2,
-    'E,D': 2,
+    'C-E': 6,
+    'C,E': 6,
+    'E-C': 6,
+    'E,C': 6,
+    'D-F': 2,
+    'D,F': 2,
+    'F-D': 2,
+    'F,D': 2,
+    'E-F': 3,
+    'E,F': 3,
+    'F-E': 3,
+    'F,E': 3,
   },
   aristasPonderadas: [
     ['A', 'B', 4],
@@ -51,8 +56,9 @@ export const DEFAULT_WEIGHTED_GRAFO: GrafoData = {
     ['B', 'C', 1],
     ['B', 'D', 5],
     ['C', 'D', 8],
-    ['C', 'E', 10],
-    ['D', 'E', 2],
+    ['C', 'E', 6],
+    ['D', 'F', 2],
+    ['E', 'F', 3],
   ],
 };
 

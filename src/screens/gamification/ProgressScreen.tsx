@@ -5,7 +5,7 @@
  * task_breakdown.md T-FE-099
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -16,8 +16,9 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 import { useProgress } from '../../hooks/useProgress';
+import { useLibrary } from '../../hooks/useLibrary';
 import { SafeAreaWrapper } from '../../components/layout/SafeAreaWrapper';
 import { Header } from '../../components/layout/Header';
 import { StreakCounter } from '../../components/gamification/StreakCounter';
@@ -28,6 +29,105 @@ import { useThemeContext } from '../../context/ThemeContext';
 import { calcularProgresoNivel, obtenerTier } from '../../utils/xp.utils';
 import { FontFamilies, FontSizes, FontWeights, TextVariants } from '../../styles/typography';
 import { BorderRadius, Spacing } from '../../styles/spacing';
+
+const TOPIC_ORDER = [
+  'Ordenamiento',
+  'Busqueda',
+  'EstructurasLineales',
+  'EstructurasArboles',
+  'Grafos',
+] as const;
+
+const TOPIC_LABELS: Record<string, string> = {
+  Ordenamiento: 'Ordenamiento',
+  Busqueda: 'Búsqueda',
+  EstructurasLineales: 'Estructuras Lineales',
+  EstructurasArboles: 'Estructuras de Árboles',
+  Grafos: 'Grafos',
+};
+
+function TopicIcon({ category, color }: { category: string; color: string }) {
+  if (category === 'Ordenamiento') {
+    // ArrowUpDown
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+        <Path
+          d="m21 16-4 4-4-4M17 20V4M3 8l4-4 4 4M7 4v16"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+  if (category === 'Busqueda') {
+    // Search
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+        <Circle cx={11} cy={11} r={7} stroke={color} strokeWidth={1.85} />
+        <Path
+          d="m21 21-4.35-4.35"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinecap="round"
+        />
+      </Svg>
+    );
+  }
+  if (category === 'EstructurasLineales') {
+    // Layers
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+        <Polygon
+          points="12 2 2 7 12 12 22 7 12 2"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <Path
+          d="m2 17 10 5 10-5M2 12l10 5 10-5"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+  if (category === 'EstructurasArboles') {
+    // GitFork
+    return (
+      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+        <Circle cx={12} cy={18} r={2.5} stroke={color} strokeWidth={1.85} />
+        <Circle cx={6} cy={6} r={2.5} stroke={color} strokeWidth={1.85} />
+        <Circle cx={18} cy={6} r={2.5} stroke={color} strokeWidth={1.85} />
+        <Path
+          d="M18 8.5v2.5a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8.5M12 13v2.5"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    );
+  }
+  // Grafos -> Share2
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Circle cx={18} cy={5} r={2.5} stroke={color} strokeWidth={1.85} />
+      <Circle cx={6} cy={12} r={2.5} stroke={color} strokeWidth={1.85} />
+      <Circle cx={18} cy={19} r={2.5} stroke={color} strokeWidth={1.85} />
+      <Path
+        d="m8.3 13.3 7.4 4.4M15.7 6.3 8.3 10.7"
+        stroke={color}
+        strokeWidth={1.85}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
 
 function RefreshIcon({ color }: { color: string }) {
   return (
@@ -64,6 +164,58 @@ export const ProgressScreen: React.FC = () => {
     isLoadingProgreso,
     refetchProgreso,
   } = useProgress();
+  const { algoritmos } = useLibrary();
+
+  const topicProgressList = useMemo(() => {
+    if (!algoritmos || algoritmos.length === 0) return [];
+    const progressByAlgo = new Map(
+      (progreso?.algoritmosProgreso ?? []).map((item) => [
+        item.algoritmoId,
+        item,
+      ]),
+    );
+    const grouped = new Map<
+      string,
+      { names: string[]; correctos: number; totales: number }
+    >();
+
+    for (const algo of algoritmos) {
+      const cat = algo.categoria;
+      const entry = grouped.get(cat) ?? {
+        names: [],
+        correctos: 0,
+        totales: 0,
+      };
+      entry.names.push(algo.nombre);
+      const prog = progressByAlgo.get(algo.id);
+      if (prog) {
+        entry.correctos += prog.ejerciciosCorrectos;
+        entry.totales += prog.ejerciciosTotales;
+      }
+      grouped.set(cat, entry);
+    }
+
+    const orderedKeys = [
+      ...TOPIC_ORDER.filter((cat) => grouped.has(cat)),
+      ...Array.from(grouped.keys()).filter(
+        (cat) => !(TOPIC_ORDER as readonly string[]).includes(cat),
+      ),
+    ];
+
+    return orderedKeys.map((cat) => {
+      const g = grouped.get(cat)!;
+      const porcentaje =
+        g.totales > 0 ? Math.round((g.correctos / g.totales) * 100) : 0;
+      return {
+        categoria: cat,
+        label: TOPIC_LABELS[cat] ?? cat,
+        correctos: g.correctos,
+        totales: g.totales,
+        porcentaje,
+        algoritmosText: g.names.join(', '),
+      };
+    });
+  }, [algoritmos, progreso?.algoritmosProgreso]);
 
   if (isLoadingProgreso) {
     return (
@@ -296,6 +448,151 @@ export const ProgressScreen: React.FC = () => {
             </View>
           </View>
 
+          {/* Progreso por tema section */}
+          {topicProgressList.length > 0 && (
+            <View
+              style={[
+                styles.topicsSection,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <View style={styles.badgesHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                  Progreso por tema
+                </Text>
+                <Text style={[styles.badgesCount, { color: colors.textMuted }]}>
+                  {topicProgressList.filter((t) => t.porcentaje === 100).length} /{' '}
+                  {topicProgressList.length} dominados
+                </Text>
+              </View>
+
+              <View style={styles.topicsGrid}>
+                {topicProgressList.map((topic) => {
+                  const isMastered = topic.porcentaje === 100;
+                  const pctColor = isMastered
+                    ? '#7ED321'
+                    : topic.porcentaje > 0
+                      ? colors.brandAccent
+                      : colors.textMuted;
+                  const fillColor = isMastered ? '#7ED321' : colors.brandAccent;
+
+                  return (
+                    <View
+                      key={topic.categoria}
+                      style={
+                        isFourColKpi
+                          ? styles.topicGridColHalf
+                          : styles.topicGridColFull
+                      }
+                    >
+                      <View
+                        style={[
+                          styles.topicCard,
+                          {
+                            backgroundColor: colors.surfaceElevated,
+                            borderColor: colors.borderSubtle,
+                          },
+                        ]}
+                      >
+                        <View style={styles.topicTopRow}>
+                          <View style={styles.topicTitleGroup}>
+                            <View
+                              style={[
+                                styles.topicIconBox,
+                                {
+                                  backgroundColor: colors.chipActiveBg,
+                                  borderColor: colors.borderSubtle,
+                                },
+                              ]}
+                            >
+                              <TopicIcon
+                                category={topic.categoria}
+                                color={pctColor}
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.topicName,
+                                { color: colors.textPrimary },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {topic.label}
+                            </Text>
+                          </View>
+
+                          <View
+                            style={[
+                              styles.topicPctBadge,
+                              {
+                                backgroundColor: isMastered
+                                  ? 'rgba(126, 211, 33, 0.14)'
+                                  : topic.porcentaje > 0
+                                    ? colors.chipActiveBg
+                                    : colors.surface,
+                                borderColor: isMastered
+                                  ? 'rgba(126, 211, 33, 0.45)'
+                                  : topic.porcentaje > 0
+                                    ? colors.chipActiveBorder
+                                    : colors.borderSubtle,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[styles.topicPctText, { color: pctColor }]}
+                            >
+                              {topic.porcentaje}%
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View
+                          style={[
+                            styles.topicProgressTrack,
+                            { backgroundColor: colors.borderSubtle },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.topicProgressFill,
+                              {
+                                width: `${topic.porcentaje}%`,
+                                backgroundColor: fillColor,
+                              },
+                            ]}
+                          />
+                        </View>
+
+                        <View style={styles.topicFooterRow}>
+                          <Text
+                            style={[
+                              styles.topicAlgosText,
+                              { color: colors.textMuted },
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {topic.algoritmosText}
+                          </Text>
+                          <Text
+                            style={[
+                              styles.topicFractionText,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
+                            {topic.correctos}/{topic.totales} ejercicios
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
           {/* Insignias section */}
           <View
             style={[
@@ -492,6 +789,100 @@ const styles = StyleSheet.create({
   },
   streakColMobile: {
     width: '100%',
+  },
+  topicsSection: {
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    padding: Spacing[5],
+    marginBottom: Spacing[5],
+  },
+  topicsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -Spacing[1.5],
+    rowGap: Spacing[3],
+  },
+  topicGridColHalf: {
+    width: '50%',
+    paddingHorizontal: Spacing[1.5],
+  },
+  topicGridColFull: {
+    width: '100%',
+    paddingHorizontal: Spacing[1.5],
+  },
+  topicCard: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    padding: Spacing[4],
+    gap: Spacing[3],
+  },
+  topicTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing[2],
+  },
+  topicTitleGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2.5],
+    minWidth: 0,
+  },
+  topicIconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  topicName: {
+    flex: 1,
+    fontFamily: FontFamilies.semiBold,
+    fontWeight: FontWeights.semiBold,
+    fontSize: FontSizes.md,
+  },
+  topicPctBadge: {
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    paddingHorizontal: Spacing[2.5],
+    paddingVertical: 2,
+    flexShrink: 0,
+  },
+  topicPctText: {
+    fontFamily: FontFamilies.bold,
+    fontWeight: FontWeights.bold,
+    fontSize: FontSizes.xs,
+    fontVariant: ['tabular-nums'],
+  },
+  topicProgressTrack: {
+    height: 6,
+    borderRadius: BorderRadius.full,
+    overflow: 'hidden',
+  },
+  topicProgressFill: {
+    height: '100%',
+    borderRadius: BorderRadius.full,
+  },
+  topicFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing[2],
+  },
+  topicAlgosText: {
+    flex: 1,
+    fontFamily: FontFamilies.regular,
+    fontSize: FontSizes.xs,
+  },
+  topicFractionText: {
+    fontFamily: FontFamilies.medium,
+    fontWeight: FontWeights.medium,
+    fontSize: FontSizes.xs,
+    fontVariant: ['tabular-nums'],
+    flexShrink: 0,
   },
   badgesSection: {
     borderRadius: BorderRadius.lg,

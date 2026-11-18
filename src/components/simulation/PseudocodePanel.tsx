@@ -12,12 +12,14 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useThemeContext } from '../../context/ThemeContext';
 import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
@@ -30,6 +32,8 @@ export interface PseudocodePanelProps {
   lines: PseudocodeLine[];
   currentStep: SimulationStep | null;
   showInlineValues?: boolean;
+  onToggleInlineValues?: () => void;
+  maxHeight?: number;
 }
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
@@ -42,7 +46,6 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    maxHeight: 220,
     overflow: 'hidden',
   },
   header: {
@@ -80,7 +83,6 @@ const styles = StyleSheet.create({
   lineText: {
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.sm,
-    flex: 1,
   },
   lineTextActive: { fontWeight: FontWeights.semiBold },
   inlineVal: {
@@ -121,6 +123,8 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
   lines,
   currentStep,
   showInlineValues = false,
+  onToggleInlineValues,
+  maxHeight = 220,
 }) => {
   const { theme } = useThemeContext();
   const { colors } = theme;
@@ -262,6 +266,7 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
       style={[
         styles.container,
         {
+          maxHeight,
           backgroundColor: colors.surface,
           borderColor: colors.borderSubtle,
         },
@@ -269,12 +274,69 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
     >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing[2] }}>
-          <Text>📋</Text>
+          <Svg width={15} height={15} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="m18 16 4-4-4-4"
+              stroke={colors.brandAccent}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="m6 8-4 4 4 4"
+              stroke={colors.brandAccent}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <Path
+              d="m14.5 4-5 16"
+              stroke={colors.brandAccent}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
           <Text style={[styles.headerText, { color: colors.textMuted }]}>
             Pseudocódigo
           </Text>
         </View>
         <View style={styles.zoomRow}>
+          {onToggleInlineValues && (
+            <TouchableOpacity
+              style={[
+                styles.zoomButton,
+                {
+                  borderColor: showInlineValues
+                    ? colors.chipActiveBorder
+                    : colors.border,
+                  backgroundColor: showInlineValues
+                    ? colors.chipActiveBg
+                    : colors.surfaceElevated,
+                },
+                Platform.OS === 'web'
+                  ? ({ outlineStyle: 'none', outlineWidth: 0 } as any)
+                  : null,
+              ]}
+              onPress={onToggleInlineValues}
+              accessibilityRole="button"
+              accessibilityLabel="Activar/desactivar valores de variables inline"
+              testID="btn-toggle-vars"
+            >
+              <Text
+                style={[
+                  styles.zoomButtonText,
+                  {
+                    color: showInlineValues
+                      ? colors.brandAccent
+                      : colors.textSecondary,
+                  },
+                ]}
+              >
+                {showInlineValues ? 'Var: On' : 'Var: Off'}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[
               styles.zoomButton,
@@ -314,54 +376,63 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
+        persistentScrollbar={true}
         nestedScrollEnabled
       >
-        {lines.map((lineObj) => {
-          const isActive = lineObj.line === activeLine;
-          return (
-            <View
-              key={lineObj.line}
-              style={[
-                styles.line,
-                isActive && [
-                  styles.lineActive,
-                  {
-                    backgroundColor: colors.chipActiveBg,
-                    borderLeftColor: colors.brandAccent,
-                  },
-                ],
-              ]}
-              accessibilityLabel={`Línea ${lineObj.line}: ${lineObj.text}`}
-            >
-              <Text
-                style={[
-                  styles.lineNumber,
-                  {
-                    color: isActive ? colors.brandAccent : colors.textDisabled,
-                    fontSize: lineFontSize - 2,
-                  },
-                ]}
-              >
-                {lineObj.line}
-              </Text>
-              <Text
-                style={[
-                  styles.lineText,
-                  isActive && styles.lineTextActive,
-                  {
-                    color: isActive ? colors.textPrimary : colors.textSecondary,
-                    paddingLeft: lineObj.indent * INDENT_UNIT,
-                    fontSize: lineFontSize,
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                {renderLineText(lineObj.text)}
-              </Text>
-            </View>
-          );
-        })}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={true}
+          nestedScrollEnabled
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View style={{ flexGrow: 1 }}>
+            {lines.map((lineObj) => {
+              const isActive = lineObj.line === activeLine;
+              return (
+                <View
+                  key={lineObj.line}
+                  style={[
+                    styles.line,
+                    isActive && [
+                      styles.lineActive,
+                      {
+                        backgroundColor: colors.chipActiveBg,
+                        borderLeftColor: colors.brandAccent,
+                      },
+                    ],
+                  ]}
+                  accessibilityLabel={`Línea ${lineObj.line}: ${lineObj.text}`}
+                >
+                  <Text
+                    style={[
+                      styles.lineNumber,
+                      {
+                        color: isActive ? colors.brandAccent : colors.textDisabled,
+                        fontSize: lineFontSize - 2,
+                      },
+                    ]}
+                  >
+                    {lineObj.line}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.lineText,
+                      isActive && styles.lineTextActive,
+                      {
+                        color: isActive ? colors.textPrimary : colors.textSecondary,
+                        paddingLeft: lineObj.indent * INDENT_UNIT,
+                        fontSize: lineFontSize,
+                      },
+                    ]}
+                  >
+                    {renderLineText(lineObj.text)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
       </ScrollView>
     </View>
   );
