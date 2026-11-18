@@ -75,7 +75,7 @@ export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<ProfileNavProp>();
   const { usuario, isLoading: isLoadingAuth } = useAuthContext();
   const { logout } = useAuth();
-  const { progreso, isLoadingProgreso } = useProgress();
+  const { progreso, isLoadingProgreso, catalogoInsignias } = useProgress();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(usuario?.nombre || '');
@@ -251,22 +251,41 @@ export const ProfileScreen: React.FC = () => {
           />
         )}
 
-        {/* ── Insignias ── */}
-        {datosProgreso && datosProgreso.insignias.length > 0 && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Insignias ({datosProgreso.insignias.length})
-            </Text>
-            {datosProgreso.insignias.map((insignia, idx) => (
-              <BadgeCard
-                key={`${insignia.nombre}-${idx}`}
-                nombre={insignia.nombre}
-                imagen={insignia.imagen}
-                fechaObtencion={insignia.fechaObtencion}
-              />
-            ))}
-          </View>
-        )}
+        {/* ── Vitrina de Insignias ── */}
+        {(() => {
+          const vitrina =
+            catalogoInsignias && catalogoInsignias.length > 0
+              ? catalogoInsignias
+              : (datosProgreso?.insignias ?? []).map((ins) => ({
+                  ...ins,
+                  desbloqueada: true,
+                }));
+          const desbloqueadasCount = vitrina.filter(
+            (b) => b.desbloqueada !== false,
+          ).length;
+
+          if (vitrina.length === 0) return null;
+
+          return (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Vitrina de Insignias ({desbloqueadasCount}/{vitrina.length})
+              </Text>
+              {vitrina.map((insignia, idx) => (
+                <BadgeCard
+                  key={`${insignia.nombre}-${idx}`}
+                  nombre={insignia.nombre}
+                  imagen={insignia.imagen}
+                  descripcion={(insignia as any).descripcion}
+                  criterioDesbloqueo={(insignia as any).criterioDesbloqueo}
+                  categoria={(insignia as any).categoria}
+                  desbloqueada={insignia.desbloqueada ?? true}
+                  fechaObtencion={insignia.fechaObtencion}
+                />
+              ))}
+            </View>
+          );
+        })()}
 
         {/* ── Cuenta ── */}
         <View style={styles.card}>

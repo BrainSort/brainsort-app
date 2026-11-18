@@ -25,12 +25,38 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+# macOS & Windows OS
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 *.pem
 
 # local env files
+.env
+.env.*
 .env*.local
+!.env.example
+
+# logs & temp
+logs/
+*.log
+.temp/
+.tmp/
+
+# IDEs & AI Agents / local task notes
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.claude/
+.gemini/
+.cursor/
+.agent/
+task_*.md
+NOTAS_*.md
 
 # typescript
 *.tsbuildinfo

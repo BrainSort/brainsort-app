@@ -37,6 +37,7 @@ export interface RunSimulationRequest {
 
 /** Estado de la simulación en inicio */
 export interface EstadoSimulacion {
+  sesionId?: string;
   velocidadReproduccion: number;
   estadoActual: string; // "Pausa", "Reproduciendo", etc.
   pasoActual: number;
@@ -83,6 +84,17 @@ export const simulationService = {
       '/simulaciones',
       request,
       { public: false }, // Autenticado — asocia con cuenta del usuario
+    );
+  },
+
+  async updateSessionProgress(
+    sesionId: string,
+    pasosCompletados: number,
+  ): Promise<{ completada: boolean; nuevasInsignias: any[] }> {
+    return apiClient.patch<{ completada: boolean; nuevasInsignias: any[] }>(
+      `/simulaciones/${sesionId}/progreso`,
+      { pasosCompletados },
+      { public: false },
     );
   },
 };
