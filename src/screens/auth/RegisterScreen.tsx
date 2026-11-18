@@ -32,6 +32,7 @@ import { AuthStackParamList } from '../../navigation/AuthNavigator';
 import { useAuth } from '../../hooks/useAuth';
 import { useThemeContext } from '../../context/ThemeContext';
 import { BrainSortLogo } from '../../components/layout/BrainSortLogo';
+import { AuthBackdrop } from '../../components/auth/AuthBackdrop';
 import { AuthSimulationPreview } from '../../components/auth/AuthSimulationPreview';
 import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
@@ -163,6 +164,7 @@ export default function RegisterScreen({ navigation }: Props) {
       style={[styles.outer, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <AuthBackdrop />
       {/* Top Bar con toggle de tema */}
       <View style={styles.topBar}>
         <Pressable

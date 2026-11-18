@@ -27,8 +27,8 @@ export { getNumberInterpolator, interpolateValue, interpolateBarState } from './
 export type { BarTransitionState } from './math/transitions';
 export { calculateBarCoordinates, calculateBarPointers, calculateDiscardedBars } from './math/coordinates';
 export type { BarCoordinate, BarPointer, DiscardedBarMarker } from './math/coordinates';
-export { calculateCircularGraphLayout } from './math/graph-layout';
-export type { GraphLayoutNode, GraphLayoutEdge, GraphLayoutResult, GraphLayoutConfig } from './math/graph-layout';
+export { calculateCircularGraphLayout, calculateHierarchicalGraphLayout } from './math/graph-layout';
+export type { GraphLayoutNode, GraphLayoutEdge, GraphLayoutResult, GraphLayoutConfig, HierarchicalGraphLayoutOptions } from './math/graph-layout';
 
 // types/
 export type { TipoOrigenDatos, ConjuntoDeDatos, SesionSimulacion, GrafoData, SimulationInput } from './types/simulation.types';

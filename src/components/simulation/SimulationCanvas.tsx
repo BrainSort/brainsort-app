@@ -11,6 +11,7 @@ interface SimulationCanvasProps {
   step: SimulationStep | null;
   isCompleted?: boolean;
   grafo?: GrafoData | null;
+  nodoInicio?: string | null;
 }
 
 /**
@@ -24,6 +25,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
   step,
   isCompleted = false,
   grafo,
+  nodoInicio,
 }) => {
   const height = 280;
 
@@ -53,6 +55,7 @@ export const SimulationCanvas: React.FC<SimulationCanvasProps> = ({
           step={step}
           isCompleted={isCompleted}
           grafo={grafo}
+          nodoInicio={nodoInicio}
           height={height}
         />
       </View>

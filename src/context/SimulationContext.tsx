@@ -283,8 +283,8 @@ export function SimulationProvider({
   }, [isCompleted]);
 
   const setSpeed = useCallback((newSpeed: number) => {
-    // Asegurar que el speed está en el rango válido [0.25, 2.0]
-    const clampedSpeed = Math.max(0.25, Math.min(2.0, newSpeed));
+    // Asegurar que el speed está en el rango válido [0.25, 4.0]
+    const clampedSpeed = Math.max(0.25, Math.min(4.0, newSpeed));
     setSpeedState(clampedSpeed);
   }, []);
 

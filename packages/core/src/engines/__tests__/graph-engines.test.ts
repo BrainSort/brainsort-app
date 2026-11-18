@@ -113,7 +113,8 @@ describe('Graph Engines (BFS & DFS)', () => {
       expect(lastStep.distancias?.['C']).toBe(2);
       expect(lastStep.distancias?.['B']).toBe(3); // A -> C -> B (2 + 1 = 3 < 4)
       expect(lastStep.distancias?.['D']).toBe(8); // A -> C -> B -> D (3 + 5 = 8)
-      expect(lastStep.distancias?.['E']).toBe(10); // A -> C -> B -> D -> E (8 + 2 = 10)
+      expect(lastStep.distancias?.['E']).toBe(8); // A -> C -> E (2 + 6 = 8)
+      expect(lastStep.distancias?.['F']).toBe(10); // A -> C -> B -> D -> F (8 + 2 = 10)
     });
 
     it('ejecuta con grafo predeterminado ante arreglo vacío', () => {

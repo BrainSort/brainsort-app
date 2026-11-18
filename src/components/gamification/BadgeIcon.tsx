@@ -1,6 +1,13 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Line,
+  Path,
+  Polygon,
+  Rect,
+  Text as SvgText,
+} from 'react-native-svg';
 
 export interface BadgeIconProps {
   imagen: string;
@@ -36,6 +43,16 @@ export const BadgeIcon: React.FC<BadgeIconProps> = ({
       };
     }
 
+    if (key.includes('data-structure') || key.includes('organizar')) {
+      return {
+        bg: '#0F172A',
+        innerBg: '#1E293B',
+        stroke: '#38BDF8',
+        accent: '#38BDF8',
+        secondary: '#A855F7',
+      };
+    }
+
     if (key.includes('explorer') || key.includes('graph')) {
       return {
         bg: '#0F172A',
@@ -43,6 +60,16 @@ export const BadgeIcon: React.FC<BadgeIconProps> = ({
         stroke: '#A855F7',
         accent: '#A855F7',
         secondary: '#E9D5FF',
+      };
+    }
+
+    if (key.includes('streak-1') || key.includes('comienzo')) {
+      return {
+        bg: '#0F172A',
+        innerBg: '#1E293B',
+        stroke: '#F59E0B',
+        accent: '#F59E0B',
+        secondary: '#FEF08A',
       };
     }
 
@@ -92,6 +119,52 @@ export const BadgeIcon: React.FC<BadgeIconProps> = ({
 
         {key.includes('first-step') ? (
           <Path d="M26 20L42 32L26 44V20Z" fill={palette.accent} />
+        ) : key.includes('data-structure') || key.includes('organizar') ? (
+          <>
+            {/* Stacked data-structure nodes/blocks */}
+            <Line
+              x1="32"
+              y1="24"
+              x2="23"
+              y2="37"
+              stroke={palette.secondary}
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <Line
+              x1="32"
+              y1="24"
+              x2="41"
+              y2="37"
+              stroke={palette.secondary}
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <Rect
+              x="25"
+              y="17"
+              width="14"
+              height="9"
+              rx="3"
+              fill={palette.accent}
+            />
+            <Rect
+              x="17"
+              y="35"
+              width="12"
+              height="10"
+              rx="3"
+              fill={palette.secondary}
+            />
+            <Rect
+              x="35"
+              y="35"
+              width="12"
+              height="10"
+              rx="3"
+              fill={palette.accent}
+            />
+          </>
         ) : key.includes('explorer') || key.includes('graph') ? (
           <>
             <Polygon
@@ -99,6 +172,28 @@ export const BadgeIcon: React.FC<BadgeIconProps> = ({
               fill={palette.accent}
             />
             <Circle cx="32" cy="32" r="4" fill={palette.secondary} />
+          </>
+        ) : key.includes('streak-1') || key.includes('comienzo') ? (
+          <>
+            {/* Luminous starter spark/flame with subtle "1" */}
+            <Path
+              d="M32 14C32 14 43 22 43 33C43 40.732 38.075 46 32 46C25.925 46 21 40.732 21 33C21 26.5 25 21.5 28 19C28 22.5 30 24.5 30 24.5C30 20 32 14 32 14Z"
+              fill={palette.accent}
+            />
+            <Path
+              d="M32 24C32 24 37.5 28.5 37.5 34.5C37.5 38.5 35.1 41.5 32 41.5C28.9 41.5 26.5 38.5 26.5 34.5C26.5 30.5 29.5 26.5 32 24Z"
+              fill={palette.secondary}
+            />
+            <SvgText
+              x="32"
+              y="38"
+              fill={palette.bg}
+              fontSize="11"
+              fontWeight="800"
+              textAnchor="middle"
+            >
+              1
+            </SvgText>
           </>
         ) : key.includes('streak') ? (
           <>
