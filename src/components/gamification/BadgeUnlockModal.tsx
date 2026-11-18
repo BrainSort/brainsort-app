@@ -280,11 +280,30 @@ export const BadgeUnlockModal: React.FC<BadgeUnlockModalProps> = ({
   const colors = useSafeColors();
   const anim = useUnlockAnimations(visible);
 
+  /* eslint-disable react-hooks/rules-of-hooks */
+  let currentIndex = 0;
+  let setCurrentIndex: (idx: number) => void = () => {};
+  try {
+    const [idx, setIdx] = useState(0);
+    currentIndex = idx;
+    setCurrentIndex = setIdx;
+    useEffect(() => {
+      if (visible) {
+        setIdx(0);
+      }
+    }, [visible, badges?.length]);
+  } catch {
+    currentIndex = 0;
+  }
+  /* eslint-enable react-hooks/rules-of-hooks */
+
   if (!visible || !badges || badges.length === 0) {
     return null;
   }
 
-  const primaryBadge = badges[0];
+  const safeIndex = Math.min(currentIndex, badges.length - 1);
+  const primaryBadge = badges[safeIndex];
+  const hasMoreBadges = safeIndex < badges.length - 1;
   const AnimatedView: any = anim.hasAnimated ? Animated.View : View;
 
   const cardAnimatedStyle =
@@ -458,21 +477,31 @@ export const BadgeUnlockModal: React.FC<BadgeUnlockModalProps> = ({
 
           {badges.length > 1 ? (
             <Text style={[styles.extraCount, { color: colors.brandAccent }]}>
-              +{badges.length - 1} insignia(s) adicional(es) desbloqueada(s)
+              Insignia {safeIndex + 1} de {badges.length}
             </Text>
           ) : null}
 
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.primaryButton }]}
-            onPress={onClose}
+            onPress={() => {
+              if (hasMoreBadges) {
+                setCurrentIndex(safeIndex + 1);
+              } else {
+                onClose();
+              }
+            }}
             accessibilityRole="button"
-            accessibilityLabel="Cerrar notificación de insignia"
+            accessibilityLabel={
+              hasMoreBadges
+                ? 'Ver siguiente insignia desbloqueada'
+                : 'Cerrar notificación de insignia'
+            }
             testID="badge-unlock-close-btn"
           >
             <Text
               style={[styles.buttonText, { color: colors.primaryButtonText }]}
             >
-              ¡Excelente!
+              {hasMoreBadges ? 'Siguiente insignia' : '¡Excelente!'}
             </Text>
           </TouchableOpacity>
         </AnimatedView>
