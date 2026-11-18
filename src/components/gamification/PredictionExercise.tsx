@@ -30,6 +30,7 @@ export interface PredictionExerciseProps {
     | BarsExerciseContent
     | GraphExerciseContent
     | null;
+  algorithmName?: string;
   progressCurrent: number;
   progressTotal: number;
   isSubmittingAnswer: boolean;
@@ -108,6 +109,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   pregunta,
   opciones,
   contenido,
+  algorithmName,
   progressCurrent,
   progressTotal,
   isSubmittingAnswer,
@@ -128,6 +130,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
   const [selectedBarIndex, setSelectedBarIndex] = useState<number | null>(null);
   const [selectedSequence, setSelectedSequence] = useState<string[]>([]);
   const [showResult, setShowResult] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const barsContent =
     tipo === 'OrdenarBarras' ? (contenido as BarsExerciseContent | null) : null;
@@ -144,6 +147,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     setSelectedBarIndex(null);
     setSelectedSequence([]);
     setShowResult(false);
+    setSubmitError(null);
     setBars(barsContent?.inicial ?? []);
   }, [barsContent?.inicial, pregunta]);
 
@@ -217,8 +221,17 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
             ? JSON.stringify(selectedSequence)
             : respuesta;
 
-    await onSubmit(payload);
-    setShowResult(true);
+    setSubmitError(null);
+    try {
+      await onSubmit(payload);
+      setShowResult(true);
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error && err.message
+          ? err.message
+          : 'No se pudo comprobar tu respuesta. Intenta de nuevo.',
+      );
+    }
   };
 
   const handleNext = () => {
@@ -227,6 +240,7 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
     setSelectedBarIndex(null);
     setSelectedSequence([]);
     setShowResult(false);
+    setSubmitError(null);
     onNext();
   };
 
@@ -444,10 +458,12 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
                   ]}
                 >
                   <GraphRenderer
+                    algorithmName={algorithmName}
                     grafo={{
                       ...graphContent.grafo,
                       dirigido: Boolean(graphContent.grafo.dirigido),
                     }}
+                    nodoInicio={graphContent.nodoInicio}
                     step={null}
                     height={210}
                   />
@@ -623,6 +639,19 @@ export const PredictionExercise: React.FC<PredictionExerciseProps> = ({
               multiline
               numberOfLines={3}
             />
+          )}
+
+          {submitError && (
+            <Text
+              accessibilityRole="alert"
+              testID="exercise-submit-error"
+              style={[
+                styles.submitErrorText,
+                { color: isDark ? '#FF6B7A' : '#A80016' },
+              ]}
+            >
+              {submitError}
+            </Text>
           )}
 
           <Button
@@ -873,6 +902,10 @@ const styles = StyleSheet.create({
   },
   barsHint: {
     ...TextVariants.bodySm,
+  },
+  submitErrorText: {
+    ...TextVariants.bodySm,
+    marginBottom: Spacing[3],
   },
   resultContainer: {
     width: '100%',

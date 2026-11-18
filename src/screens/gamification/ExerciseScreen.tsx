@@ -39,6 +39,8 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
   const {
     ejercicios,
     isLoadingExercises,
+    exercisesError,
+    refetchExercises,
     responderEjercicio,
     isSubmittingAnswer,
     lastResult,
@@ -103,6 +105,46 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
       <SafeAreaWrapper>
         <View style={styles.center}>
           <ActivityIndicator color={colors.brandAccent} size="large" />
+        </View>
+      </SafeAreaWrapper>
+    );
+  }
+
+  if (exercisesError) {
+    const isAuthError = exercisesError.message.toLowerCase().includes('unauthorized');
+    return (
+      <SafeAreaWrapper>
+        <View style={styles.center}>
+          <View
+            style={[
+              styles.emptyCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.borderSubtle,
+              },
+            ]}
+          >
+            <Text style={[styles.emptyTitle, { color: colors.textPrimary }]}>
+              {isAuthError ? 'Sesión expirada' : 'Error al cargar ejercicios'}
+            </Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              {isAuthError
+                ? 'Tu sesión expiró o no has iniciado sesión. Vuelve a iniciar sesión para cargar los ejercicios.'
+                : exercisesError.message}
+            </Text>
+            <Button
+              title="Reintentar"
+              onPress={() => void refetchExercises()}
+              variant="primary"
+              style={styles.emptyBackButton}
+            />
+            <Button
+              title="Volver"
+              onPress={() => navigation.goBack()}
+              variant="secondary"
+              style={styles.emptyBackButton}
+            />
+          </View>
         </View>
       </SafeAreaWrapper>
     );
@@ -274,6 +316,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
             pregunta={currentExercise.pregunta}
             opciones={currentExercise.opciones}
             contenido={currentExercise.contenido}
+            algorithmName={algoritmo?.nombre}
             progressCurrent={currentExerciseIndex + 1}
             progressTotal={ejercicios.length}
             isSubmittingAnswer={isSubmittingAnswer}

@@ -42,6 +42,7 @@ import {
   View,
 } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { useQueryClient } from '@tanstack/react-query';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { LibraryStackParamList } from '../../navigation/LibraryStackNavigator';
 import { useSimulation } from '../../hooks/useSimulation';
@@ -567,6 +568,7 @@ export function SimulationContent({
   useAnimationController(); // RAF loop — maneja avance automático de frames
 
   // ─── Estado local ─────────────────────────────────────────────────────────
+  const queryClient = useQueryClient();
   const [customInput, setCustomInput] = useState('');
   const [targetInput, setTargetInput] = useState('');
   const [inputError, setInputError] = useState<string | null>(null);
@@ -580,13 +582,16 @@ export function SimulationContent({
       simulationService
         .updateSessionProgress(sesionId, steps.length)
         .then((res) => {
+          queryClient.invalidateQueries({ queryKey: ['progreso', 'me'] });
+          queryClient.invalidateQueries({ queryKey: ['badges', 'me'] });
+          queryClient.invalidateQueries({ queryKey: ['ranking'] });
           if (res?.nuevasInsignias && res.nuevasInsignias.length > 0) {
             setUnlockedBadges(res.nuevasInsignias);
           }
         })
         .catch(() => {});
     }
-  }, [isCompleted, sesionId, steps.length]);
+  }, [isCompleted, sesionId, steps.length, queryClient]);
 
   const isSearch = AnimationEngine.isSearchAlgorithm(
     (algoritmo as any)?.categoria,
