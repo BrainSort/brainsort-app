@@ -26,7 +26,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBackToMenu } from '../../hooks/useBackToMenu';
-import { DarkText, DarkSurfaces } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -66,9 +66,18 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const backToMenu = useBackToMenu();
   const handleBackPress = onBackPress ?? backToMenu;
+  const { theme } = useThemeContext();
+  const { colors } = theme;
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.container, style]}>
+    <SafeAreaView
+      edges={['top']}
+      style={[
+        styles.container,
+        { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        style,
+      ]}
+    >
       <View style={styles.content}>
         {showBackButton && (
           <TouchableOpacity
@@ -78,11 +87,11 @@ export const Header: React.FC<HeaderProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Volver al menú"
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Text style={[styles.backIcon, { color: colors.textPrimary }]}>←</Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
           {title}
         </Text>
 
@@ -96,9 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: DarkSurfaces.surface,
     borderBottomWidth: 1,
-    borderBottomColor: DarkSurfaces.border,
   },
   content: {
     flexDirection: 'row',
@@ -115,14 +122,12 @@ const styles = StyleSheet.create({
   backIcon: {
     fontSize: 24,
     fontWeight: '600',
-    color: DarkText.primary,
   },
   title: {
     flex: 1,
     fontFamily: FontFamilies.semiBold,
     fontWeight: FontWeights.semiBold,
     fontSize: FontSizes.xl,
-    color: DarkText.primary,
     textAlign: 'left',
   },
   right: {

@@ -113,7 +113,7 @@ describe('BadgeCard & BadgeUnlockModal — Pruebas de Renderizado', () => {
     expect(lockedCard).not.toBeNull();
     expect(lockedIcon).not.toBeNull();
     expect(hintNode).not.toBeNull();
-    expect(textContent).toContain('🔒');
+    expect(findByTestId(tree, 'badge-lock-icon')).not.toBeNull();
     expect(textContent).toContain('Pista: rachaDías >= 7');
   });
 

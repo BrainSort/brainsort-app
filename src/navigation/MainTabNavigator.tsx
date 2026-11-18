@@ -15,15 +15,14 @@
 import React, { useCallback, useRef, useState } from 'react';
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, StyleSheet, useWindowDimensions } from 'react-native';
-import { SafeAreaWrapper } from '../components/layout/SafeAreaWrapper';
-import { Header } from '../components/layout/Header';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 import { DesktopSidebar, NavTabIcon } from '../components/layout/DesktopSidebar';
 import { BottomTabBar } from '../components/layout/BottomTabBar';
 import LibraryStackNavigator, { LibraryStackParamList } from './LibraryStackNavigator';
 import ProfileStackNavigator, { ProfileStackParamList } from './ProfileStackNavigator';
 import LearningPathScreen from '../screens/learning-path/LearningPathScreen';
 import { ProgressScreen } from '../screens/gamification/ProgressScreen';
+import { OfflineManagerScreen } from '../screens/offline/OfflineManagerScreen';
 import { useThemeContext } from '../context/ThemeContext';
 import { FontFamilies, FontSizes, FontWeights } from '../styles/typography';
 
@@ -36,40 +35,6 @@ export type MainTabParamList = {
   Offline: undefined;
   Perfil: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };
-
-// ─── Placeholder genérico ─────────────────────────────────────────────────────
-
-const PlaceholderScreen = ({ label }: { label: string }) => {
-  const { theme } = useThemeContext();
-  return (
-    <SafeAreaWrapper>
-      <Header title={label} showBackButton />
-      <View
-        style={[
-          placeholderSt.container,
-          { backgroundColor: theme.colors.background },
-        ]}
-      >
-        <Text style={[placeholderSt.text, { color: theme.colors.textMuted }]}>
-          {label} — Próximamente
-        </Text>
-      </View>
-    </SafeAreaWrapper>
-  );
-};
-
-const placeholderSt = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  text: {
-    fontFamily: FontFamilies.medium,
-    fontSize: FontSizes.md,
-  },
-});
 
 // ─── Navegador ────────────────────────────────────────────────────────────────
 
@@ -163,7 +128,7 @@ export default function MainTabNavigator() {
           />
           <Tab.Screen
             name="Offline"
-            children={() => <PlaceholderScreen label="Offline" />}
+            component={OfflineManagerScreen}
             options={{
               tabBarIcon: ({ color }) => (
                 <NavTabIcon tab="Offline" color={color} size={22} />

@@ -13,7 +13,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { DarkSurfaces, DarkText, Accent, Semantic } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, FontSizes, TextVariants } from '../../styles/typography';
 import { Spacing, BorderRadius } from '../../styles/spacing';
 import { formatearXP } from '../../utils/xp.utils';
@@ -41,6 +41,8 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
   progresoNivel,
   nivelActual,
 }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -61,31 +63,42 @@ export const XpProgressBar: React.FC<XpProgressBarProps> = ({
     <View style={styles.container}>
       {/* Etiquetas nivel actual / siguiente */}
       <View style={styles.labelRow}>
-        <Text style={styles.labelNivel}>Nivel {nivelActual}</Text>
+        <Text style={[styles.labelNivel, { color: colors.textSecondary }]}>
+          Nivel {nivelActual}
+        </Text>
         {progresoNivel.esNivelMaximo ? (
-          <Text style={styles.labelMax}>¡Nivel máximo! 👑</Text>
+          <Text style={[styles.labelMax, { color: colors.warning }]}>
+            ¡Nivel máximo! 👑
+          </Text>
         ) : (
-          <Text style={styles.labelNivel}>Nivel {nivelActual + 1}</Text>
+          <Text style={[styles.labelNivel, { color: colors.textSecondary }]}>
+            Nivel {nivelActual + 1}
+          </Text>
         )}
       </View>
 
       {/* Track de la barra */}
-      <View style={styles.track}>
-        <Animated.View style={[styles.fill, { width: barWidth }]} />
+      <View style={[styles.track, { backgroundColor: colors.surfaceElevated }]}>
+        <Animated.View
+          style={[
+            styles.fill,
+            { backgroundColor: colors.brandAccent, width: barWidth },
+          ]}
+        />
       </View>
 
       {/* XP Info */}
       <View style={styles.xpRow}>
         {progresoNivel.esNivelMaximo ? (
-          <Text style={styles.xpLabel}>
+          <Text style={[styles.xpLabel, { color: colors.textMuted }]}>
             {formatearXP(progresoNivel.xpActual)} XP totales
           </Text>
         ) : (
           <>
-            <Text style={styles.xpLabel}>
+            <Text style={[styles.xpLabel, { color: colors.textMuted }]}>
               {formatearXP(progresoNivel.xpGanado)} / {formatearXP(progresoNivel.xpSiguiente - progresoNivel.xpInicio)} XP
             </Text>
-            <Text style={styles.xpFaltante}>
+            <Text style={[styles.xpFaltante, { color: colors.textDisabled }]}>
               Faltan {formatearXP(progresoNivel.xpFaltante)} XP
             </Text>
           </>
@@ -108,23 +121,19 @@ const styles = StyleSheet.create({
   },
   labelNivel: {
     ...TextVariants.bodySm,
-    color: DarkText.secondary,
     fontWeight: FontWeights.semiBold,
   },
   labelMax: {
     ...TextVariants.bodySm,
-    color: Semantic.warning,
     fontWeight: FontWeights.semiBold,
   },
   track: {
     height: 10,
-    backgroundColor: DarkSurfaces.surfaceElevated,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    backgroundColor: Accent[500],
     borderRadius: BorderRadius.full,
   },
   xpRow: {
@@ -134,10 +143,8 @@ const styles = StyleSheet.create({
   },
   xpLabel: {
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
   },
   xpFaltante: {
     fontSize: FontSizes.xs,
-    color: DarkText.disabled,
   },
 });

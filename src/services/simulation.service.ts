@@ -14,16 +14,19 @@
  */
 
 import { apiClient } from './api';
-import type { SimulationStep } from '@brainsort/core';
+import type { GrafoData, SimulationStep } from '@brainsort/core';
 export type { SimulationMarker, SimulationTreeNode } from '@brainsort/core';
 
 // ─── DTOs (Request) ───────────────────────────────────────────────────────────
 
-/** Conjunto de datos para simular */
+/** Conjunto de datos para simular (arreglos, búsquedas o grafos) */
 export interface ConjuntoDatos {
-  valores: number[]; // Si tipoOrigen === "Predeterminado", se ignora
+  valores?: number[]; // Si tipoOrigen === "Predeterminado", se ignora
   tipoOrigen: 'Predeterminado' | 'Personalizado';
-  tamano: number; // Debe coincidir con valores.length
+  tamano?: number; // Debe coincidir con valores.length
+  objetivo?: number;
+  grafo?: GrafoData;
+  nodoInicio?: string;
 }
 
 /** Request para ejecutar simulación — POST /api/simulaciones (CO3) */

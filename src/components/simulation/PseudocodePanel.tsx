@@ -18,7 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { DarkSurfaces, DarkText, Accent } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { BorderRadius, BorderWidths, Spacing } from '../../styles/spacing';
 import { FontFamilies, FontSizes, FontWeights } from '../../styles/typography';
 import type { PseudocodeLine } from '../../services/library.service';
@@ -40,10 +40,8 @@ const VISIBLE_CODE_HEIGHT = 170;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0F1318',
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: DarkSurfaces.borderSubtle,
     maxHeight: 220,
     overflow: 'hidden',
   },
@@ -51,7 +49,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[2],
     borderBottomWidth: BorderWidths.thin,
-    borderBottomColor: DarkSurfaces.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -59,7 +56,6 @@ const styles = StyleSheet.create({
   headerText: {
     fontFamily: FontFamilies.semiBold,
     fontSize: FontSizes.xs,
-    color: DarkText.muted,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
@@ -72,26 +68,21 @@ const styles = StyleSheet.create({
     minHeight: LINE_HEIGHT,
   },
   lineActive: {
-    backgroundColor: 'rgba(0, 212, 255, 0.1)',
     borderLeftWidth: 3,
-    borderLeftColor: Accent[500],
   },
   lineNumber: {
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.xs,
-    color: DarkText.disabled,
     width: 28,
     textAlign: 'right',
     paddingRight: Spacing[2],
   },
-  lineNumberActive: { color: Accent[500] },
   lineText: {
     fontFamily: FontFamilies.mono,
     fontSize: FontSizes.sm,
-    color: DarkText.secondary,
     flex: 1,
   },
-  lineTextActive: { color: '#FFFFFF', fontWeight: FontWeights.semiBold },
+  lineTextActive: { fontWeight: FontWeights.semiBold },
   inlineVal: {
     fontSize: 11,
     opacity: 0.55,
@@ -116,14 +107,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
     borderWidth: BorderWidths.thin,
-    borderColor: DarkSurfaces.border,
-    backgroundColor: DarkSurfaces.surface,
   },
   zoomButtonText: {
     fontFamily: FontFamilies.medium,
     fontWeight: FontWeights.bold,
     fontSize: 10,
-    color: DarkText.secondary,
   },
 });
 
@@ -134,6 +122,8 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
   currentStep,
   showInlineValues = false,
 }) => {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
   const scrollRef = useRef<ScrollView>(null);
   const [baseFontSize, setBaseFontSize] = useState(13); // Default 13px
 
@@ -268,30 +258,56 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.borderSubtle,
+        },
+      ]}
+    >
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing[2] }}>
           <Text>📋</Text>
-          <Text style={styles.headerText}>Pseudocódigo</Text>
+          <Text style={[styles.headerText, { color: colors.textMuted }]}>
+            Pseudocódigo
+          </Text>
         </View>
         <View style={styles.zoomRow}>
           <TouchableOpacity
-            style={styles.zoomButton}
+            style={[
+              styles.zoomButton,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceElevated,
+              },
+            ]}
             onPress={handleZoomOut}
             accessibilityRole="button"
             accessibilityLabel="Disminuir tamaño de letra"
             testID="btn-zoom-out"
           >
-            <Text style={styles.zoomButtonText}>A-</Text>
+            <Text style={[styles.zoomButtonText, { color: colors.textSecondary }]}>
+              A-
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.zoomButton}
+            style={[
+              styles.zoomButton,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.surfaceElevated,
+              },
+            ]}
             onPress={handleZoomIn}
             accessibilityRole="button"
             accessibilityLabel="Aumentar tamaño de letra"
             testID="btn-zoom-in"
           >
-            <Text style={styles.zoomButtonText}>A+</Text>
+            <Text style={[styles.zoomButtonText, { color: colors.textSecondary }]}>
+              A+
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -306,14 +322,25 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
           return (
             <View
               key={lineObj.line}
-              style={[styles.line, isActive && styles.lineActive]}
+              style={[
+                styles.line,
+                isActive && [
+                  styles.lineActive,
+                  {
+                    backgroundColor: colors.chipActiveBg,
+                    borderLeftColor: colors.brandAccent,
+                  },
+                ],
+              ]}
               accessibilityLabel={`Línea ${lineObj.line}: ${lineObj.text}`}
             >
               <Text
                 style={[
                   styles.lineNumber,
-                  isActive && styles.lineNumberActive,
-                  { fontSize: lineFontSize - 2 },
+                  {
+                    color: isActive ? colors.brandAccent : colors.textDisabled,
+                    fontSize: lineFontSize - 2,
+                  },
                 ]}
               >
                 {lineObj.line}
@@ -322,7 +349,11 @@ export const PseudocodePanel: React.FC<PseudocodePanelProps> = ({
                 style={[
                   styles.lineText,
                   isActive && styles.lineTextActive,
-                  { paddingLeft: lineObj.indent * INDENT_UNIT, fontSize: lineFontSize },
+                  {
+                    color: isActive ? colors.textPrimary : colors.textSecondary,
+                    paddingLeft: lineObj.indent * INDENT_UNIT,
+                    fontSize: lineFontSize,
+                  },
                 ]}
                 numberOfLines={1}
               >

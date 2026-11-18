@@ -1,23 +1,14 @@
 /**
  * ProfileStatsCard.tsx
  * BrainSort — Card de estadísticas resumidas del perfil
- *
- * Referencia: gamification-xp-progression.spec.md
- *            04-contratos-api.md §6 (campos de GET /api/progreso/me)
- *
- * Muestra:
- *   - Simulaciones completadas
- *   - Ejercicios correctos / totales
- *   - Posición en el ranking global
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { DarkSurfaces, DarkText, Accent, Semantic } from '../../styles/colors';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path, Polygon } from 'react-native-svg';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, TextVariants } from '../../styles/typography';
-import { Spacing, BorderRadius } from '../../styles/spacing';
-
-// ─── Props ────────────────────────────────────────────────────────────────────
+import { BorderRadius, Spacing } from '../../styles/spacing';
 
 export interface ProfileStatsCardProps {
   simulacionesCompletadas: number;
@@ -27,20 +18,70 @@ export interface ProfileStatsCardProps {
   puntosTotales: number;
 }
 
-// ─── Sub-componente: StatItem ──────────────────────────────────────────────────
+type StatIconKind = 'play' | 'target' | 'trophy';
 
-interface StatItemProps {
-  icono: string;
-  valor: string;
-  etiqueta: string;
-  color?: string;
+function StatSvgIcon({ kind, color }: { kind: StatIconKind; color: string }) {
+  return (
+    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+      {kind === 'play' && (
+        <Polygon
+          points="7,5 19,12 7,19"
+          stroke={color}
+          strokeWidth={1.85}
+          strokeLinejoin="round"
+        />
+      )}
+      {kind === 'target' && (
+        <>
+          <Circle cx={12} cy={12} r={8.5} stroke={color} strokeWidth={1.85} />
+          <Circle cx={12} cy={12} r={4.5} stroke={color} strokeWidth={1.85} />
+          <Circle cx={12} cy={12} r={1.5} fill={color} />
+        </>
+      )}
+      {kind === 'trophy' && (
+        <>
+          <Path
+            d="M8 4h8v5a4 4 0 0 1-8 0V4Z"
+            stroke={color}
+            strokeWidth={1.85}
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M8 6H5.5a1.5 1.5 0 0 0-1.5 1.5v1A3.5 3.5 0 0 0 7.5 12H8M16 6h2.5A1.5 1.5 0 0 1 20 7.5v1A3.5 3.5 0 0 1 16.5 12H16M12 13v4M9 20h6M9.5 17h5"
+            stroke={color}
+            strokeWidth={1.85}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      )}
+    </Svg>
+  );
 }
 
-const StatItem: React.FC<StatItemProps> = ({ icono, valor, etiqueta, color }) => (
+interface StatItemProps {
+  icon: StatIconKind;
+  valor: string;
+  etiqueta: string;
+  color: string;
+  tintBg: string;
+  labelColor: string;
+}
+
+const StatItem: React.FC<StatItemProps> = ({
+  icon,
+  valor,
+  etiqueta,
+  color,
+  tintBg,
+  labelColor,
+}) => (
   <View style={statStyles.item}>
-    <Text style={statStyles.icon}>{icono}</Text>
-    <Text style={[statStyles.value, color ? { color } : undefined]}>{valor}</Text>
-    <Text style={statStyles.label}>{etiqueta}</Text>
+    <View style={[statStyles.iconBox, { backgroundColor: tintBg }]}>
+      <StatSvgIcon kind={icon} color={color} />
+    </View>
+    <Text style={[statStyles.value, { color }]}>{valor}</Text>
+    <Text style={[statStyles.label, { color: labelColor }]}>{etiqueta}</Text>
   </View>
 );
 
@@ -48,39 +89,28 @@ const statStyles = StyleSheet.create({
   item: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: Spacing[3],
+    paddingVertical: Spacing[2],
   },
-  icon: {
-    fontSize: 24,
-    marginBottom: Spacing[1],
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing[2],
   },
   value: {
     ...TextVariants.h3,
-    color: Accent[500],
     fontWeight: FontWeights.bold,
+    ...(Platform.OS === 'web' ? { fontVariant: ['tabular-nums'] } : {}),
   },
   label: {
     ...TextVariants.labelSm,
-    color: DarkText.muted,
     textAlign: 'center',
     marginTop: Spacing[1],
   },
 });
 
-// ─── Componente Principal ─────────────────────────────────────────────────────
-
-/**
- * Card de estadísticas del perfil del usuario.
- *
- * @example
- * <ProfileStatsCard
- *   simulacionesCompletadas={progreso.simulacionesCompletadas}
- *   ejerciciosCorrectos={progreso.ejerciciosCorrectos}
- *   ejerciciosTotales={progreso.ejerciciosTotales}
- *   posicionRanking={progreso.posicionRanking}
- *   puntosTotales={progreso.puntosTotales}
- * />
- */
 export const ProfileStatsCard: React.FC<ProfileStatsCardProps> = ({
   simulacionesCompletadas,
   ejerciciosCorrectos,
@@ -88,47 +118,80 @@ export const ProfileStatsCard: React.FC<ProfileStatsCardProps> = ({
   posicionRanking,
   puntosTotales,
 }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
+
   const precisionEjercicios =
     ejerciciosTotales > 0
       ? Math.round((ejerciciosCorrectos / ejerciciosTotales) * 100)
       : 0;
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Estadísticas</Text>
-      <View style={styles.divider} />
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.textSecondary }]}>
+        Estadísticas
+      </Text>
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-      {/* Fila 1: Simulaciones y Precisión */}
       <View style={styles.row}>
         <StatItem
-          icono="▶️"
+          icon="play"
           valor={String(simulacionesCompletadas)}
           etiqueta="Simulaciones"
-          color={Accent[500]}
+          color={colors.brandAccent}
+          tintBg={colors.infoLight}
+          labelColor={colors.textMuted}
         />
-        <View style={styles.separator} />
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
         <StatItem
-          icono="🎯"
+          icon="target"
           valor={`${precisionEjercicios}%`}
           etiqueta="Precisión"
-          color={precisionEjercicios >= 70 ? Semantic.success : Semantic.warning}
+          color={precisionEjercicios >= 70 ? colors.success : colors.warning}
+          tintBg={
+            precisionEjercicios >= 70 ? colors.successLight : colors.warningLight
+          }
+          labelColor={colors.textMuted}
         />
-        <View style={styles.separator} />
+        <View style={[styles.separator, { backgroundColor: colors.border }]} />
         <StatItem
-          icono="🏆"
+          icon="trophy"
           valor={posicionRanking > 0 ? `#${posicionRanking}` : '—'}
           etiqueta="Ranking"
-          color={posicionRanking <= 3 ? Semantic.warning : Accent[500]}
+          color={
+            posicionRanking > 0 && posicionRanking <= 3
+              ? colors.warning
+              : colors.brandAccent
+          }
+          tintBg={
+            posicionRanking > 0 && posicionRanking <= 3
+              ? colors.warningLight
+              : colors.infoLight
+          }
+          labelColor={colors.textMuted}
         />
       </View>
 
-      {/* Fila 2: Ejercicios detallados */}
-      <View style={styles.exerciseRow}>
+      <View style={[styles.exerciseRow, { borderTopColor: colors.border }]}>
         <Text style={styles.exerciseText}>
-          <Text style={styles.exerciseHighlight}>{ejerciciosCorrectos}</Text>
-          <Text style={styles.exerciseMuted}> / {ejerciciosTotales} ejercicios correctos</Text>
+          <Text
+            style={[
+              styles.exerciseHighlight,
+              { color: colors.brandAccent },
+            ]}
+          >
+            {ejerciciosCorrectos}
+          </Text>
+          <Text style={[styles.exerciseMuted, { color: colors.textMuted }]}>
+            {' '}/ {ejerciciosTotales} ejercicios correctos
+          </Text>
         </Text>
-        <Text style={styles.exerciseMuted}>
+        <Text style={[styles.exerciseMuted, styles.tabular, { color: colors.textMuted }]}>
           {puntosTotales.toLocaleString('es-MX')} XP totales
         </Text>
       </View>
@@ -136,23 +199,19 @@ export const ProfileStatsCard: React.FC<ProfileStatsCardProps> = ({
   );
 };
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
+    borderWidth: 1,
     padding: Spacing[5],
     marginBottom: Spacing[4],
   },
   title: {
     ...TextVariants.h4,
-    color: DarkText.secondary,
     marginBottom: Spacing[3],
   },
   divider: {
     height: 1,
-    backgroundColor: DarkSurfaces.border,
     marginBottom: Spacing[3],
   },
   row: {
@@ -162,8 +221,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     width: 1,
-    height: 48,
-    backgroundColor: DarkSurfaces.border,
+    height: 54,
   },
   exerciseRow: {
     flexDirection: 'row',
@@ -172,18 +230,23 @@ const styles = StyleSheet.create({
     marginTop: Spacing[3],
     paddingTop: Spacing[3],
     borderTopWidth: 1,
-    borderTopColor: DarkSurfaces.border,
+    gap: Spacing[2],
+    flexWrap: 'wrap',
   },
   exerciseText: {
-    flex: 1,
+    flexShrink: 1,
   },
   exerciseHighlight: {
     ...TextVariants.bodyMd,
-    color: Accent[500],
     fontWeight: FontWeights.bold,
+    ...(Platform.OS === 'web' ? { fontVariant: ['tabular-nums'] } : {}),
   },
   exerciseMuted: {
     ...TextVariants.bodySm,
-    color: DarkText.muted,
+  },
+  tabular: {
+    ...(Platform.OS === 'web' ? { fontVariant: ['tabular-nums'] } : {}),
   },
 });
+
+export default ProfileStatsCard;

@@ -1,4 +1,9 @@
-export type CategoriaAlgoritmo = 'Ordenamiento' | 'Busqueda' | 'EstructurasLineales' | 'EstructurasArboles';
+export type CategoriaAlgoritmo =
+  | 'Ordenamiento'
+  | 'Busqueda'
+  | 'EstructurasLineales'
+  | 'EstructurasArboles'
+  | 'Grafos';
 
 export interface AlgoritmoMeta {
   nombre: string;
@@ -6,6 +11,8 @@ export interface AlgoritmoMeta {
   complejidadTiempo: string;
   complejidadEspacio: string;
   categoria: CategoriaAlgoritmo;
+  tipoEstructura?: 'array' | 'grafo';
+  requiereOrdenado?: boolean;
 }
 
 export interface Algoritmo extends AlgoritmoMeta {

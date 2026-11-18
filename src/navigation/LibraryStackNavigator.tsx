@@ -17,7 +17,7 @@ import LibraryScreen from '../screens/library/LibraryScreen';
 import AlgorithmDetailScreen from '../screens/library/AlgorithmDetailScreen';
 import SimulationScreen from '../screens/simulation/SimulationScreen';
 import { ExerciseScreen } from '../screens/gamification/ExerciseScreen';
-import { DarkSurfaces, DarkText } from '../styles/colors';
+import { useThemeContext } from '../context/ThemeContext';
 import { FontFamilies, FontWeights, FontSizes } from '../styles/typography';
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -34,13 +34,16 @@ export type LibraryStackParamList = {
 const Stack = createNativeStackNavigator<LibraryStackParamList>();
 
 export default function LibraryStackNavigator() {
+  const { theme } = useThemeContext();
+  const { colors } = theme;
+
   return (
     <Stack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: DarkSurfaces.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: DarkText.primary,
+        headerTintColor: colors.textPrimary,
         headerTitleStyle: {
           fontFamily: FontFamilies.semiBold,
           fontWeight: FontWeights.semiBold,
@@ -49,7 +52,7 @@ export default function LibraryStackNavigator() {
         headerShadowVisible: false,
         headerBackTitleVisible: false,
         contentStyle: {
-          backgroundColor: DarkSurfaces.background,
+          backgroundColor: colors.background,
         },
         animation: 'slide_from_right',
       }}

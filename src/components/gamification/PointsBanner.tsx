@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { DarkSurfaces, DarkText, Accent } from '../../styles/colors';
+import { useThemeContext } from '../../context/ThemeContext';
 import { FontWeights, FontSizes, TextVariants } from '../../styles/typography';
 import { Spacing, BorderRadius } from '../../styles/spacing';
 
@@ -10,36 +10,47 @@ export interface PointsBannerProps {
 }
 
 export const PointsBanner: React.FC<PointsBannerProps> = ({ puntos, nivel }) => {
+  const { theme } = useThemeContext();
+  const colors = theme.colors;
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Puntos Totales</Text>
-      <Text style={styles.pointsValue}>{puntos}</Text>
-      <Text style={styles.levelLabel}>Nivel {nivel}</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: colors.surface, borderColor: colors.border },
+      ]}
+    >
+      <Text style={[styles.cardTitle, { color: colors.textSecondary }]}>
+        Puntos Totales
+      </Text>
+      <Text style={[styles.pointsValue, { color: colors.brandAccent }]}>
+        {puntos.toLocaleString('es-MX')}
+      </Text>
+      <Text style={[styles.levelLabel, { color: colors.textMuted }]}>
+        Nivel {nivel}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: DarkSurfaces.surface,
     borderRadius: BorderRadius.lg,
-    padding: Spacing[5],
-    marginBottom: Spacing[4],
+    borderWidth: 1,
+    padding: Spacing[4],
   },
   cardTitle: {
-    ...TextVariants.h4,
-    color: DarkText.secondary,
-    marginBottom: Spacing[3],
+    ...TextVariants.labelMd,
+    marginBottom: Spacing[2],
   },
   pointsValue: {
     ...TextVariants.display,
-    fontSize: FontSizes['4xl'],
-    color: Accent[500],
+    fontSize: FontSizes['3xl'],
     fontWeight: FontWeights.bold,
+    fontVariant: ['tabular-nums'],
   },
   levelLabel: {
     ...TextVariants.labelMd,
-    color: DarkText.muted,
     marginTop: Spacing[1],
   },
 });

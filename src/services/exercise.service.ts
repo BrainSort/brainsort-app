@@ -24,7 +24,8 @@ export type DificultadEjercicio = 'Facil' | 'Medio' | 'Dificil';
 export type TipoEjercicio =
   | 'PrediccionTexto'
   | 'CompletarPseudocodigo'
-  | 'OrdenarBarras';
+  | 'OrdenarBarras'
+  | 'SecuenciaGrafos';
 
 export interface PseudocodeExerciseContent {
   antes?: string;
@@ -37,6 +38,16 @@ export interface BarsExerciseContent {
   pasoObjetivo?: string;
 }
 
+export interface GraphExerciseContent {
+  grafo?: {
+    nodos: string[];
+    aristas: [string, string][];
+    dirigido?: boolean;
+  };
+  nodoInicio?: string;
+  secuenciaEsperada?: string[];
+}
+
 /** Ejercicio de predicción (GET /api/ejercicios/:algoritmoId) */
 export interface Ejercicio {
   id: string;
@@ -45,7 +56,11 @@ export interface Ejercicio {
   dificultad: DificultadEjercicio;
   algoritmoId: string;
   opciones?: string[];
-  contenido?: PseudocodeExerciseContent | BarsExerciseContent | null;
+  contenido?:
+    | PseudocodeExerciseContent
+    | BarsExerciseContent
+    | GraphExerciseContent
+    | null;
 }
 
 /** Response de GET /api/ejercicios/:algoritmoId */
@@ -55,7 +70,7 @@ export type GetExercisesResponse = Ejercicio[];
 
 /** Request para responder ejercicio — POST /api/ejercicios/:id/responder */
 export interface AnswerExerciseRequest {
-  respuesta: string;
+  respuesta: string | string[];
 }
 
 /** Progreso del usuario tras responder ejercicio */
@@ -122,11 +137,15 @@ export const exerciseService = {
    */
   async answerExercise(
     ejercicioId: string,
-    respuesta: string,
+    respuesta: string | string[],
   ): Promise<ExerciseResult> {
+    const serializedRespuesta = Array.isArray(respuesta)
+      ? JSON.stringify(respuesta)
+      : respuesta;
+
     return apiClient.post<ExerciseResult>(
       `/ejercicios/${ejercicioId}/responder`,
-      { respuesta },
+      { respuesta: serializedRespuesta },
       { public: false }, // Autenticado — otorga puntos al usuario
     );
   },

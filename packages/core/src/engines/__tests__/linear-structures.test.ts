@@ -12,7 +12,7 @@ describe('linear structure engines', () => {
       estadoArray: [1],
       lineaPseudocodigo: 2,
     });
-    expect(steps.some((step) => step.estadoArray.join(',') === '1,2,3')).toBe(true);
+    expect(steps.some((step) => step.estadoArray?.join(',') === '1,2,3')).toBe(true);
     expect(steps[steps.length - 1]).toMatchObject({
       tipoOperacion: 'final',
       estadoArray: [],
@@ -30,7 +30,7 @@ describe('linear structure engines', () => {
       estadoArray: [1],
       lineaPseudocodigo: 2,
     });
-    expect(steps.some((step) => step.tipoOperacion === 'intercambio' && step.indicesActivos[0] === 0)).toBe(true);
+    expect(steps.some((step) => step.tipoOperacion === 'intercambio' && step.indicesActivos?.[0] === 0)).toBe(true);
     expect(steps[steps.length - 1]).toMatchObject({
       tipoOperacion: 'final',
       estadoArray: [],
@@ -48,7 +48,7 @@ describe('linear structure engines', () => {
       estadoArray: [1],
       lineaPseudocodigo: 2,
     });
-    expect(steps.some((step) => step.estadoArray.join(',') === '3,2,1')).toBe(true);
+    expect(steps.some((step) => step.estadoArray?.join(',') === '3,2,1')).toBe(true);
     expect(steps[steps.length - 1]).toMatchObject({
       tipoOperacion: 'final',
       estadoArray: [3, 2, 1],
