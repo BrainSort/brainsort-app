@@ -110,7 +110,7 @@ export function calcularProgresoNivel(
   const nivel = Math.min(Math.max(nivelActual, 1), NIVEL_MAXIMO);
   const esNivelMaximo = nivel >= NIVEL_MAXIMO;
 
-  const xpInicio = xpParaNivel(nivel);          // XP al inicio del nivel actual
+  const xpInicio = nivel === 1 ? 0 : xpParaNivel(nivel); // Nivel 1 inicia en 0 XP
   const xpSiguiente = xpParaNivel(nivel + 1);   // XP para el siguiente nivel
 
   const xpGanado = Math.max(puntosTotales - xpInicio, 0);

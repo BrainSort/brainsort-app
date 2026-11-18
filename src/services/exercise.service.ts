@@ -43,6 +43,8 @@ export interface GraphExerciseContent {
     nodos: string[];
     aristas: [string, string][];
     dirigido?: boolean;
+    pesos?: Record<string, number>;
+    aristasPonderadas?: [string, string, number][];
   };
   nodoInicio?: string;
   secuenciaEsperada?: string[];

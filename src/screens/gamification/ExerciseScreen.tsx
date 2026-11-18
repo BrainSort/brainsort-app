@@ -274,6 +274,7 @@ export const ExerciseScreen: React.FC<Props> = ({ route, navigation }) => {
             pregunta={currentExercise.pregunta}
             opciones={currentExercise.opciones}
             contenido={currentExercise.contenido}
+            algorithmName={algoritmo?.nombre}
             progressCurrent={currentExerciseIndex + 1}
             progressTotal={ejercicios.length}
             isSubmittingAnswer={isSubmittingAnswer}
